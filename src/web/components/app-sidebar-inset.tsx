@@ -25,25 +25,6 @@ export function AppSidebarInset({ children }: { children: React.ReactNode }) {
               Toggle Sidebar <kbd className="ml-2">⌘+b</kbd>
             </TooltipContent>
           </Tooltip>
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">
-                  A shadcn/ui Resizeable Sidebar
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="block md:hidden">
-                  Sidebar is only resizable on desktop
-                </BreadcrumbPage>
-                <BreadcrumbPage className="hidden md:block">
-                  Try to drag the sidebar
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
         </div>
         <div className="mr-2 sm:mr-4">
         </div>
