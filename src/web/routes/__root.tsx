@@ -1,8 +1,12 @@
 import type { ErrorComponentProps } from '@tanstack/react-router';
-import { createRootRouteWithContext, ErrorComponent, Outlet } from '@tanstack/react-router';
+import {
+  createRootRouteWithContext,
+  ErrorComponent,
+  Outlet,
+} from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
-import { Providers } from '../components/providers';
-import type { RootRouterContext } from '../router.ts';
+import { Providers } from '@web/components/providers';
+import type { RootRouterContext } from '@web/router';
 
 export const Route = createRootRouteWithContext<RootRouterContext>()({
   component: RootComponent,
@@ -12,9 +16,7 @@ export const Route = createRootRouteWithContext<RootRouterContext>()({
 function RootComponent() {
   return (
     <Providers>
-      <div className='root-content'>
-        <Outlet />
-      </div>
+      <Outlet />
       {import.meta.env.DEV && <TanStackRouterDevtools position='bottom-right' />}
     </Providers>
   );

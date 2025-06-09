@@ -12,8 +12,10 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as TodosExampleImport } from './routes/todos-example'
-import { Route as IndexImport } from './routes/index'
+import { Route as ChatImport } from './routes/_chat'
+import { Route as ChatIndexImport } from './routes/_chat.index'
 import { Route as AuthIdImport } from './routes/auth.$id'
+import { Route as ChatChatIdImport } from './routes/_chat.$chatId'
 import { Route as ApiAuthCallbackGoogleImport } from './routes/api.auth.callback.google'
 
 // Create/Update Routes
@@ -24,16 +26,27 @@ const TodosExampleRoute = TodosExampleImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const IndexRoute = IndexImport.update({
+const ChatRoute = ChatImport.update({
+  id: '/_chat',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ChatIndexRoute = ChatIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => ChatRoute,
 } as any)
 
 const AuthIdRoute = AuthIdImport.update({
   id: '/auth/$id',
   path: '/auth/$id',
   getParentRoute: () => rootRoute,
+} as any)
+
+const ChatChatIdRoute = ChatChatIdImport.update({
+  id: '/$chatId',
+  path: '/$chatId',
+  getParentRoute: () => ChatRoute,
 } as any)
 
 const ApiAuthCallbackGoogleRoute = ApiAuthCallbackGoogleImport.update({
@@ -46,11 +59,11 @@ const ApiAuthCallbackGoogleRoute = ApiAuthCallbackGoogleImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
+    '/_chat': {
+      id: '/_chat'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof ChatImport
       parentRoute: typeof rootRoute
     }
     '/todos-example': {
@@ -60,12 +73,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TodosExampleImport
       parentRoute: typeof rootRoute
     }
+    '/_chat/$chatId': {
+      id: '/_chat/$chatId'
+      path: '/$chatId'
+      fullPath: '/$chatId'
+      preLoaderRoute: typeof ChatChatIdImport
+      parentRoute: typeof ChatImport
+    }
     '/auth/$id': {
       id: '/auth/$id'
       path: '/auth/$id'
       fullPath: '/auth/$id'
       preLoaderRoute: typeof AuthIdImport
       parentRoute: typeof rootRoute
+    }
+    '/_chat/': {
+      id: '/_chat/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof ChatIndexImport
+      parentRoute: typeof ChatImport
     }
     '/api/auth/callback/google': {
       id: '/api/auth/callback/google'
@@ -79,51 +106,81 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
+interface ChatRouteChildren {
+  ChatChatIdRoute: typeof ChatChatIdRoute
+  ChatIndexRoute: typeof ChatIndexRoute
+}
+
+const ChatRouteChildren: ChatRouteChildren = {
+  ChatChatIdRoute: ChatChatIdRoute,
+  ChatIndexRoute: ChatIndexRoute,
+}
+
+const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
+
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '': typeof ChatRouteWithChildren
   '/todos-example': typeof TodosExampleRoute
+  '/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
+  '/': typeof ChatIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/todos-example': typeof TodosExampleRoute
+  '/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
+  '/': typeof ChatIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
+  '/_chat': typeof ChatRouteWithChildren
   '/todos-example': typeof TodosExampleRoute
+  '/_chat/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
+  '/_chat/': typeof ChatIndexRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/todos-example' | '/auth/$id' | '/api/auth/callback/google'
+  fullPaths:
+    | ''
+    | '/todos-example'
+    | '/$chatId'
+    | '/auth/$id'
+    | '/'
+    | '/api/auth/callback/google'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/todos-example' | '/auth/$id' | '/api/auth/callback/google'
+  to:
+    | '/todos-example'
+    | '/$chatId'
+    | '/auth/$id'
+    | '/'
+    | '/api/auth/callback/google'
   id:
     | '__root__'
-    | '/'
+    | '/_chat'
     | '/todos-example'
+    | '/_chat/$chatId'
     | '/auth/$id'
+    | '/_chat/'
     | '/api/auth/callback/google'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  ChatRoute: typeof ChatRouteWithChildren
   TodosExampleRoute: typeof TodosExampleRoute
   AuthIdRoute: typeof AuthIdRoute
   ApiAuthCallbackGoogleRoute: typeof ApiAuthCallbackGoogleRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  ChatRoute: ChatRouteWithChildren,
   TodosExampleRoute: TodosExampleRoute,
   AuthIdRoute: AuthIdRoute,
   ApiAuthCallbackGoogleRoute: ApiAuthCallbackGoogleRoute,
@@ -139,20 +196,32 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
+        "/_chat",
         "/todos-example",
         "/auth/$id",
         "/api/auth/callback/google"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
+    "/_chat": {
+      "filePath": "_chat.tsx",
+      "children": [
+        "/_chat/$chatId",
+        "/_chat/"
+      ]
     },
     "/todos-example": {
       "filePath": "todos-example.tsx"
     },
+    "/_chat/$chatId": {
+      "filePath": "_chat.$chatId.tsx",
+      "parent": "/_chat"
+    },
     "/auth/$id": {
       "filePath": "auth.$id.tsx"
+    },
+    "/_chat/": {
+      "filePath": "_chat.index.tsx",
+      "parent": "/_chat"
     },
     "/api/auth/callback/google": {
       "filePath": "api.auth.callback.google.tsx"
