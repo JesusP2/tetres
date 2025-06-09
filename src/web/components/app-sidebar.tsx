@@ -3,7 +3,6 @@ import {
   Plus,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@web/components/ui/avatar";
 import {
   Sidebar,
   SidebarContent,
@@ -22,27 +21,69 @@ import { Button } from "@web/components/ui/button";
 import { Input } from "@web/components/ui/input";
 import { ScrollArea } from "@web/components/ui/scroll-area";
 import { NavUser } from "./nav-user";
+import { db } from '@web/lib/instant';
+import { type Chat } from '@web/lib/chats';
+import { authClient } from '@web/lib/auth-client';
+import { groupBy, pipe, sortBy } from 'remeda';
+import { Link, useNavigate } from '@tanstack/react-router';
 
-const chatHistory = {
-  today: [{ title: "Greeting" }, { title: "Response to kkkkk" }],
-  yesterday: [
-    { title: "Texto y preguntas 3", withIcon: true },
-    { title: "Texto y preguntas 2", withIcon: true },
-    { title: "extract text 1" },
-    { title: "HTML Ergonomics Content Extraction" },
-    { title: "extract text 2", withIcon: true },
-  ],
-  "last 7 days": [
-    { title: "Texto y preguntas 1" },
-    { title: "RESICO en México ¿Qué es?" },
-    { title: "Regex Explanation" },
-    { title: "Throttling logic check" },
-    { title: "Services folder usage in codebase" },
-  ],
-  "last 30 days": [{ title: "uv add manim fails to build m..." }],
-  "older": [{ title: "uv add manim fails to build m..." }],
+const groupChats = (chats: Chat[]) => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  return pipe(
+    chats,
+    sortBy([(c: Chat) => c.createdAt, 'desc']),
+    groupBy((chat: Chat) => {
+      const createdAt = new Date(chat.createdAt);
+      if (createdAt >= today) {
+        return 'Today';
+      } else if (createdAt >= yesterday) {
+        return 'Yesterday';
+      } else if (createdAt >= sevenDaysAgo) {
+        return 'Last 7 days';
+      } else if (createdAt >= thirtyDaysAgo) {
+        return 'Last 30 days';
+      } else {
+        return 'Older';
+      }
+    })
+  );
 };
+
 export function AppSidebar({ children }: { children: React.ReactNode }) {
+  const session = authClient.useSession();
+  const userId = session.data?.session?.userId;
+  const { data } = db.useQuery(
+    userId
+      ? {
+          chats: {
+            $: {
+              where: {
+                userId: userId,
+              },
+            },
+          },
+        }
+      : {}
+  );
+
+  const chats = data?.chats || [];
+  const groupedChats = groupChats(chats);
+  const navigate = useNavigate();
+
+  const handleNewChat = () => {
+    if (session.data?.session) {
+      navigate({ to: '/', search: { new: true } });
+    }
+  };
+
   return (
     <>
       <Sidebar collapsible="icon">
@@ -54,7 +95,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent className="overflow-hidden">
           <div className="p-4 flex flex-col gap-4">
-            <Button>
+            <Button onClick={handleNewChat}>
               <Plus className="mr-2" /> New Chat
             </Button>
             <div className="relative">
@@ -69,19 +110,26 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
             className="h-full overflow-y-auto mr-2 masked-scroll-area"
           >
             <SidebarMenu>
-              {Object.entries(chatHistory).map(([period, chats]) => (
+              {Object.entries(groupedChats).map(([period, chats]) => (
                 <div key={period} className="p-4">
                   <div className="text-sm font-semibold text-muted-foreground mb-2 capitalize">
                     {period}
                   </div>
-                  {chats.map((chat) => (
-                    <SidebarMenuItem key={chat.title}>
-                      <SidebarMenuButton
-                        className="w-full justify-start"
+                  {chats.map((chat: Chat) => (
+                    <SidebarMenuItem key={chat.id}>
+                      <Link
+                        to="/$chatId"
+                        params={{ chatId: chat.id }}
+                        className="w-full"
+                        activeProps={{
+                          className: 'bg-accent text-accent-foreground',
+                        }}
                       >
-                        {'withIcon' in chat && chat.withIcon && <MessageSquare className="mr-2" />}
-                        <span className="truncate">{chat.title}</span>
-                      </SidebarMenuButton>
+                        <SidebarMenuButton className="w-full justify-start">
+                          <MessageSquare className="mr-2" />
+                          <span className="truncate">{chat.title}</span>
+                        </SidebarMenuButton>
+                      </Link>
                     </SidebarMenuItem>
                   ))}
                 </div>

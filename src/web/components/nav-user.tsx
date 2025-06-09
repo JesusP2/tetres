@@ -1,12 +1,12 @@
 "use client"
 
-import {
-  IconCreditCard,
-  IconDotsVertical,
-  IconLogout,
-  IconNotification,
-  IconUserCircle,
-} from "@tabler/icons-react"
+// import {
+//   IconCreditCard,
+//   IconDotsVertical,
+//   IconLogout,
+//   IconNotification,
+//   IconUserCircle,
+// } from "@tabler/icons-react"
 
 import {
   Avatar,
@@ -29,7 +29,7 @@ import {
   useSidebar,
 } from "@web/components/ui/sidebar"
 import { authClient } from "@web/lib/auth-client"
-import { Button, buttonVariants } from "./ui/button"
+import { buttonVariants } from "./ui/button"
 import { Link } from "@tanstack/react-router"
 
 export function NavUser() {
@@ -67,7 +67,7 @@ export function NavUser() {
                   {sessionData.data.user.email}
                 </span>
               </div>
-              <IconDotsVertical className="ml-auto size-4" />
+              {/*<IconDotsVertical className="ml-auto size-4" />*/}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -93,21 +93,21 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <IconUserCircle />
+                {/*<IconUserCircle />*/}
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconCreditCard />
+                {/*<IconCreditCard />*/}
                 Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconNotification />
+                {/*<IconNotification />*/}
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <IconLogout />
+              {/*<IconLogout />*/}
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
