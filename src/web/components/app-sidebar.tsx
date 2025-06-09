@@ -64,7 +64,9 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
               />
             </div>
           </div>
-          <ScrollArea className="h-full overflow-y-auto mr-2">
+          <ScrollArea
+            className="h-full overflow-y-auto mr-2 masked-scroll-area"
+          >
             <SidebarMenu>
               {Object.entries(chatHistory).map(([period, chats]) => (
                 <div key={period} className="p-4">
