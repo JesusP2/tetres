@@ -21,6 +21,7 @@ import { MessageSquare, Search } from "lucide-react";
 import { Button } from "@web/components/ui/button";
 import { Input } from "@web/components/ui/input";
 import { ScrollArea } from "@web/components/ui/scroll-area";
+import { NavUser } from "./nav-user";
 
 const chatHistory = {
   today: [{ title: "Greeting" }, { title: "Response to kkkkk" }],
@@ -45,7 +46,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Sidebar collapsible="icon">
-        <SidebarHeader>
+        <SidebarHeader className="mt-2">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="sticky" />
             <h2 className="text-lg font-semibold">T3.chat</h2>
@@ -88,19 +89,8 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </ScrollArea>
         </SidebarContent>
-        <SidebarFooter>
-          <div className="p-4">
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src="/avatars/user.png" alt="Jesus Perez" />
-                <AvatarFallback className="rounded-lg">J</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col items-start">
-                <span className="font-semibold">Jesus Perez</span>
-                <span className="text-xs text-muted-foreground">Pro</span>
-              </div>
-            </Button>
-          </div>
+        <SidebarFooter className="mb-2">
+          <NavUser />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>

@@ -58,11 +58,35 @@ const _schema = i.schema({
       transports: i.string().optional(),
       createdAt: i.date().optional(),
     }),
+    projects: i.entity({
+      name: i.string(),
+      pinned: i.boolean(),
+      userId: i.string().indexed(),
+      updatedAt: i.date(),
+      createdAt: i.date(),
+    }),
+    chats: i.entity({
+      title: i.string(),
+      pinned: i.boolean(),
+      projectId: i.string().indexed().optional(),
+      userId: i.string().indexed(),
+      updatedAt: i.date(),
+      createdAt: i.date()
+    }),
+    messages: i.entity({
+      role: i.string(),
+      content: i.string(),
+      model: i.string().optional(),
+      chatId: i.string().indexed(),
+      updatedAt: i.date(),
+      createdAt: i.date(),
+    }),
     todos: i.entity({
       text: i.string(),
       userId: i.string().indexed(),
       done: i.boolean(),
-      createdAt: i.number(),
+      updatedAt: i.date(),
+      createdAt: i.date(),
     }),
   },
   links: {
@@ -110,6 +134,42 @@ const _schema = i.schema({
         onDelete: 'cascade',
       },
       reverse: { on: 'users', has: 'many', label: 'todos' },
+    },
+    projectsUser: {
+      forward: {
+        on: 'projects',
+        has: 'one',
+        label: 'user',
+        onDelete: 'cascade',
+      },
+      reverse: { on: 'users', has: 'many', label: 'projects' },
+    },
+    projectsChat: {
+      forward: {
+        on: 'projects',
+        has: 'one',
+        label: 'chat',
+        onDelete: 'cascade',
+      },
+      reverse: { on: 'projects', has: 'many', label: 'chats' },
+    },
+    chatsUser: {
+      forward: {
+        on: 'chats',
+        has: 'one',
+        label: 'user',
+        onDelete: 'cascade',
+      },
+      reverse: { on: 'users', has: 'many', label: 'chats' },
+    },
+    messagesChat: {
+      forward: {
+        on: 'messages',
+        has: 'one',
+        label: 'chat',
+        onDelete: 'cascade',
+      },
+      reverse: { on: 'chats', has: 'many', label: 'messages' },
     },
   },
 });
