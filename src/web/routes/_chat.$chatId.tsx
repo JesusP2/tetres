@@ -20,10 +20,16 @@ function RouteComponent() {
   });
 
   if (isLoading) return <div>Loading...</div>;
-console.log(chatId, data)
   if (error) return <div>Error: {error.message}</div>;
 
   const chat = data.chats[0];
-  const messages = chat?.messages;
+  const messages = chat?.messages.map(message => ({
+    ...message,
+    content: objectToString(message.content),
+  }));
   return <Chat chat={chat} messages={messages} />;
+}
+
+function objectToString(obj: any) {
+  return Object.values(obj).join('');
 }

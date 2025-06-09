@@ -1,7 +1,8 @@
 import { ChatFooter } from './footer';
 import type { Chat as ChatType, Message } from '@web/lib/types';
 import { sortBy } from 'remeda';
-import { createMessage } from '@web/lib/messages';
+import { saveMessage } from '@web/lib/messages';
+import { authClient } from '@web/lib/auth-client';
 
 type ChatProps = {
   chat?: ChatType;
@@ -11,6 +12,7 @@ type ChatProps = {
 
 export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
   const sortedMessages = sortBy(messages, (m: Message) => m.createdAt);
+  const session = authClient.useSession();
 
   const handleNewMessage = async (message: string) => {
     if (onSubmit) {
@@ -18,20 +20,20 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
       return;
     }
     if (chat) {
-      await createMessage({
-        chatId: chat.id,
-        role: 'user',
-        content: message,
-      });
-      // Mocked bot response
-      setTimeout(
-        () =>
-          createMessage({
+      await saveMessage(
+        [
+          ...sortedMessages.map((m) => ({
             chatId: chat.id,
-            role: 'assistant',
-            content: 'This is a mocked response.',
-          }),
-        1000
+            role: m.role as any,
+            content: m.content,
+          })),
+          {
+            chatId: chat.id,
+            role: 'user' as const,
+            content: message,
+          }
+        ],
+        session.data?.session?.userId
       );
     }
   };
@@ -46,8 +48,8 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
           >
             <div
               className={`p-2 rounded-lg max-w-xs md:max-w-md ${m.role === 'user'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted'
                 }`}
             >
               {m.content}
