@@ -64,7 +64,7 @@ const SidebarProvider = React.forwardRef<
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     //* new prop for default width
-    defaultWidth?: string;
+    defaultWidth: string;
   }
 >(
   (
@@ -75,7 +75,7 @@ const SidebarProvider = React.forwardRef<
       className,
       style,
       children,
-      defaultWidth = SIDEBAR_WIDTH,
+      defaultWidth,
       ...props
     },
     ref,

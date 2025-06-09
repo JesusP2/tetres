@@ -6,28 +6,17 @@ type ProviderProps = {
   children: React.ReactNode;
 };
 
-export async function ChatLayout({ children }: ProviderProps) {
-  let sidebarState: string | null = null;
-  let sidebarWidth: string | null = SIDEBAR_WIDTH;
-  document.cookie.split(";").forEach((cookie) => {
-    const parts = cookie.split("=");
-    if (parts[0] === "sidebar:state") {
-      sidebarState = parts[1];
-    }
-    if (parts[0] === "sidebar:width") {
-      sidebarWidth = parts[1];
-    }
-  });
-  console.log(sidebarState, sidebarWidth)
-
-  let defaultOpen = true;
-
-  if (sidebarState) {
-    defaultOpen = sidebarState === "true";
-  }
+function getCookieValue(name: string) {
+  const value = document.cookie.match(`(^|;)\\s*${name}\\s*=\\s*([^;]+)`)?.[2];
+  return value;
+}
+export function ChatLayout({ children }: ProviderProps) {
+  const sidebarState = getCookieValue("sidebar:state") ?? 'false';
+  const sidebarWidth = getCookieValue("sidebar:width") ?? SIDEBAR_WIDTH;
+  const defaultOpen = sidebarState === "true";
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen} defaultWidth={sidebarWidth} >
+    <SidebarProvider defaultOpen={defaultOpen} defaultWidth={sidebarWidth}>
       <AppSidebar>
         <AppSidebarInset>{children}</AppSidebarInset>
       </AppSidebar>
