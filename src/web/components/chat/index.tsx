@@ -10,6 +10,16 @@ type ChatProps = {
   onSubmit?: (message: string) => void;
 };
 
+function objectToString(obj: any): string {
+  if (typeof obj === 'string') {
+    return obj;
+  }
+  if (obj && typeof obj === 'object') {
+    return Object.values(obj).join('');
+  }
+  return '';
+}
+
 export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
   const sortedMessages = sortBy(messages, (m: Message) => m.createdAt);
   const session = authClient.useSession();
@@ -19,13 +29,14 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
       onSubmit(message);
       return;
     }
-    if (chat) {
+    const userId = session.data?.session?.userId;
+    if (chat && userId) {
       await saveMessage(
         [
           ...sortedMessages.map((m) => ({
             chatId: chat.id,
             role: m.role as any,
-            content: m.content,
+            content: objectToString(m.content),
           })),
           {
             chatId: chat.id,
@@ -33,29 +44,29 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
             content: message,
           }
         ],
-        session.data?.session?.userId
+        userId
       );
     }
   };
   return (
-    <div className='flex flex-col h-full'>
-      <div className='flex-grow p-4'>
-        {sortedMessages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-          >
-            <div
-              className={`p-2 rounded-lg max-w-xs md:max-w-md ${m.role === 'user'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted'
-                }`}
-            >
-              {m.content}
-            </div>
-          </div>
-        ))}
+    <div className="flex flex-col h-full">
+      <div className="flex-1 p-4 overflow-y-auto">
+        <div className="space-y-4">
+          {sortedMessages.map((m) => {
+            const content = objectToString(m.content);
+            return m.role === 'user' ? (
+              <div key={m.id} className="flex justify-end">
+                <div className="p-2 rounded-lg max-w-xs md:max-w-md bg-primary text-primary-foreground">
+                  {content}
+                </div>
+              </div>
+            ) : (
+              <div key={m.id} className="w-full prose">
+                {content}
+              </div>
+            );
+          })}
+        </div>
 
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center text-muted-foreground">
