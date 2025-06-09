@@ -31,7 +31,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         hooks={hooks}
         mutators={mutators}
         Link={NavLink}
-        navigate={navigate}
+        navigate={(href) => navigate({ to: href })}
         magicLink
         passkey
         providers={['google']}
