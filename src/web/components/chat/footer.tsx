@@ -11,7 +11,7 @@ import { Paperclip, ArrowUp } from 'lucide-react';
 import { useRef } from 'react';
 
 type ChatProps = {
-  onSubmit?: (message: string) => void;
+  onSubmit: (message: string) => void;
 };
 
 export function ChatFooter({ onSubmit }: ChatProps) {
@@ -21,7 +21,7 @@ export function ChatFooter({ onSubmit }: ChatProps) {
     const message = new FormData(e.target as HTMLFormElement).get(
       "message",
     ) as string;
-    if (!onSubmit || !message.trim()) return;
+    if (!message.trim()) return;
     onSubmit(message);
     formRef.current?.reset();
   };

@@ -9,19 +9,19 @@ export function createChat(
   name: string,
   chatId: string
 ) {
-  db.transact(
+  return db.transact(
     db.tx.chats[chatId].update({
       title: name,
       pinned: false,
       userId: user.id,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    })
+    }).link({ user: user.id })
   );
 }
 
 export function updateChat(chat: Chat, name: string) {
-  db.transact(
+  return db.transact(
     db.tx.chats[chat.id].update({
       title: name,
       updatedAt: new Date().toISOString(),
@@ -30,7 +30,7 @@ export function updateChat(chat: Chat, name: string) {
 }
 
 export function togglePin(chat: Chat) {
-  db.transact(
+  return db.transact(
     db.tx.chats[chat.id].update({
       pinned: !chat.pinned,
       updatedAt: new Date().toISOString(),
@@ -39,5 +39,5 @@ export function togglePin(chat: Chat) {
 }
 
 export function deleteChat(chat: Chat) {
-  db.transact(db.tx.chats[chat.id].delete());
+  return db.transact(db.tx.chats[chat.id].delete());
 } 
