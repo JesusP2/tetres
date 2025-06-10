@@ -10,16 +10,6 @@ type ChatProps = {
   onSubmit?: (message: string) => void;
 };
 
-function objectToString(obj: any): string {
-  if (typeof obj === 'string') {
-    return obj;
-  }
-  if (obj && typeof obj === 'object') {
-    return Object.values(obj).join('');
-  }
-  return '';
-}
-
 export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
   const sortedMessages = sortBy(messages, (m: Message) => m.createdAt);
   const session = authClient.useSession();
@@ -36,7 +26,7 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
           ...sortedMessages.map((m) => ({
             chatId: chat.id,
             role: m.role as any,
-            content: objectToString(m.content),
+            content: m.content,
           })),
           {
             chatId: chat.id,
@@ -50,10 +40,10 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
   };
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-4 overflow-y-auto h-screen">
         <div className="space-y-4">
           {sortedMessages.map((m) => {
-            const content = objectToString(m.content);
+            const content = m.content
             return m.role === 'user' ? (
               <div key={m.id} className="flex justify-end">
                 <div className="p-2 rounded-lg max-w-xs md:max-w-md bg-primary text-primary-foreground">
@@ -67,7 +57,6 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
             );
           })}
         </div>
-
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             Send a message to start the conversation.
