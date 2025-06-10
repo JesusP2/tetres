@@ -15,7 +15,7 @@ const parsedMessageCache = new Map<string, string>();
 function RouteComponent() {
   const { chatId } = useParams({ from: '/_chat/$chatId' });
   const {
-    isLoading,
+    isLoading: areChatsLoading,
     error,
     data,
   } = db.useQuery({
@@ -39,7 +39,7 @@ function RouteComponent() {
   const [parsedMessages, setParsedMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    if (isLoading || !data?.chats[0]?.messages) {
+    if (areChatsLoading || !data?.chats[0]?.messages) {
       setParsedMessages([]);
       return;
     }
@@ -73,13 +73,13 @@ function RouteComponent() {
     };
 
     processMessages();
-  }, [data?.chats[0]?.messages, isLoading, parseMessage, createCacheKey]);
+  }, [data?.chats[0]?.messages, areChatsLoading, parseMessage, createCacheKey]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (areChatsLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   const chat = data.chats[0];
-  return <Chat chat={chat} messages={parsedMessages} setParsedMessages={setParsedMessages} />;
+  return <Chat areChatsLoading={areChatsLoading} chat={chat} messages={parsedMessages} setParsedMessages={setParsedMessages} />;
 }
 
 const objectToString = (obj: any): string => {

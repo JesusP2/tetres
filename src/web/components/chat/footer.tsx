@@ -26,7 +26,6 @@ export function ChatFooter({ onSubmit }: ChatProps) {
     formRef.current?.reset();
   };
   return (
-    <div className="absolute bottom-0 w-full">
       <div className="mx-auto max-w-3xl w-full bg-white shadow-md rounded-sm">
         <form className='p-4' ref={formRef} onSubmit={handleSubmit}>
           <div className='relative'>
@@ -67,6 +66,5 @@ export function ChatFooter({ onSubmit }: ChatProps) {
           </div>
         </form>
       </div>
-    </div>
   )
 }

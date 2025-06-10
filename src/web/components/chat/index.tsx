@@ -8,25 +8,29 @@ import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
 import { toast } from 'sonner';
 import { id } from '@instantdb/core';
+import { useChatScroll } from '@web/hooks/use-chat-scroll';
 
 type ChatProps = {
   chat?: ChatType;
   messages?: (Message & { parsedContent?: string })[];
   onSubmit?: (message: string) => void;
   setParsedMessages: Dispatch<SetStateAction<Message[]>>;
+  areChatsLoading: boolean;
 };
 
-export function Chat({ chat, messages = [], onSubmit, setParsedMessages }: ChatProps) {
+export function Chat({ chat, messages = [], onSubmit, setParsedMessages, areChatsLoading }: ChatProps) {
   const session = authClient.useSession();
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const { setActivateScroll, scrollRef, messagesContainerRef, scrollButtonRef } = useChatScroll({ messages, areChatsLoading });
 
   const handleNewMessage = async (message: string) => {
     if (onSubmit) {
       onSubmit(message);
       return;
     }
+    setActivateScroll(true);
     const userId = session.data?.session?.userId;
     if (chat && userId) {
       const _messages = [
@@ -64,6 +68,7 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages }: ChatP
   };
 
   const handleSaveRetry = async (message: Message) => {
+    if (isProcessing) return;
     if (!editingContent.trim()) {
       toast.error('Message cannot be empty');
       setEditingMessageId(null);
@@ -109,12 +114,12 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages }: ChatP
   return (
     <>
       <div className="flex flex-col h-full">
-        <div className="h-screen chat-scrollbar overflow-y-auto pb-40">
+        <div ref={messagesContainerRef} className="h-screen chat-scrollbar overflow-y-auto">
           <div className="space-y-4 max-w-3xl mx-auto px-4">
             {messages.map((m) => {
               const isEditing = editingMessageId === m.id;
               return m.role === 'user' ? (
-                <div key={m.id} className="flex justify-end">
+                <div data-role="user" key={m.id} className="flex justify-end">
                   <div className="max-w-xs md:max-w-md">
                     {isEditing ? (
                       <div className="space-y-2">
@@ -146,10 +151,7 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages }: ChatP
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => {
-                              if (isProcessing) return;
-                              handleSaveRetry(m);
-                            }}
+                            onClick={() => handleSaveRetry(m)}
                             disabled={isProcessing}
                           >
                             {isProcessing ? (
@@ -205,14 +207,17 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages }: ChatP
               );
             })}
           </div>
-          {messages.length === 0 && (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              Send a message to start the conversation.
-            </div>
-          )}
+          <div ref={scrollRef} id="scroll" className="h-40 w-full" />
         </div>
       </div>
-      <ChatFooter onSubmit={handleNewMessage} />
+      <div className="absolute bottom-0 w-full">
+        <Button ref={scrollButtonRef} variant="default" className="block mx-auto mb-3" onClick={() => {
+          scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }}>
+          Scroll to bottom
+        </Button>
+        <ChatFooter onSubmit={handleNewMessage} />
+      </div>
     </>
   );
 } 
