@@ -1,5 +1,5 @@
 import { db } from '@web/lib/instant';
-import { id, InstaQLEntity } from '@instantdb/react';
+import { InstaQLEntity } from '@instantdb/react';
 import schema from '../../../instant.schema';
 
 export type Chat = InstaQLEntity<typeof schema, 'chats'>;

@@ -6,6 +6,7 @@ import { AuthUIProvider } from "@daveyplate/better-auth-ui"
 import { authClient, useSession } from "@web/lib/auth-client"
 import { db } from "@web/lib/instant"
 import { Link, useNavigate } from "@tanstack/react-router"
+import { ConfirmDialogProvider } from './confirm-dialog-provider';
 
 function NavLink({ href, children }: any) {
   return <Link to={href}>{children}</Link>
@@ -36,7 +37,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         passkey
         providers={['google']}
       >
-        {children}
+        <ConfirmDialogProvider>
+          {children}
+        </ConfirmDialogProvider>
       </AuthUIProvider>
     </ThemeProvider>
   )

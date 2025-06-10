@@ -1,6 +1,9 @@
 import * as React from "react";
 import {
   Plus,
+  Pin,
+  Trash2,
+  PinOff,
 } from "lucide-react";
 
 import {
@@ -13,6 +16,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   SidebarRail,
+  sidebarMenuButtonVariants,
 } from "@web/components/ui/sidebar";
 
 import { MessageSquare, Search } from "lucide-react";
@@ -22,10 +26,11 @@ import { Input } from "@web/components/ui/input";
 import { ScrollArea } from "@web/components/ui/scroll-area";
 import { NavUser } from "./nav-user";
 import { db } from '@web/lib/instant';
-import { type Chat } from '@web/lib/chats';
+import { type Chat, updateChat, deleteChat, togglePin } from '@web/lib/chats';
 import { authClient } from '@web/lib/auth-client';
-import { groupBy, pipe, sortBy } from 'remeda';
+import { groupBy, pipe, sortBy, partition } from 'remeda';
 import { Link, useNavigate } from '@tanstack/react-router';
+import { useConfirmDialog } from "./providers/confirm-dialog-provider";
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -58,31 +63,131 @@ const groupChats = (chats: Chat[]) => {
 };
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
+  const { confirmDelete } = useConfirmDialog();
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [editingChatId, setEditingChatId] = React.useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = React.useState('');
   const session = authClient.useSession();
   const userId = session.data?.session?.userId;
   const { data } = db.useQuery(
     userId
       ? {
-          chats: {
-            $: {
-              where: {
-                userId: userId,
-              },
+        chats: {
+          $: {
+            where: {
+              userId: userId,
             },
           },
-        }
+        },
+      }
       : {}
   );
 
   const chats = data?.chats || [];
-  const groupedChats = groupChats(chats);
+  const filteredChats = searchQuery
+    ? chats.filter((chat) =>
+      chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    : chats;
+
+  const [pinned, unpinned] = partition(
+    filteredChats,
+    (c) => c.pinned
+  );
+  const groupedChats = groupChats(unpinned);
   const navigate = useNavigate();
+
+  const handleUpdateTitle = () => {
+    if (!editingChatId) return;
+    const chat = chats.find((c) => c.id === editingChatId);
+    if (chat && editingTitle.trim() && editingTitle.trim() !== chat.title) {
+      updateChat(chat, editingTitle.trim());
+    }
+    setEditingChatId(null);
+    setEditingTitle('');
+  };
+
+  const handleDeleteChat = (chat: Chat) => {
+    confirmDelete({
+      title: 'Delete Chat',
+      description: `Are you sure you want to delete "${chat.title}"?`,
+      handleConfirm: () => deleteChat(chat),
+      handleCancel: () => setEditingChatId(null),
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleUpdateTitle();
+    } else if (e.key === 'Escape') {
+      setEditingChatId(null);
+      setEditingTitle('');
+    }
+  };
 
   const handleNewChat = () => {
     if (session.data?.session) {
       navigate({ to: '/', search: { new: true } });
     }
   };
+
+  const renderChat = (chat: Chat) => (
+    <SidebarMenuItem
+      key={chat.id}
+      onDoubleClick={() => {
+        setEditingChatId(chat.id);
+        setEditingTitle(chat.title);
+      }}
+      className="group"
+    >
+      {editingChatId === chat.id ? (
+        <Input
+          value={editingTitle}
+          onChange={(e) => setEditingTitle(e.target.value)}
+          onBlur={handleUpdateTitle}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          onFocus={(e) => e.target.select()}
+        />
+      ) : (
+        <Link
+          to="/$chatId"
+          params={{ chatId: chat.id }}
+          className="w-full"
+          activeProps={{
+            className: 'bg-accent text-accent-foreground',
+          }}
+        >
+          <div className={sidebarMenuButtonVariants({ className: 'w-full justify-start relative' })}>
+            <MessageSquare className="mr-2" />
+            <span className="truncate">{chat.title}</span>
+            <div className="absolute right-0 top-0 h-full flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  togglePin(chat);
+                }}
+              >
+                {chat.pinned ? (
+                  <PinOff className="w-4 h-4" />
+                ) : (
+                  <Pin className="w-4 h-4" />
+                )}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDeleteChat(chat);
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </Link>
+      )}
+    </SidebarMenuItem>
+  );
 
   return (
     <>
@@ -103,6 +208,8 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
               <Input
                 placeholder="Search your threads..."
                 className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
@@ -110,28 +217,20 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
             className="h-full overflow-y-auto mr-2 masked-scroll-area"
           >
             <SidebarMenu>
+              {pinned.length > 0 && (
+                <div className="p-4">
+                  <div className="text-sm font-semibold text-muted-foreground mb-2 capitalize">
+                    Pinned
+                  </div>
+                  {pinned.map(renderChat)}
+                </div>
+              )}
               {Object.entries(groupedChats).map(([period, chats]) => (
                 <div key={period} className="p-4">
                   <div className="text-sm font-semibold text-muted-foreground mb-2 capitalize">
                     {period}
                   </div>
-                  {chats.map((chat: Chat) => (
-                    <SidebarMenuItem key={chat.id}>
-                      <Link
-                        to="/$chatId"
-                        params={{ chatId: chat.id }}
-                        className="w-full"
-                        activeProps={{
-                          className: 'bg-accent text-accent-foreground',
-                        }}
-                      >
-                        <SidebarMenuButton className="w-full justify-start">
-                          <MessageSquare className="mr-2" />
-                          <span className="truncate">{chat.title}</span>
-                        </SidebarMenuButton>
-                      </Link>
-                    </SidebarMenuItem>
-                  ))}
+                  {chats.map(renderChat)}
                 </div>
               ))}
             </SidebarMenu>

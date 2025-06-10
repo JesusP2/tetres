@@ -238,3 +238,9 @@ pre {
   border-radius: 0.3rem !important;
   overflow-x: auto;
 }
+
+textarea::-webkit-resizer {
+  background-color: transparent;
+  border-width: 0;
+  outline: none;
+}

@@ -35,6 +35,7 @@ export function ChatFooter({ onSubmit }: ChatProps) {
               className='pr-16 field-size-content max-h-[175px] chat-scrollbar'
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
                   formRef.current?.requestSubmit();
                 }
               }}
