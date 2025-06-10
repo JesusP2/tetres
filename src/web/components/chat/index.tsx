@@ -11,7 +11,6 @@ type ChatProps = {
 };
 
 export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
-  const sortedMessages = sortBy(messages, (m: Message) => m.createdAt);
   const session = authClient.useSession();
 
   const handleNewMessage = async (message: string) => {
@@ -23,7 +22,7 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
     if (chat && userId) {
       await saveMessage(
         [
-          ...sortedMessages.map((m) => ({
+          ...messages.map((m) => ({
             chatId: chat.id,
             role: m.role as any,
             content: m.content,
@@ -39,31 +38,31 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
     }
   };
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 p-4 overflow-y-auto h-screen">
-        <div className="space-y-4">
-          {sortedMessages.map((m) => {
-            const content = m.content
-            return m.role === 'user' ? (
-              <div key={m.id} className="flex justify-end">
-                <div className="p-2 rounded-lg max-w-xs md:max-w-md bg-primary text-primary-foreground">
-                  {content}
+    <>
+      <div className="flex flex-col h-full">
+        <div className="h-screen chat-scrollbar overflow-y-auto pb-40">
+          <div className="space-y-4 max-w-3xl mx-auto px-4">
+            {messages.map((m) => {
+              const content = m.content
+              return m.role === 'user' ? (
+                <div key={m.id} className="flex justify-end">
+                  <div className="p-2 rounded-lg max-w-xs md:max-w-md bg-primary text-primary-foreground">
+                    {content}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div key={m.id} className="w-full prose">
-                {content}
-              </div>
-            );
-          })}
-        </div>
-        {messages.length === 0 && (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            Send a message to start the conversation.
+              ) : (
+                  <div key={m.id} dangerouslySetInnerHTML={{ __html: content }} />
+              );
+            })}
           </div>
-        )}
+          {messages.length === 0 && (
+            <div className="flex h-full items-center justify-center text-muted-foreground">
+              Send a message to start the conversation.
+            </div>
+          )}
+        </div>
       </div>
       <ChatFooter onSubmit={handleNewMessage} />
-    </div>
+    </>
   );
 } 

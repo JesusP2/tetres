@@ -1,14 +1,16 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
 import { Chat } from '@web/components/chat/index';
-import { CodeBlock } from '@web/components/ui/code-block';
 import { db } from '@web/lib/instant';
 import { renderMarkdown } from '@web/lib/syntax-highlighting';
-import { useEffect, useState } from 'react';
-import { codeToHtml } from 'shiki';
+import { useEffect, useState, useCallback } from 'react';
+import type { Message } from '@web/lib/types';
 
 export const Route = createFileRoute('/_chat/$chatId')({
   component: RouteComponent,
 });
+
+// Create a cache for parsed messages to avoid re-parsing
+const parsedMessageCache = new Map<string, string>();
 
 function RouteComponent() {
   const { chatId } = useParams({ from: '/_chat/$chatId' });
@@ -22,33 +24,66 @@ function RouteComponent() {
       messages: {},
     },
   });
-  const [idk, setIdk] = useState<any>(null);
 
+  const parseMessage = useCallback(async (message: string) => {
+    return renderMarkdown(objectToString(message));
+  }, []);
+
+  const createCacheKey = useCallback((messageId: string, content: string) => {
+    const contentHash = content.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return `${messageId}-${contentHash}`;
+  }, []);
+  const [parsedMessages, setParsedMessages] = useState<Message[]>([]);
+  
   useEffect(() => {
-    if (isLoading) return;
-    const message = chat?.messages[3]
-    console.log(message)
-    if (!message) return;
-    async function idk() {
-      const html = await renderMarkdown(objectToString(message.content));
-      setIdk(html)
+    if (isLoading || !data?.chats[0]?.messages) {
+      setParsedMessages([]);
+      return;
     }
-    idk()
-  }, [isLoading])
+    const rawMessages = data.chats[0].messages;
+    // Process messages and handle caching
+    const processMessages = async () => {
+      const processedMessages = await Promise.all(
+        rawMessages.map(async (message) => {
+          if (message.role === 'user') {
+            return { ...message, content: message.content };
+          }
+          const cacheKey = createCacheKey(message.id, objectToString(message.content));
+          if (parsedMessageCache.has(cacheKey)) {
+            return {
+              ...message,
+              content: parsedMessageCache.get(cacheKey)!
+            };
+          }
+          // Parse and cache
+          const parsedContent = await parseMessage(message.content);
+          parsedMessageCache.set(cacheKey, parsedContent);
+          return {
+            ...message,
+            content: parsedContent
+          };
+        })
+      );
+      setParsedMessages(processedMessages);
+    };
+
+    processMessages();
+  }, [data?.chats[0]?.messages, isLoading, parseMessage, createCacheKey]);
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   const chat = data.chats[0];
-  const messages = chat?.messages.map(message => ({
-    ...message,
-    content: objectToString(message.content),
-  }));
-  return (<>
-    {/*<div dangerouslySetInnerHTML={{ __html: idk }} />*/}
-    <Chat chat={chat} messages={messages} />
-  </>)
+  return <Chat chat={chat} messages={parsedMessages} />
 }
 
-function objectToString(obj: any) {
-  return Object.values(obj).join('');
-}
+const objectToString = (obj: any): string => {
+  if (typeof obj === 'string') return obj;
+  if (typeof obj === 'object') {
+    return Object.values(obj).join('');
+  }
+  return String(obj);
+};

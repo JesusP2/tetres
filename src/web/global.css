@@ -225,7 +225,16 @@ code {
   border-radius: 10px;
 }
 
+pre::-webkit-scrollbar {
+  height: 5px;
+}
+pre::-webkit-scrollbar-thumb {
+  background-color: #d4d4d8;
+  border-radius: 10px;
+}
+
 pre {
   padding: 0.5rem !important;
   border-radius: 0.3rem !important;
+  overflow-x: auto;
 }
