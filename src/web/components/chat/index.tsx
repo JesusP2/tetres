@@ -2,19 +2,21 @@ import { ChatFooter } from './footer';
 import type { Chat as ChatType, Message } from '@web/lib/types';
 import { saveMessage, retryMessage, copyMessageToClipboard, sendMessage } from '@web/lib/messages';
 import { authClient } from '@web/lib/auth-client';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { RotateCcw, Edit3, Copy, Check, X, Loader2 } from 'lucide-react';
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
 import { toast } from 'sonner';
+import { id } from '@instantdb/core';
 
 type ChatProps = {
   chat?: ChatType;
-  messages?: Message[];
+  messages?: (Message & { parsedContent?: string })[];
   onSubmit?: (message: string) => void;
+  setParsedMessages: Dispatch<SetStateAction<Message[]>>;
 };
 
-export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
+export function Chat({ chat, messages = [], onSubmit, setParsedMessages }: ChatProps) {
   const session = authClient.useSession();
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
@@ -27,10 +29,10 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
     }
     const userId = session.data?.session?.userId;
     if (chat && userId) {
-      const messagess = [
+      const _messages = [
         ...messages.map((m) => ({
           chatId: chat.id,
-          role: m.role as any,
+          role: m.role as 'user' | 'assistant',
           content: m.content,
         })),
         {
@@ -39,8 +41,20 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
           content: message,
         }
       ]
-      await saveMessage(messagess);
-      await sendMessage(messagess, userId);
+      const newMessage = {
+        chatId: chat.id,
+        role: 'user' as const,
+        content: message,
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+      const newMessageId = id();
+      setParsedMessages(prev => [...prev, {
+        ...newMessage,
+        id: newMessageId,
+      }]);
+      await saveMessage(newMessage, newMessageId);
+      await sendMessage(_messages, userId);
     }
   };
 
@@ -98,9 +112,7 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
         <div className="h-screen chat-scrollbar overflow-y-auto pb-40">
           <div className="space-y-4 max-w-3xl mx-auto px-4">
             {messages.map((m) => {
-              const content = m.content;
               const isEditing = editingMessageId === m.id;
-
               return m.role === 'user' ? (
                 <div key={m.id} className="flex justify-end">
                   <div className="max-w-xs md:max-w-md">
@@ -151,7 +163,7 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
                     ) : (
                       <div className="group">
                         <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                          {content}
+                          {m.content}
                         </div>
                         <div className="flex gap-1 mt-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
@@ -189,7 +201,7 @@ export function Chat({ chat, messages = [], onSubmit }: ChatProps) {
                   </div>
                 </div>
               ) : (
-                <div key={m.id} dangerouslySetInnerHTML={{ __html: content }} />
+                <div key={m.id} dangerouslySetInnerHTML={{ __html: m.parsedContent }} />
               );
             })}
           </div>

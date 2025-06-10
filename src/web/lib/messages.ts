@@ -1,4 +1,4 @@
-import { id, InstaQLEntity } from '@instantdb/react';
+import { InstaQLEntity } from '@instantdb/react';
 import { db } from '@web/lib/instant';
 import schema from '../../../instant.schema';
 
@@ -37,17 +37,17 @@ export async function sendMessage(
 }
 
 export async function saveMessage(
-  messages: CreateMessageInput[]
+  newMessage: CreateMessageInput,
+  id: string,
 ) {
-  const lastMessage = messages[messages.length - 1];
   return db.transact(
-    db.tx.messages[id()]
+    db.tx.messages[id]
       .update({
-        ...lastMessage,
+        ...newMessage,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       })
-      .link({ chat: lastMessage.chatId }),
+      .link({ chat: newMessage.chatId }),
   );
 }
 

@@ -37,7 +37,7 @@ function RouteComponent() {
     return `${messageId}-${contentHash}`;
   }, []);
   const [parsedMessages, setParsedMessages] = useState<Message[]>([]);
-  
+
   useEffect(() => {
     if (isLoading || !data?.chats[0]?.messages) {
       setParsedMessages([]);
@@ -49,13 +49,14 @@ function RouteComponent() {
       const processedMessages = await Promise.all(
         rawMessages.map(async (message) => {
           if (message.role === 'user') {
-            return { ...message, content: message.content };
+            return message;
           }
           const cacheKey = createCacheKey(message.id, objectToString(message.content));
           if (parsedMessageCache.has(cacheKey)) {
             return {
               ...message,
-              content: parsedMessageCache.get(cacheKey)!
+              content: objectToString(message.content),
+              parsedContent: parsedMessageCache.get(cacheKey)!
             };
           }
           // Parse and cache
@@ -63,7 +64,8 @@ function RouteComponent() {
           parsedMessageCache.set(cacheKey, parsedContent);
           return {
             ...message,
-            content: parsedContent
+            content: objectToString(message.content),
+            parsedContent
           };
         })
       );
@@ -77,7 +79,7 @@ function RouteComponent() {
   if (error) return <div>Error: {error.message}</div>;
 
   const chat = data.chats[0];
-  return <Chat chat={chat} messages={parsedMessages} />
+  return <Chat chat={chat} messages={parsedMessages} setParsedMessages={setParsedMessages} />;
 }
 
 const objectToString = (obj: any): string => {
