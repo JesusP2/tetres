@@ -8,7 +8,7 @@ import { createChat } from '@web/lib/chats';
 import { useSession } from '@web/lib/auth-client';
 import { id } from '@instantdb/react';
 import { ChatFooter } from '@web/components/chat/footer';
-import { saveMessage } from '@web/lib/messages';
+import { saveMessage, sendMessage } from '@web/lib/messages';
 
 const indexSearchSchema = z.object({
   new: z.boolean().optional(),
@@ -39,7 +39,12 @@ function Index() {
         chatId: newChatId,
         role: 'user',
         content: message,
-      }], session.data?.session?.userId)
+      }])
+      await sendMessage([{
+        chatId: newChatId,
+        role: 'assistant',
+        content: 'Hello! How can I help you today?',
+      }], session.data.session.userId);
       navigate({
         to: '/$chatId', params: { chatId: newChatId }
       });
