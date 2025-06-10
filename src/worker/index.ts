@@ -4,7 +4,6 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { streamText } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-// import { streamSSE } from 'hono/streaming';
 import { z } from 'zod/v4';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
@@ -13,7 +12,7 @@ import { AppBindings } from './types';
 import { HttpError } from './utils/http-error';
 
 type Messages = Parameters<typeof streamText>[0]['messages'];
-export const getLasagnaRecipe = async ({
+export const sendMessageToModel = async ({
   messages,
   config,
   db,
@@ -30,8 +29,6 @@ export const getLasagnaRecipe = async ({
     apiKey:
       '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',
   });
-  console.log('messages:', messages);
-  console.log('config:', config);
   const { textStream } = streamText({
     model: openrouter(config.model),
     messages,
@@ -55,7 +52,6 @@ export const getLasagnaRecipe = async ({
             })
             .link({ chat: config.chatId }),
         )
-        .catch(err => console.log('err:', err));
     } else {
       await db
         .transact(
@@ -65,7 +61,6 @@ export const getLasagnaRecipe = async ({
             },
           }),
         )
-        .catch(err => console.log('err 2:', err));
     }
     sqId++;
   }
@@ -93,22 +88,12 @@ const app = new Hono<AppBindings>({ strict: false })
   .post('/api/model', zValidator('json', bodySchema), async c => {
     const body = c.req.valid('json');
     c.executionCtx.waitUntil(
-      getLasagnaRecipe({
+      sendMessageToModel({
         ...body,
         db: c.get('db'),
       }),
     );
     return c.json({ success: true });
-    // return streamSSE(c, async stream => {
-    //   stream.onAbort(() => console.log('aborted'));
-    //   for await (const text of textStream) {
-    //     await stream.writeSSE({
-    //       data: text,
-    //       event: 'message',
-    //       id: String(id++),
-    //     });
-    //   }
-    // });
   })
   .on(['POST', 'GET'], '/api/auth/*', c => {
     const auth = c.get('auth');

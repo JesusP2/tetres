@@ -15,7 +15,7 @@ const parsedMessageCache = new Map<string, string>();
 function RouteComponent() {
   const { chatId } = useParams({ from: '/_chat/$chatId' });
   const {
-    isLoading: areChatsLoading,
+    isLoading,
     error,
     data,
   } = db.useQuery({
@@ -24,6 +24,7 @@ function RouteComponent() {
       messages: {},
     },
   });
+  const [areChatsLoading, setAreChatsLoading] = useState(isLoading);
 
   const parseMessage = useCallback(async (message: string) => {
     return renderMarkdown(objectToString(message));
@@ -39,7 +40,7 @@ function RouteComponent() {
   const [parsedMessages, setParsedMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    if (areChatsLoading || !data?.chats[0]?.messages) {
+    if (isLoading || !data?.chats[0]?.messages) {
       setParsedMessages([]);
       return;
     }
@@ -70,12 +71,13 @@ function RouteComponent() {
         })
       );
       setParsedMessages(processedMessages);
+      setAreChatsLoading(false);
     };
 
     processMessages();
-  }, [data?.chats[0]?.messages, areChatsLoading, parseMessage, createCacheKey]);
+  }, [data?.chats[0]?.messages, isLoading, parseMessage, createCacheKey]);
 
-  if (areChatsLoading) return <div>Loading...</div>;
+  if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   const chat = data.chats[0];

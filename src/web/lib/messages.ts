@@ -87,7 +87,6 @@ export async function retryMessage(
   newContent: string,
   userId: string,
 ) {
-  console.log(messages, targetMessage, newContent, userId);
   await deleteMessagesAfter(messages, targetMessage);
 
   await editMessage(targetMessage, newContent);
