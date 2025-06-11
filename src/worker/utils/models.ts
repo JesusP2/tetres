@@ -171,4 +171,6 @@ export const models = [
     ],
   },
 ] as const;
-export type ModelId = typeof models[number]['id'];
+
+export const modelIds = models.map(m => m.id);
+export type ModelId = (typeof modelIds)[number];

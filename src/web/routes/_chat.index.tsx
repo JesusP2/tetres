@@ -8,6 +8,8 @@ import { useSession } from '@web/lib/auth-client';
 import { id } from '@instantdb/react';
 import { ChatFooter } from '@web/components/chat/footer';
 import { saveMessage, sendMessage } from '@web/lib/messages';
+import type { ModelId } from '@server/utils/models';
+import { useState } from 'react';
 
 const indexSearchSchema = z.object({
   new: z.boolean().optional(),
@@ -25,10 +27,13 @@ const suggestions = [
   'What is the meaning of life?',
 ];
 
+const defaultModelForUser = 'google/gemini-2.5-flash-preview-05-20';
 function Index() {
   const { new: isNew } = Route.useSearch();
   const navigate = useNavigate();
   const session = useSession();
+  // TODO: persist this in the database
+  const [defaultModel, setDefaultModel] = useState<ModelId>(defaultModelForUser);
 
   const handleCreateChat = async (message: string) => {
     if (session.data?.session) {
@@ -38,11 +43,13 @@ function Index() {
         chatId: newChatId,
         role: 'user',
         content: message,
+        model: defaultModel,
       }, id())
       await sendMessage([{
         chatId: newChatId,
         role: 'assistant',
         content: 'Hello! How can I help you today?',
+        model: defaultModel,
       }], session.data.session.userId);
       navigate({
         to: '/$chatId', params: { chatId: newChatId }
@@ -83,7 +90,10 @@ function Index() {
           </div>
         )}
       </div>
-      <ChatFooter onSubmit={handleCreateChat} />
+      <ChatFooter onSubmit={handleCreateChat} selectedModel={defaultModelForUser} setSelectedModel={(model) => {
+        setDefaultModel(model);
+        console.log('set default model for user:', model);
+      }} />
     </div>
   );
 } 

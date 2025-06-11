@@ -1,14 +1,15 @@
-import { InstaQLEntity } from '@instantdb/react';
+import type { InstaQLEntity } from '@instantdb/react';
 import { db } from '@web/lib/instant';
 import schema from '../../../instant.schema';
+import type { ModelId } from '@server/utils/models';
 
 export type Message = InstaQLEntity<typeof schema, 'messages'>;
 
-type CreateMessageInput = {
+export type CreateMessageInput = {
   chatId: string;
   role: 'user' | 'assistant';
   content: string;
-  model?: string;
+  model: ModelId
 };
 
 export async function sendMessage(
@@ -16,13 +17,14 @@ export async function sendMessage(
   userId: string,
 ) {
   const lastMessage = messages[messages.length - 1];
+  if (!lastMessage?.model) return;
   const body = {
     messages: messages.map(message => ({
       role: message.role,
       content: message.content,
     })),
     config: {
-      model: 'google/gemini-2.5-flash-preview-05-20',
+      model: lastMessage.model,
       userId,
       chatId: lastMessage.chatId,
     },
@@ -86,6 +88,7 @@ export async function retryMessage(
   targetMessage: Message,
   newContent: string,
   userId: string,
+  model: ModelId,
 ) {
   await deleteMessagesAfter(messages, targetMessage);
 
@@ -95,11 +98,20 @@ export async function retryMessage(
   const targetIndex = messages.findIndex(m => m.id === targetMessage.id);
   const conversationUpToTarget = messages.slice(0, targetIndex + 1);
 
-  const messagesForAPI = conversationUpToTarget.map(m => ({
-    chatId: targetMessage.chatId,
-    role: m.role as 'user' | 'assistant',
-    content: m.id === targetMessage.id ? newContent : m.content,
-  }));
+  const messagesForAPI: CreateMessageInput[] = conversationUpToTarget.map(
+    m => ({
+      chatId: targetMessage.chatId,
+      role: m.role as 'user' | 'assistant',
+      content: m.id === targetMessage.id ? newContent : m.content,
+      model: m.model as ModelId,
+    }),
+  );
+  const lastMessage = messagesForAPI[messagesForAPI.length - 1];
+  if (!lastMessage) {
+    console.error('this should never happen');
+    return;
+  }
+  lastMessage.model = model;
 
   return sendMessage(messagesForAPI, userId);
 }

@@ -2,6 +2,8 @@
   "extends": "./tsconfig.node.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
+    "noUncheckedIndexedAccess": false,
+    "verbatimModuleSyntax": false,
     "types": ["vite/client", "./worker-configuration.d.ts"],
     "paths": {
       "@server/*": ["./src/worker/*"]

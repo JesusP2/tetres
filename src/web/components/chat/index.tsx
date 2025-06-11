@@ -1,14 +1,21 @@
 import { ChatFooter } from './footer';
 import type { Chat as ChatType, Message } from '@web/lib/types';
-import { saveMessage, retryMessage, copyMessageToClipboard, sendMessage } from '@web/lib/messages';
+import {
+  saveMessage,
+  retryMessage,
+  copyMessageToClipboard,
+  sendMessage,
+  type CreateMessageInput,
+} from '@web/lib/messages';
 import { authClient } from '@web/lib/auth-client';
-import { Dispatch, SetStateAction, useState } from 'react';
+import { type Dispatch, type SetStateAction, useState } from 'react';
 import { RotateCcw, Edit3, Copy, Check, X, Loader2 } from 'lucide-react';
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
 import { toast } from 'sonner';
 import { id } from '@instantdb/core';
 import { useChatScroll } from '@web/hooks/use-chat-scroll';
+import { type ModelId, modelIds } from '@server/utils/models';
 
 type ChatProps = {
   chat?: ChatType;
@@ -18,12 +25,22 @@ type ChatProps = {
   areChatsLoading: boolean;
 };
 
-export function Chat({ chat, messages = [], onSubmit, setParsedMessages, areChatsLoading }: ChatProps) {
+export function Chat({
+  chat,
+  messages = [],
+  onSubmit,
+  setParsedMessages,
+  areChatsLoading,
+}: ChatProps) {
   const session = authClient.useSession();
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const { setActivateScroll, scrollRef, messagesContainerRef, scrollButtonRef } = useChatScroll({ messages, areChatsLoading });
+  const [selectedModel, setSelectedModel] = useState<ModelId>(
+    'openai/gpt-4.1-mini',
+  );
+  const { setActivateScroll, scrollRef, messagesContainerRef, scrollButtonRef } =
+    useChatScroll({ messages, areChatsLoading });
 
   const handleNewMessage = async (message: string) => {
     if (onSubmit) {
@@ -33,32 +50,34 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages, areChat
     setActivateScroll(true);
     const userId = session.data?.session?.userId;
     if (chat && userId) {
-      const _messages = [
-        ...messages.map((m) => ({
-          chatId: chat.id,
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        })),
-        {
-          chatId: chat.id,
-          role: 'user' as const,
-          content: message,
-        }
-      ]
       const newMessage = {
         chatId: chat.id,
         role: 'user' as const,
         content: message,
-        updatedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
+        model: selectedModel,
       };
+      const messagesForApi: CreateMessageInput[] = [
+        ...messages.map(m => ({
+          chatId: chat.id,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          model: m.model as ModelId,
+        })),
+        newMessage,
+      ];
       const newMessageId = id();
-      setParsedMessages(prev => [...prev, {
-        ...newMessage,
-        id: newMessageId,
-      }]);
+      setParsedMessages(prev => [
+        ...prev,
+        {
+          ...newMessage,
+          role: newMessage.role,
+          id: newMessageId,
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      ]);
       await saveMessage(newMessage, newMessageId);
-      await sendMessage(_messages, userId);
+      await sendMessage(messagesForApi, userId);
     }
   };
 
@@ -84,7 +103,7 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages, areChat
 
     setIsProcessing(true);
     try {
-      await retryMessage(messages, message, editingContent, userId);
+      await retryMessage(messages, message, editingContent, userId, selectedModel);
       setEditingMessageId(null);
       setEditingContent('');
       toast.success('Message retried successfully');
@@ -172,7 +191,20 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages, areChat
                             size="sm"
                             variant="ghost"
                             className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                            onClick={() => retryMessage(messages, m, m.content, session.data?.session?.userId)}
+                            onClick={() => {
+                              const userId = session.data?.session?.userId;
+                              if (!userId) {
+                                toast.error('Please log in to retry messages');
+                                return;
+                              }
+                              retryMessage(
+                                messages,
+                                m,
+                                m.content,
+                                userId,
+                                selectedModel,
+                              );
+                            }}
                             title="Retry message"
                             disabled={isProcessing}
                           >
@@ -203,7 +235,7 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages, areChat
                   </div>
                 </div>
               ) : (
-                <div key={m.id} dangerouslySetInnerHTML={{ __html: m.parsedContent }} />
+                <div key={m.id} dangerouslySetInnerHTML={{ __html: m.parsedContent || '' }} />
               );
             })}
           </div>
@@ -216,7 +248,12 @@ export function Chat({ chat, messages = [], onSubmit, setParsedMessages, areChat
         }}>
           Scroll to bottom
         </Button>
-        <ChatFooter onSubmit={handleNewMessage} />
+        <ChatFooter
+          onSubmit={handleNewMessage}
+          selectedModel={selectedModel}
+          setSelectedModel={setSelectedModel}
+          chat={chat}
+        />
       </div>
     </>
   );
