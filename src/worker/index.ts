@@ -16,6 +16,7 @@ export const sendMessageToModel = async ({
   messages,
   config,
   db,
+  apiKey,
 }: {
   messages: Messages;
   config: {
@@ -24,10 +25,10 @@ export const sendMessageToModel = async ({
     chatId: string;
   };
   db: AppBindings['Variables']['db'];
+  apiKey: string;
 }) => {
   const openrouter = createOpenRouter({
-    apiKey:
-      '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',
+    apiKey,
   });
   const { textStream } = streamText({
     model: openrouter(config.model),
@@ -38,29 +39,27 @@ export const sendMessageToModel = async ({
   for await (const text of textStream) {
     if (!messageId) {
       messageId = id();
-      await db
-        .transact(
-          db.tx.messages[messageId]
-            .update({
-              role: 'assistant',
-              chatId: config.chatId,
-              content: {
-                [sqId]: text,
-              },
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            })
-            .link({ chat: config.chatId }),
-        )
-    } else {
-      await db
-        .transact(
-          db.tx.messages[messageId].merge({
+      await db.transact(
+        db.tx.messages[messageId]
+          .update({
+            role: 'assistant',
+            chatId: config.chatId,
             content: {
               [sqId]: text,
             },
-          }),
-        )
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })
+          .link({ chat: config.chatId }),
+      );
+    } else {
+      await db.transact(
+        db.tx.messages[messageId].merge({
+          content: {
+            [sqId]: text,
+          },
+        }),
+      );
     }
     sqId++;
   }
@@ -84,13 +83,13 @@ const app = new Hono<AppBindings>({ strict: false })
   .use(envMiddleware)
   .use(dbMiddleware)
   .use(betterAuthMiddleware)
-  // .use(superjsonMiddleware)
   .post('/api/model', zValidator('json', bodySchema), async c => {
     const body = c.req.valid('json');
     c.executionCtx.waitUntil(
       sendMessageToModel({
         ...body,
         db: c.get('db'),
+        apiKey: c.env.OPENROUTER_KEY,
       }),
     );
     return c.json({ success: true });
