@@ -25,12 +25,14 @@ import {
 import { cn } from '@web/lib/utils';
 import { Textarea } from '@web/components/ui/textarea';
 import { toast } from 'sonner';
+import { uploadFile } from '@web/lib/messages';
 
 type ChatFooterProps = {
   onSubmit: (message: string) => void;
   selectedModel: ModelId;
   setSelectedModel: Dispatch<SetStateAction<ModelId>>;
-  chat?: Chat;
+  userId: string;
+  setMessageFiles: Dispatch<SetStateAction<string[]>>;
 };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -39,6 +41,8 @@ export function ChatFooter({
   onSubmit,
   selectedModel,
   setSelectedModel,
+  userId,
+  setMessageFiles,
 }: ChatFooterProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,13 +77,15 @@ export function ChatFooter({
     formRef.current?.reset();
   };
 
-  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
         toast.error('File size cannot exceed 10MB.');
         return;
       }
+      const fileId = await uploadFile(file, userId);
+      setMessageFiles(prev => [...prev, fileId]);
       // TODO: Implement file upload logic using instantdb storage
       toast.info(`Selected file: ${file.name}. Upload logic not implemented.`);
     }

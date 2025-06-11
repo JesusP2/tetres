@@ -15,7 +15,7 @@ import { Textarea } from '@web/components/ui/textarea';
 import { toast } from 'sonner';
 import { id } from '@instantdb/core';
 import { useChatScroll } from '@web/hooks/use-chat-scroll';
-import { type ModelId, modelIds } from '@server/utils/models';
+import { type ModelId } from '@server/utils/models';
 
 type ChatProps = {
   chat?: ChatType;
@@ -39,6 +39,7 @@ export function Chat({
   const [selectedModel, setSelectedModel] = useState<ModelId>(
     'openai/gpt-4.1-mini',
   );
+  const [messageFiles, setMessageFiles] = useState<string[]>([]);
   const { setActivateScroll, scrollRef, messagesContainerRef, scrollButtonRef } =
     useChatScroll({ messages, areChatsLoading });
 
@@ -76,7 +77,7 @@ export function Chat({
           createdAt: new Date().toISOString(),
         },
       ]);
-      await saveMessage(newMessage, newMessageId);
+      await saveMessage(newMessage, newMessageId, messageFiles);
       await sendMessage(messagesForApi, userId);
     }
   };
@@ -249,10 +250,11 @@ export function Chat({
           Scroll to bottom
         </Button>
         <ChatFooter
+          userId={session.data?.session?.userId}
+          setMessageFiles={setMessageFiles}
           onSubmit={handleNewMessage}
           selectedModel={selectedModel}
           setSelectedModel={setSelectedModel}
-          chat={chat}
         />
       </div>
     </>

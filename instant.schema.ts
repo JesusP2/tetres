@@ -78,7 +78,6 @@ const _schema = i.schema({
       content: i.json(),
       model: i.string(),
       chatId: i.string().indexed(),
-      userId: i.string().indexed(),
       updatedAt: i.date(),
       createdAt: i.date(),
     }),
@@ -146,6 +145,14 @@ const _schema = i.schema({
         onDelete: 'cascade',
       },
       reverse: { on: 'users', has: 'many', label: 'chats' },
+    },
+    message$files: {
+      forward: {
+        on: 'messages',
+        has: 'many',
+        label: '$files',
+      },
+      reverse: { on: '$files', has: 'one', label: 'message' },
     },
     messagesChat: {
       forward: {

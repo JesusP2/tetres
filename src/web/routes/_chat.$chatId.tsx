@@ -21,7 +21,9 @@ function RouteComponent() {
   } = db.useQuery({
     chats: {
       $: { where: { id: chatId } },
-      messages: {},
+      messages: {
+        $file: {}
+      },
     },
   });
   const [areChatsLoading, setAreChatsLoading] = useState(isLoading);

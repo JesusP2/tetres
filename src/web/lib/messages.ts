@@ -1,7 +1,7 @@
-import type { InstaQLEntity } from '@instantdb/react';
+import { id, type InstaQLEntity } from '@instantdb/react';
 import { db } from '@web/lib/instant';
-import schema from '../../../instant.schema';
 import type { ModelId } from '@server/utils/models';
+import schema from '../../../instant.schema';
 
 export type Message = InstaQLEntity<typeof schema, 'messages'>;
 
@@ -9,7 +9,7 @@ export type CreateMessageInput = {
   chatId: string;
   role: 'user' | 'assistant';
   content: string;
-  model: ModelId
+  model: ModelId;
 };
 
 export async function sendMessage(
@@ -41,7 +41,9 @@ export async function sendMessage(
 export async function saveMessage(
   newMessage: CreateMessageInput,
   id: string,
+  files: string[],
 ) {
+  console.log('files', files);
   return db.transact(
     db.tx.messages[id]
       .update({
@@ -49,8 +51,8 @@ export async function saveMessage(
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       })
-      .link({ chat: newMessage.chatId }),
-  );
+      .link({ chat: newMessage.chatId })
+  ).catch(console.error);
 }
 
 function editMessage(message: Message, newContent: string) {
@@ -139,4 +141,13 @@ export function copyMessageToClipboard(message: Message) {
 
     return Promise.resolve();
   }
+}
+export async function uploadFile(file: File, userId: string) {
+  const path = `${userId}/${id()}-${file.name}`;
+  const { data } = await db.storage.uploadFile(path, file, {
+    contentType: file.type,
+    contentDisposition: 'attachment',
+  });
+  return data.id;
+  // await db.transact(db.tx.chats[chatId].link({ files: data.id }));
 }

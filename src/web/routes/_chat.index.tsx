@@ -39,6 +39,7 @@ function Index() {
     if (session.data?.session) {
       const newChatId = id();
       await createChat({ id: session.data.session.userId }, 'New Chat', newChatId);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await saveMessage({
         chatId: newChatId,
         role: 'user',
@@ -90,7 +91,7 @@ function Index() {
           </div>
         )}
       </div>
-      <ChatFooter onSubmit={handleCreateChat} selectedModel={defaultModelForUser} setSelectedModel={(model) => {
+      <ChatFooter userId={session.data.session.userId} onSubmit={handleCreateChat} selectedModel={defaultModelForUser} setSelectedModel={(model) => {
         setDefaultModel(model);
         console.log('set default model for user:', model);
       }} />
