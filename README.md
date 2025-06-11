@@ -8,3 +8,4 @@ SCROLLING IS HARD
 - attachments
 - tools
 - pdfs
+- delete localStorage userId key on login

@@ -172,5 +172,6 @@ export const models = [
   },
 ] as const;
 
+export const defaultModel = 'google/gemini-2.0-flash-001' as const;
 export const modelIds = models.map(m => m.id);
 export type ModelId = (typeof modelIds)[number];

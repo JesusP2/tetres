@@ -14,7 +14,6 @@ import {
 } from '@web/components/ui/popover';
 import { Textarea } from '@web/components/ui/textarea';
 import { uploadFile } from '@web/lib/messages';
-import type { Chat } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import { ArrowUp, Check, ChevronsUpDown, Paperclip } from 'lucide-react';
 import {
@@ -31,8 +30,8 @@ type ChatFooterProps = {
   onSubmit: (message: string) => void;
   selectedModel: ModelId;
   setSelectedModel: Dispatch<SetStateAction<ModelId>>;
-  userId: string;
-  setMessageFiles: Dispatch<SetStateAction<string[]>>;
+  userId?: string;
+  setMessageFiles?: Dispatch<SetStateAction<string[]>>;
 };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -78,6 +77,7 @@ export function ChatFooter({
   };
 
   const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!userId || !setMessageFiles) return;
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
@@ -86,8 +86,6 @@ export function ChatFooter({
       }
       const fileId = await uploadFile(file, userId);
       setMessageFiles(prev => [...prev, fileId]);
-      // TODO: Implement file upload logic using instantdb storage
-      toast.info(`Selected file: ${file.name}. Upload logic not implemented.`);
     }
   };
 

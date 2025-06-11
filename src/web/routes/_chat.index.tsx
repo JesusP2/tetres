@@ -4,12 +4,12 @@ import { ChatFooter } from '@web/components/chat/footer';
 import { Button } from '@web/components/ui/button';
 import { Card } from '@web/components/ui/card';
 import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
-import { useSession } from '@web/lib/auth-client';
 import { createChat } from '@web/lib/chats';
 import { saveMessage, sendMessage } from '@web/lib/messages';
 import { useState } from 'react';
 import { z } from 'zod';
 import type { ModelId } from '@server/utils/models';
+import { useUser } from '@web/hooks/use-user';
 
 const indexSearchSchema = z.object({
   new: z.boolean().optional(),
@@ -31,45 +31,45 @@ const defaultModelForUser = 'google/gemini-2.5-flash-preview-05-20';
 function Index() {
   const { new: isNew } = Route.useSearch();
   const navigate = useNavigate();
-  const session = useSession();
+  const user = useUser();
   // TODO: persist this in the database
   const [defaultModel, setDefaultModel] =
     useState<ModelId>(defaultModelForUser);
 
   const handleCreateChat = async (message: string) => {
-    if (session.data?.session) {
-      const newChatId = id();
-      await createChat(
-        { id: session.data.session.userId },
-        'New Chat',
-        newChatId,
-      );
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await saveMessage(
+    if (user.isPending) return;
+    const newChatId = id();
+    await createChat(
+      { id: user.data.id },
+      'New Chat',
+      newChatId,
+    );
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await saveMessage(
+      {
+        chatId: newChatId,
+        role: 'user',
+        content: message,
+        model: defaultModel,
+      },
+      id(),
+      [],
+    );
+    await sendMessage(
+      [
         {
           chatId: newChatId,
-          role: 'user',
-          content: message,
+          role: 'assistant',
+          content: 'Hello! How can I help you today?',
           model: defaultModel,
         },
-        id(),
-      );
-      await sendMessage(
-        [
-          {
-            chatId: newChatId,
-            role: 'assistant',
-            content: 'Hello! How can I help you today?',
-            model: defaultModel,
-          },
-        ],
-        session.data.session.userId,
-      );
-      navigate({
-        to: '/$chatId',
-        params: { chatId: newChatId },
-      });
-    }
+      ],
+      user.data.id,
+    );
+    navigate({
+      to: '/$chatId',
+      params: { chatId: newChatId },
+    });
   };
 
   return (
@@ -108,7 +108,7 @@ function Index() {
         )}
       </div>
       <ChatFooter
-        userId={session.data.session.userId}
+        userId={!user.isPending ? user.data.id : undefined}
         onSubmit={handleCreateChat}
         selectedModel={defaultModelForUser}
         setSelectedModel={model => {

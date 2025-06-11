@@ -43,7 +43,6 @@ export async function saveMessage(
   id: string,
   files: string[],
 ) {
-  console.log('files', files);
   return db
     .transact(
       db.tx.messages[id]
@@ -52,7 +51,8 @@ export async function saveMessage(
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         })
-        .link({ chat: newMessage.chatId }),
+        .link({ chat: newMessage.chatId })
+        .link({ $files: files }),
     )
     .catch(console.error);
 }

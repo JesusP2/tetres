@@ -39,27 +39,36 @@ export const sendMessageToModel = async ({
   for await (const text of textStream) {
     if (!messageId) {
       messageId = id();
-      await db.transact(
-        db.tx.messages[messageId]
-          .update({
-            role: 'assistant',
-            chatId: config.chatId,
+      await db
+        .transact(
+          db.tx.messages[messageId]
+            .update({
+              role: 'assistant',
+              chatId: config.chatId,
+              content: {
+                [sqId]: text,
+              },
+              model: config.model,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            })
+            .link({ chat: config.chatId }),
+        )
+        .catch(err => console.error("I'M FAILING HERE:", err));
+    } else {
+      await db
+        .transact(
+          db.tx.messages[messageId].merge({
+            // role: 'assistant',
+            // chatId: config.chatId,
             content: {
               [sqId]: text,
             },
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          })
-          .link({ chat: config.chatId }),
-      );
-    } else {
-      await db.transact(
-        db.tx.messages[messageId].merge({
-          content: {
-            [sqId]: text,
-          },
-        }),
-      );
+            // createdAt: new Date().toISOString(),
+            // updatedAt: new Date().toISOString(),
+          }),
+        )
+        .catch(console.error);
     }
     sqId++;
   }

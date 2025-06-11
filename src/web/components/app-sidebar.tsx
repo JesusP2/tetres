@@ -23,6 +23,7 @@ import * as React from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { NavUser } from './nav-user';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
+import { useUser } from '@web/hooks/use-user';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -59,27 +60,26 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [editingChatId, setEditingChatId] = React.useState<string | null>(null);
   const [editingTitle, setEditingTitle] = React.useState('');
-  const session = authClient.useSession();
-  const userId = session.data?.session?.userId;
+  const user = useUser();
   const { data } = db.useQuery(
-    userId
+    !user.isPending
       ? {
-          chats: {
-            $: {
-              where: {
-                userId: userId,
-              },
+        chats: {
+          $: {
+            where: {
+              userId: user.data.id,
             },
           },
-        }
+        },
+      }
       : {},
   );
 
   const chats = data?.chats || [];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
     : chats;
 
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);

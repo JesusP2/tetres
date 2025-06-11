@@ -24,17 +24,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@web/components/ui/sidebar';
-import { authClient } from '@web/lib/auth-client';
 import { buttonVariants } from './ui/button';
+import { useUser } from '@web/hooks/use-user';
 
 export function NavUser() {
   const { isMobile } = useSidebar();
-  const sessionData = authClient.useSession();
+  const user = useUser();
 
-  if (sessionData.isPending) {
+  if (user.isPending) {
     return <div>Loading...</div>;
-  }
-  if (!sessionData.data) {
+  } else if (!user.data || user.type === 'guest') {
     return (
       <Link className={buttonVariants()} to='/auth/sign-in'>
         Login
@@ -53,17 +52,17 @@ export function NavUser() {
             >
               <Avatar className='h-8 w-8 rounded-lg grayscale'>
                 <AvatarImage
-                  src={sessionData.data.user.image ?? ''}
-                  alt={sessionData.data.user.name}
+                  src={user.data.image ?? ''}
+                  alt={user.data.name}
                 />
                 <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
                 <span className='truncate font-medium'>
-                  {sessionData.data.user.name}
+                  {user.data.name}
                 </span>
                 <span className='text-muted-foreground truncate text-xs'>
-                  {sessionData.data.user.email}
+                  {user.data.email}
                 </span>
               </div>
               {/*<IconDotsVertical className="ml-auto size-4" />*/}
@@ -79,17 +78,17 @@ export function NavUser() {
               <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
                 <Avatar className='h-8 w-8 rounded-lg grayscale'>
                   <AvatarImage
-                    src={sessionData.data.user.image ?? ''}
-                    alt={sessionData.data.user.name}
+                    src={user.data.image ?? ''}
+                    alt={user.data.name}
                   />
                   <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
                   <span className='truncate font-medium'>
-                    {sessionData.data.user.name}
+                    {user.data.name}
                   </span>
                   <span className='text-muted-foreground truncate text-xs'>
-                    {sessionData.data.user.email}
+                    {user.data.email}
                   </span>
                 </div>
               </div>

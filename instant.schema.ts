@@ -81,6 +81,13 @@ const _schema = i.schema({
       updatedAt: i.date(),
       createdAt: i.date(),
     }),
+    ui: i.entity({
+      // theme: i.string().optional(),
+      defaultModel: i.string(),
+      userId: i.string().indexed(),
+      createdAt: i.date(),
+      updatedAt: i.date(),
+    }),
   },
   links: {
     users$user: {
@@ -91,6 +98,15 @@ const _schema = i.schema({
         onDelete: 'cascade',
       },
       reverse: { on: '$users', has: 'one', label: 'users' },
+    },
+    uiUser: {
+      forward: {
+        on: 'ui',
+        has: 'one',
+        label: 'user',
+        onDelete: 'cascade',
+      },
+      reverse: { on: 'users', has: 'one', label: 'ui' },
     },
     sessionsUser: {
       forward: {

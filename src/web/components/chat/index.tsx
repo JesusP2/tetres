@@ -16,6 +16,7 @@ import { type Dispatch, type SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
 import { type ModelId } from '@server/utils/models';
 import { ChatFooter } from './footer';
+import { useUser } from '@web/hooks/use-user';
 
 type ChatProps = {
   chat?: ChatType;
@@ -32,7 +33,7 @@ export function Chat({
   setParsedMessages,
   areChatsLoading,
 }: ChatProps) {
-  const session = authClient.useSession();
+  const user = useUser();
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -48,13 +49,13 @@ export function Chat({
   } = useChatScroll({ messages, areChatsLoading });
 
   const handleNewMessage = async (message: string) => {
+    if (user.isPending) return;
     if (onSubmit) {
       onSubmit(message);
       return;
     }
     setActivateScroll(true);
-    const userId = session.data?.session?.userId;
-    if (chat && userId) {
+    if (chat) {
       const newMessage = {
         chatId: chat.id,
         role: 'user' as const,
@@ -82,7 +83,8 @@ export function Chat({
         },
       ]);
       await saveMessage(newMessage, newMessageId, messageFiles);
-      await sendMessage(messagesForApi, userId);
+      setMessageFiles([]);
+      await sendMessage(messagesForApi, user.data.id);
     }
   };
 
@@ -92,17 +94,11 @@ export function Chat({
   };
 
   const handleSaveRetry = async (message: Message) => {
-    if (isProcessing) return;
+    if (isProcessing || user.isPending) return;
     if (!editingContent.trim()) {
       toast.error('Message cannot be empty');
       setEditingMessageId(null);
       setEditingContent('');
-      return;
-    }
-
-    const userId = session.data?.session?.userId;
-    if (!userId) {
-      toast.error('Please log in to retry messages');
       return;
     }
 
@@ -112,7 +108,7 @@ export function Chat({
         messages,
         message,
         editingContent,
-        userId,
+        user.data.id,
         selectedModel,
       );
       setEditingMessageId(null);
@@ -206,16 +202,12 @@ export function Chat({
                             variant='ghost'
                             className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
                             onClick={() => {
-                              const userId = session.data?.session?.userId;
-                              if (!userId) {
-                                toast.error('Please log in to retry messages');
-                                return;
-                              }
+                              if (user.isPending) return;
                               retryMessage(
                                 messages,
                                 m,
                                 m.content,
-                                userId,
+                                user.data.id,
                                 selectedModel,
                               );
                             }}
@@ -271,7 +263,7 @@ export function Chat({
           Scroll to bottom
         </Button>
         <ChatFooter
-          userId={session.data?.session?.userId}
+          userId={!user.isPending ? user.data.id : undefined}
           setMessageFiles={setMessageFiles}
           onSubmit={handleNewMessage}
           selectedModel={selectedModel}
