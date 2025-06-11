@@ -78,13 +78,7 @@ const _schema = i.schema({
       content: i.json(),
       model: i.string(),
       chatId: i.string().indexed(),
-      updatedAt: i.date(),
-      createdAt: i.date(),
-    }),
-    todos: i.entity({
-      text: i.string(),
       userId: i.string().indexed(),
-      done: i.boolean(),
       updatedAt: i.date(),
       createdAt: i.date(),
     }),
@@ -125,15 +119,6 @@ const _schema = i.schema({
         onDelete: 'cascade',
       },
       reverse: { on: 'users', has: 'many', label: 'passkeys' },
-    },
-    todosUser: {
-      forward: {
-        on: 'todos',
-        has: 'one',
-        label: 'user',
-        onDelete: 'cascade',
-      },
-      reverse: { on: 'users', has: 'many', label: 'todos' },
     },
     projectsUser: {
       forward: {

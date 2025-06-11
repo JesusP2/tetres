@@ -13,6 +13,7 @@ const rules = {
       view: 'isOwner',
       update: 'isOwner',
       create: 'isOwner',
+      delete: 'isOwner',
     },
     bind: ['isOwner', "auth.id != null && data.path.startsWith(auth.id + '/')"],
   },
@@ -58,6 +59,33 @@ const rules = {
       update: 'false',
     },
   },
+  projects: {
+    bind: ['isOwner', 'auth.id != null && auth.id == data.userId'],
+    allow: {
+      view: 'isOwner',
+      create: 'isOnwer',
+      delete: 'isOwner',
+      update: 'isOwner',
+    },
+  },
+  chats: {
+    bind: ['isOwner', 'auth.id != null && auth.id == data.userId'],
+    allow: {
+      view: 'isOwner',
+      create: 'isOwner',
+      delete: 'isOwner',
+      update: 'isOwner',
+    },
+  },
+  messages: {
+    bind: ['isOwner', 'auth.id != null && auth.id == data.userId'],
+    allow: {
+      view: 'isOwner',
+      create: 'isOwner',
+      delete: 'isOwner',
+      update: 'isOwner',
+    },
+  }
 } satisfies InstantRules;
 
 export default rules;
