@@ -1,21 +1,21 @@
-import { ChatFooter } from './footer';
-import type { Chat as ChatType, Message } from '@web/lib/types';
-import {
-  saveMessage,
-  retryMessage,
-  copyMessageToClipboard,
-  sendMessage,
-  type CreateMessageInput,
-} from '@web/lib/messages';
-import { authClient } from '@web/lib/auth-client';
-import { type Dispatch, type SetStateAction, useState } from 'react';
-import { RotateCcw, Edit3, Copy, Check, X, Loader2 } from 'lucide-react';
+import { id } from '@instantdb/core';
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
-import { toast } from 'sonner';
-import { id } from '@instantdb/core';
 import { useChatScroll } from '@web/hooks/use-chat-scroll';
+import { authClient } from '@web/lib/auth-client';
+import {
+  copyMessageToClipboard,
+  type CreateMessageInput,
+  retryMessage,
+  saveMessage,
+  sendMessage,
+} from '@web/lib/messages';
+import type { Chat as ChatType, Message } from '@web/lib/types';
+import { Check, Copy, Edit3, Loader2, RotateCcw, X } from 'lucide-react';
+import { type Dispatch, type SetStateAction, useState } from 'react';
+import { toast } from 'sonner';
 import { type ModelId } from '@server/utils/models';
+import { ChatFooter } from './footer';
 
 type ChatProps = {
   chat?: ChatType;
@@ -40,8 +40,12 @@ export function Chat({
     'openai/gpt-4.1-mini',
   );
   const [messageFiles, setMessageFiles] = useState<string[]>([]);
-  const { setActivateScroll, scrollRef, messagesContainerRef, scrollButtonRef } =
-    useChatScroll({ messages, areChatsLoading });
+  const {
+    setActivateScroll,
+    scrollRef,
+    messagesContainerRef,
+    scrollButtonRef,
+  } = useChatScroll({ messages, areChatsLoading });
 
   const handleNewMessage = async (message: string) => {
     if (onSubmit) {
@@ -104,7 +108,13 @@ export function Chat({
 
     setIsProcessing(true);
     try {
-      await retryMessage(messages, message, editingContent, userId, selectedModel);
+      await retryMessage(
+        messages,
+        message,
+        editingContent,
+        userId,
+        selectedModel,
+      );
       setEditingMessageId(null);
       setEditingContent('');
       toast.success('Message retried successfully');
@@ -133,23 +143,26 @@ export function Chat({
 
   return (
     <>
-      <div className="flex flex-col h-full">
-        <div ref={messagesContainerRef} className="h-screen chat-scrollbar overflow-y-auto">
-          <div className="space-y-4 max-w-3xl mx-auto px-4">
-            {messages.map((m) => {
+      <div className='flex h-full flex-col'>
+        <div
+          ref={messagesContainerRef}
+          className='chat-scrollbar h-screen overflow-y-auto'
+        >
+          <div className='mx-auto max-w-3xl space-y-4 px-4'>
+            {messages.map(m => {
               const isEditing = editingMessageId === m.id;
               return m.role === 'user' ? (
-                <div data-role="user" key={m.id} className="flex justify-end">
-                  <div className="max-w-xs md:max-w-md">
+                <div data-role='user' key={m.id} className='flex justify-end'>
+                  <div className='max-w-xs md:max-w-md'>
                     {isEditing ? (
-                      <div className="space-y-2">
+                      <div className='space-y-2'>
                         <Textarea
                           value={editingContent}
-                          onChange={(e) => setEditingContent(e.target.value)}
-                          className="resize-none"
+                          onChange={e => setEditingContent(e.target.value)}
+                          className='resize-none'
                           autoFocus
                           disabled={isProcessing}
-                          onKeyDown={(e) => {
+                          onKeyDown={e => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                               e.preventDefault();
                               if (isProcessing) return;
@@ -160,38 +173,38 @@ export function Chat({
                             }
                           }}
                         />
-                        <div className="flex gap-2 justify-end">
+                        <div className='flex justify-end gap-2'>
                           <Button
-                            size="sm"
-                            variant="outline"
+                            size='sm'
+                            variant='outline'
                             onClick={handleCancelEdit}
                             disabled={isProcessing}
                           >
-                            <X className="h-3 w-3" />
+                            <X className='h-3 w-3' />
                           </Button>
                           <Button
-                            size="sm"
+                            size='sm'
                             onClick={() => handleSaveRetry(m)}
                             disabled={isProcessing}
                           >
                             {isProcessing ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
+                              <Loader2 className='h-3 w-3 animate-spin' />
                             ) : (
-                              <Check className="h-3 w-3" />
+                              <Check className='h-3 w-3' />
                             )}
                           </Button>
                         </div>
                       </div>
                     ) : (
-                      <div className="group">
-                        <div className="p-2 rounded-lg bg-primary text-primary-foreground">
+                      <div className='group'>
+                        <div className='bg-primary text-primary-foreground rounded-lg p-2'>
                           {m.content}
                         </div>
-                        <div className="flex gap-1 mt-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className='mt-1 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                            size='sm'
+                            variant='ghost'
+                            className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
                             onClick={() => {
                               const userId = session.data?.session?.userId;
                               if (!userId) {
@@ -206,29 +219,29 @@ export function Chat({
                                 selectedModel,
                               );
                             }}
-                            title="Retry message"
+                            title='Retry message'
                             disabled={isProcessing}
                           >
-                            <RotateCcw className="h-3 w-3" />
+                            <RotateCcw className='h-3 w-3' />
                           </Button>
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                            size='sm'
+                            variant='ghost'
+                            className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
                             onClick={() => handleEditMessage(m)}
-                            title="Edit message"
+                            title='Edit message'
                             disabled={isProcessing}
                           >
-                            <Edit3 className="h-3 w-3" />
+                            <Edit3 className='h-3 w-3' />
                           </Button>
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                            size='sm'
+                            variant='ghost'
+                            className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
                             onClick={() => handleCopyMessage(m)}
-                            title="Copy message"
+                            title='Copy message'
                           >
-                            <Copy className="h-3 w-3" />
+                            <Copy className='h-3 w-3' />
                           </Button>
                         </div>
                       </div>
@@ -236,17 +249,25 @@ export function Chat({
                   </div>
                 </div>
               ) : (
-                <div key={m.id} dangerouslySetInnerHTML={{ __html: m.parsedContent || '' }} />
+                <div
+                  key={m.id}
+                  dangerouslySetInnerHTML={{ __html: m.parsedContent || '' }}
+                />
               );
             })}
           </div>
-          <div ref={scrollRef} id="scroll" className="h-40 w-full" />
+          <div ref={scrollRef} id='scroll' className='h-40 w-full' />
         </div>
       </div>
-      <div className="absolute bottom-0 w-full">
-        <Button ref={scrollButtonRef} variant="default" className="block mx-auto mb-3" onClick={() => {
-          scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }}>
+      <div className='absolute bottom-0 w-full'>
+        <Button
+          ref={scrollButtonRef}
+          variant='default'
+          className='mx-auto mb-3 block'
+          onClick={() => {
+            scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
           Scroll to bottom
         </Button>
         <ChatFooter
@@ -259,4 +280,4 @@ export function Chat({
       </div>
     </>
   );
-} 
+}

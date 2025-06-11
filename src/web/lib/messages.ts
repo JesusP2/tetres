@@ -44,15 +44,17 @@ export async function saveMessage(
   files: string[],
 ) {
   console.log('files', files);
-  return db.transact(
-    db.tx.messages[id]
-      .update({
-        ...newMessage,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      })
-      .link({ chat: newMessage.chatId })
-  ).catch(console.error);
+  return db
+    .transact(
+      db.tx.messages[id]
+        .update({
+          ...newMessage,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })
+        .link({ chat: newMessage.chatId }),
+    )
+    .catch(console.error);
 }
 
 function editMessage(message: Message, newContent: string) {

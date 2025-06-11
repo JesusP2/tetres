@@ -1,9 +1,9 @@
 import { scan } from 'react-scan';
 import { RouterProvider } from '@tanstack/react-router';
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import './global.css';
 import { createRouter } from './router';
-import { StrictMode } from 'react';
 
 if (import.meta.env.DEV) {
   scan({
@@ -19,6 +19,6 @@ const router = createRouter();
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <StrictMode>
-      <RouterProvider router={router} />
+    <RouterProvider router={router} />
   </StrictMode>,
 );

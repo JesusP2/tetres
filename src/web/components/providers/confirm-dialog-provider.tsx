@@ -1,10 +1,10 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@web/components/ui/dialog';
 import { createContext, type ReactNode, useContext, useState } from 'react';
 import { Button } from '../ui/button';
@@ -25,7 +25,11 @@ const ConfirmDialogContext = createContext<ConfirmDialogProviderState>({
 });
 
 export const useConfirmDialog = () => useContext(ConfirmDialogContext);
-export function ConfirmDialogProvider({ children }: { children: React.ReactNode }) {
+export function ConfirmDialogProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [config, setConfig] = useState<ConfirmFnProps & { isOpen: boolean }>({
     isOpen: false,
     title: '',
@@ -34,7 +38,12 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
     handleCancel: () => null,
   });
 
-  function confirmDelete({ title, description, handleConfirm, handleCancel }: ConfirmFnProps) {
+  function confirmDelete({
+    title,
+    description,
+    handleConfirm,
+    handleCancel,
+  }: ConfirmFnProps) {
     setConfig({
       isOpen: true,
       title,
@@ -44,29 +53,44 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
     });
   }
 
-  return <>
-    <ConfirmDialogContext.Provider value={{ confirmDelete }}>
-      {children}
-      <Dialog open={config.isOpen} onOpenChange={(open) => !open && setConfig({ ...config, isOpen: false })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{config.title}</DialogTitle>
-            <DialogDescription>{config.description}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              config.handleCancel?.();
-              setConfig({ ...config, isOpen: false });
-            }}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={() => {
-              config.handleConfirm();
-              setConfig({ ...config, isOpen: false });
-            }}>Confirm</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </ConfirmDialogContext.Provider>
-  </>;
+  return (
+    <>
+      <ConfirmDialogContext.Provider value={{ confirmDelete }}>
+        {children}
+        <Dialog
+          open={config.isOpen}
+          onOpenChange={open =>
+            !open && setConfig({ ...config, isOpen: false })
+          }
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{config.title}</DialogTitle>
+              <DialogDescription>{config.description}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant='outline'
+                onClick={() => {
+                  config.handleCancel?.();
+                  setConfig({ ...config, isOpen: false });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant='destructive'
+                onClick={() => {
+                  config.handleConfirm();
+                  setConfig({ ...config, isOpen: false });
+                }}
+              >
+                Confirm
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </ConfirmDialogContext.Provider>
+    </>
+  );
 }

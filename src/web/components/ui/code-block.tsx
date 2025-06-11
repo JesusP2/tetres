@@ -1,5 +1,5 @@
-import { codeToHtml } from 'shiki';
 import { useEffect, useState } from 'react';
+import { codeToHtml } from 'shiki';
 
 type CodeBlockProps = {
   code: string;
@@ -20,9 +20,15 @@ export function CodeBlock({ code, lang, className }: CodeBlockProps) {
           dark: 'github-dark',
         },
       });
-      const lightBg = /<pre class="shiki shiki-themes github-light" style="background-color:(.*?)"/.exec(highlighter)?.[1]
-      const darkBg = /<pre class="shiki shiki-themes github-dark" style="background-color:(.*?)"/.exec(highlighter)?.[1]
-      
+      const lightBg =
+        /<pre class="shiki shiki-themes github-light" style="background-color:(.*?)"/.exec(
+          highlighter,
+        )?.[1];
+      const darkBg =
+        /<pre class="shiki shiki-themes github-dark" style="background-color:(.*?)"/.exec(
+          highlighter,
+        )?.[1];
+
       setHtml(highlighter);
       setStyle({
         '--shiki-light-bg': lightBg,
@@ -39,4 +45,4 @@ export function CodeBlock({ code, lang, className }: CodeBlockProps) {
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
-} 
+}

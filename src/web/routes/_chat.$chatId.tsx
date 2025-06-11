@@ -1,9 +1,9 @@
-import { createFileRoute, useParams } from '@tanstack/react-router'
+import { createFileRoute, useParams } from '@tanstack/react-router';
 import { Chat } from '@web/components/chat/index';
 import { db } from '@web/lib/instant';
 import { renderMarkdown } from '@web/lib/syntax-highlighting';
-import { useEffect, useState, useCallback } from 'react';
 import type { Message } from '@web/lib/types';
+import { useCallback, useEffect, useState } from 'react';
 
 export const Route = createFileRoute('/_chat/$chatId')({
   component: RouteComponent,
@@ -14,15 +14,11 @@ const parsedMessageCache = new Map<string, string>();
 
 function RouteComponent() {
   const { chatId } = useParams({ from: '/_chat/$chatId' });
-  const {
-    isLoading,
-    error,
-    data,
-  } = db.useQuery({
+  const { isLoading, error, data } = db.useQuery({
     chats: {
       $: { where: { id: chatId } },
       messages: {
-        $file: {}
+        $file: {},
       },
     },
   });
@@ -34,7 +30,7 @@ function RouteComponent() {
 
   const createCacheKey = useCallback((messageId: string, content: string) => {
     const contentHash = content.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
+      a = (a << 5) - a + b.charCodeAt(0);
       return a & a;
     }, 0);
     return `${messageId}-${contentHash}`;
@@ -50,16 +46,19 @@ function RouteComponent() {
     // Process messages and handle caching
     const processMessages = async () => {
       const processedMessages = await Promise.all(
-        rawMessages.map(async (message) => {
+        rawMessages.map(async message => {
           if (message.role === 'user') {
             return message;
           }
-          const cacheKey = createCacheKey(message.id, objectToString(message.content));
+          const cacheKey = createCacheKey(
+            message.id,
+            objectToString(message.content),
+          );
           if (parsedMessageCache.has(cacheKey)) {
             return {
               ...message,
               content: objectToString(message.content),
-              parsedContent: parsedMessageCache.get(cacheKey)!
+              parsedContent: parsedMessageCache.get(cacheKey)!,
             };
           }
           // Parse and cache
@@ -68,9 +67,9 @@ function RouteComponent() {
           return {
             ...message,
             content: objectToString(message.content),
-            parsedContent
+            parsedContent,
           };
-        })
+        }),
       );
       setParsedMessages(processedMessages);
       setAreChatsLoading(false);
@@ -83,7 +82,14 @@ function RouteComponent() {
   if (error) return <div>Error: {error.message}</div>;
 
   const chat = data.chats[0];
-  return <Chat areChatsLoading={areChatsLoading} chat={chat} messages={parsedMessages} setParsedMessages={setParsedMessages} />;
+  return (
+    <Chat
+      areChatsLoading={areChatsLoading}
+      chat={chat}
+      messages={parsedMessages}
+      setParsedMessages={setParsedMessages}
+    />
+  );
 }
 
 const objectToString = (obj: any): string => {

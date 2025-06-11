@@ -4,25 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tetres</title>
-    <meta name="description" content="Copycat">
+    <meta name="description" content="Copycat" />
     <link rel="icon" type="image/svg+xml" href="/tetres.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" sizes="180x180">
-    <link rel="mask-icon" href="/maskable-icon-512x512.png" color="#FFFFFF">
-    <meta name="theme-color" content="#ffffff">
+    <link
+      rel="apple-touch-icon"
+      href="/apple-touch-icon-180x180.png"
+      sizes="180x180"
+    />
+    <link rel="mask-icon" href="/maskable-icon-512x512.png" color="#FFFFFF" />
+    <meta name="theme-color" content="#ffffff" />
   </head>
 
   <body>
     <div id="root"></div>
     <script>
-    // https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/#client-side-callbacks
+      // https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/#client-side-callbacks
       async function googleOauthCallback() {
-        const response = await fetch("/api/auth/callback/google" + window.location.search);
+        const response = await fetch(
+          '/api/auth/callback/google' + window.location.search,
+        );
         if (response.ok) {
           window.location.href = '/';
         } else {
-          document.querySelector('p').textContent = 'Error: ' + (await response.json()).error;
+          document.querySelector('p').textContent =
+            'Error: ' + (await response.json()).error;
         }
-      };
+      }
       if (window.location.href.includes('/api/auth/callback/google')) {
         googleOauthCallback();
       }

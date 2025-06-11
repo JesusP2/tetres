@@ -71,7 +71,7 @@ const _schema = i.schema({
       projectId: i.string().indexed().optional(),
       userId: i.string().indexed(),
       updatedAt: i.date(),
-      createdAt: i.date()
+      createdAt: i.date(),
     }),
     messages: i.entity({
       role: i.string(),

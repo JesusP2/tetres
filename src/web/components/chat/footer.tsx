@@ -1,19 +1,4 @@
 import { Button } from '@web/components/ui/button';
-import { Paperclip, ArrowUp, Check, ChevronsUpDown } from 'lucide-react';
-import {
-  type Dispatch,
-  type SetStateAction,
-  useRef,
-  useState,
-  type ChangeEvent,
-} from 'react';
-import { type ModelId, models } from '@server/utils/models';
-import type { Chat } from '@web/lib/types';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@web/components/ui/popover';
 import {
   Command,
   CommandEmpty,
@@ -22,10 +7,25 @@ import {
   CommandItem,
   CommandList,
 } from '@web/components/ui/command';
-import { cn } from '@web/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@web/components/ui/popover';
 import { Textarea } from '@web/components/ui/textarea';
-import { toast } from 'sonner';
 import { uploadFile } from '@web/lib/messages';
+import type { Chat } from '@web/lib/types';
+import { cn } from '@web/lib/utils';
+import { ArrowUp, Check, ChevronsUpDown, Paperclip } from 'lucide-react';
+import {
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
+  useRef,
+  useState,
+} from 'react';
+import { toast } from 'sonner';
+import { type ModelId, models } from '@server/utils/models';
 
 type ChatFooterProps = {
   onSubmit: (message: string) => void;
@@ -92,13 +92,13 @@ export function ChatFooter({
   };
 
   return (
-    <div className="mx-auto max-w-3xl w-full bg-white shadow-md rounded-sm">
-      <form className="p-4" ref={formRef} onSubmit={handleSubmit}>
-        <div className="relative">
+    <div className='mx-auto w-full max-w-3xl rounded-sm bg-white shadow-md'>
+      <form className='p-4' ref={formRef} onSubmit={handleSubmit}>
+        <div className='relative'>
           <Textarea
-            name="message"
-            placeholder="Type your message here..."
-            className="pr-16 field-size-content max-h-[175px] chat-scrollbar"
+            name='message'
+            placeholder='Type your message here...'
+            className='field-size-content chat-scrollbar max-h-[175px] pr-16'
             onKeyDown={event => {
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
@@ -107,34 +107,34 @@ export function ChatFooter({
             }}
           />
           <Button
-            size="icon"
-            className="absolute right-2 bottom-2"
-            type="submit"
+            size='icon'
+            className='absolute right-2 bottom-2'
+            type='submit'
           >
-            <ArrowUp className="h-4 w-4" />
+            <ArrowUp className='h-4 w-4' />
           </Button>
         </div>
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-2">
+        <div className='mt-2 flex items-center justify-between'>
+          <div className='flex items-center gap-2'>
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
-                  role="combobox"
+                  variant='outline'
+                  role='combobox'
                   aria-expanded={open}
-                  className="w-[250px] justify-between"
+                  className='w-[250px] justify-between'
                 >
-                  <span className="truncate">
+                  <span className='truncate'>
                     {selectedModel
                       ? models.find(m => m.id === selectedModel)?.name
                       : 'Select model...'}
                   </span>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[250px] p-0">
+              <PopoverContent className='w-[250px] p-0'>
                 <Command>
-                  <CommandInput placeholder="Search model..." />
+                  <CommandInput placeholder='Search model...' />
                   <CommandList>
                     <CommandEmpty>No model found.</CommandEmpty>
                     <CommandGroup>
@@ -166,18 +166,18 @@ export function ChatFooter({
             {canAttach && (
               <>
                 <input
-                  type="file"
+                  type='file'
                   ref={fileInputRef}
                   onChange={handleFileSelect}
                   accept={acceptTypes}
-                  className="hidden"
+                  className='hidden'
                 />
                 <Button
-                  variant="ghost"
-                  size="icon"
+                  variant='ghost'
+                  size='icon'
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Paperclip className="h-4 w-4" />
+                  <Paperclip className='h-4 w-4' />
                 </Button>
               </>
             )}

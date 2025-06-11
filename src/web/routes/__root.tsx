@@ -17,7 +17,9 @@ function RootComponent() {
   return (
     <Providers>
       <Outlet />
-      {import.meta.env.DEV && <TanStackRouterDevtools position='bottom-right' />}
+      {import.meta.env.DEV && (
+        <TanStackRouterDevtools position='bottom-right' />
+      )}
     </Providers>
   );
 }

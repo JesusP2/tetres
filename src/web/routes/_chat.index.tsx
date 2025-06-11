@@ -1,22 +1,22 @@
+import { id } from '@instantdb/react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { z } from 'zod';
+import { ChatFooter } from '@web/components/chat/footer';
 import { Button } from '@web/components/ui/button';
 import { Card } from '@web/components/ui/card';
-import { Create, Explore, Code, Learn } from '@web/components/ui/icons';
-import { createChat } from '@web/lib/chats';
+import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
 import { useSession } from '@web/lib/auth-client';
-import { id } from '@instantdb/react';
-import { ChatFooter } from '@web/components/chat/footer';
+import { createChat } from '@web/lib/chats';
 import { saveMessage, sendMessage } from '@web/lib/messages';
-import type { ModelId } from '@server/utils/models';
 import { useState } from 'react';
+import { z } from 'zod';
+import type { ModelId } from '@server/utils/models';
 
 const indexSearchSchema = z.object({
   new: z.boolean().optional(),
 });
 
 export const Route = createFileRoute('/_chat/')({
-  validateSearch: (search) => indexSearchSchema.parse(search),
+  validateSearch: search => indexSearchSchema.parse(search),
   component: Index,
 });
 
@@ -33,56 +33,72 @@ function Index() {
   const navigate = useNavigate();
   const session = useSession();
   // TODO: persist this in the database
-  const [defaultModel, setDefaultModel] = useState<ModelId>(defaultModelForUser);
+  const [defaultModel, setDefaultModel] =
+    useState<ModelId>(defaultModelForUser);
 
   const handleCreateChat = async (message: string) => {
     if (session.data?.session) {
       const newChatId = id();
-      await createChat({ id: session.data.session.userId }, 'New Chat', newChatId);
+      await createChat(
+        { id: session.data.session.userId },
+        'New Chat',
+        newChatId,
+      );
       await new Promise(resolve => setTimeout(resolve, 1000));
-      await saveMessage({
-        chatId: newChatId,
-        role: 'user',
-        content: message,
-        model: defaultModel,
-      }, id())
-      await sendMessage([{
-        chatId: newChatId,
-        role: 'assistant',
-        content: 'Hello! How can I help you today?',
-        model: defaultModel,
-      }], session.data.session.userId);
+      await saveMessage(
+        {
+          chatId: newChatId,
+          role: 'user',
+          content: message,
+          model: defaultModel,
+        },
+        id(),
+      );
+      await sendMessage(
+        [
+          {
+            chatId: newChatId,
+            role: 'assistant',
+            content: 'Hello! How can I help you today?',
+            model: defaultModel,
+          },
+        ],
+        session.data.session.userId,
+      );
       navigate({
-        to: '/$chatId', params: { chatId: newChatId }
+        to: '/$chatId',
+        params: { chatId: newChatId },
       });
     }
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="items-center justify-center mx-auto flex-1">
+    <div className='flex h-full flex-col'>
+      <div className='mx-auto flex-1 items-center justify-center'>
         {!isNew && (
-          <div className="max-w-2xl w-full p-8">
-            <h1 className="text-4xl font-bold mb-4">How can I help you, Jesus?</h1>
-            <div className="flex space-x-4 mb-8">
-              <Button variant="outline">
-                <Create className="mr-2" /> Create
+          <div className='w-full max-w-2xl p-8'>
+            <h1 className='mb-4 text-4xl font-bold'>
+              How can I help you, Jesus?
+            </h1>
+            <div className='mb-8 flex space-x-4'>
+              <Button variant='outline'>
+                <Create className='mr-2' /> Create
               </Button>
-              <Button variant="outline">
-                <Explore className="mr-2" /> Explore
+              <Button variant='outline'>
+                <Explore className='mr-2' /> Explore
               </Button>
-              <Button variant="outline">
-                <Code className="mr-2" /> Code
+              <Button variant='outline'>
+                <Code className='mr-2' /> Code
               </Button>
-              <Button variant="outline">
-                <Learn className="mr-2" /> Learn
+              <Button variant='outline'>
+                <Learn className='mr-2' /> Learn
               </Button>
             </div>
-            <div className="space-y-4">
-              {suggestions.map((s) => (
+            <div className='space-y-4'>
+              {suggestions.map(s => (
                 <Card
                   key={s}
-                  className="p-4 hover:bg-muted cursor-pointer transition-colors"
+                  className='hover:bg-muted cursor-pointer p-4 transition-colors'
                 >
                   {s}
                 </Card>
@@ -91,10 +107,15 @@ function Index() {
           </div>
         )}
       </div>
-      <ChatFooter userId={session.data.session.userId} onSubmit={handleCreateChat} selectedModel={defaultModelForUser} setSelectedModel={(model) => {
-        setDefaultModel(model);
-        console.log('set default model for user:', model);
-      }} />
+      <ChatFooter
+        userId={session.data.session.userId}
+        onSubmit={handleCreateChat}
+        selectedModel={defaultModelForUser}
+        setSelectedModel={model => {
+          setDefaultModel(model);
+          console.log('set default model for user:', model);
+        }}
+      />
     </div>
   );
-} 
+}

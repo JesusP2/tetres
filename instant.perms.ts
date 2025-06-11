@@ -78,14 +78,19 @@ const rules = {
     },
   },
   messages: {
-    bind: ['isOwner', "auth.id != null && auth.id in data.ref('chat.userId')", 'isLoggedIn', 'auth.id != null'],
+    bind: [
+      'isOwner',
+      "auth.id != null && auth.id in data.ref('chat.userId')",
+      'isLoggedIn',
+      'auth.id != null',
+    ],
     allow: {
       view: 'isOwner',
       create: 'isLoggedIn',
       delete: 'isOwner',
       update: 'isOwner',
     },
-  }
+  },
 } satisfies InstantRules;
 
 export default rules;

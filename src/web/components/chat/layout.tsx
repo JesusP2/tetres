@@ -1,6 +1,6 @@
-import { AppSidebar } from "@web/components//app-sidebar";
-import { AppSidebarInset } from "@web/components/app-sidebar-inset";
-import { SIDEBAR_WIDTH, SidebarProvider } from "@web/components/ui/sidebar";
+import { AppSidebar } from '@web/components//app-sidebar';
+import { AppSidebarInset } from '@web/components/app-sidebar-inset';
+import { SIDEBAR_WIDTH, SidebarProvider } from '@web/components/ui/sidebar';
 
 type ProviderProps = {
   children: React.ReactNode;
@@ -11,9 +11,9 @@ function getCookieValue(name: string) {
   return value;
 }
 export function ChatLayout({ children }: ProviderProps) {
-  const sidebarState = getCookieValue("sidebar:state") ?? 'false';
-  const sidebarWidth = getCookieValue("sidebar:width") ?? SIDEBAR_WIDTH;
-  const defaultOpen = sidebarState === "true";
+  const sidebarState = getCookieValue('sidebar:state') ?? 'false';
+  const sidebarWidth = getCookieValue('sidebar:width') ?? SIDEBAR_WIDTH;
+  const defaultOpen = sidebarState === 'true';
 
   return (
     <SidebarProvider defaultOpen={defaultOpen} defaultWidth={sidebarWidth}>

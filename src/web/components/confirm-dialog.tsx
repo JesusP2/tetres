@@ -1,12 +1,12 @@
+import { Button } from '@web/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@web/components/ui/dialog';
-import { Button } from '@web/components/ui/button';
 import { useConfirm } from '@web/hooks/use-confirm';
 
 export function ConfirmDialog() {
@@ -14,14 +14,14 @@ export function ConfirmDialog() {
     useConfirm();
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
+    <Dialog open={isOpen} onOpenChange={open => !open && handleCancel()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant='outline' onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleConfirm}>Confirm</Button>
@@ -29,4 +29,4 @@ export function ConfirmDialog() {
       </DialogContent>
     </Dialog>
   );
-} 
+}

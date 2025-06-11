@@ -1,11 +1,7 @@
-import * as React from "react";
-import {
-  Plus,
-  Pin,
-  Trash2,
-  PinOff,
-} from "lucide-react";
-
+import { Link, useNavigate } from '@tanstack/react-router';
+import { Button } from '@web/components/ui/button';
+import { Input } from '@web/components/ui/input';
+import { ScrollArea } from '@web/components/ui/scroll-area';
 import {
   Sidebar,
   SidebarContent,
@@ -13,24 +9,20 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  SidebarRail,
   sidebarMenuButtonVariants,
-} from "@web/components/ui/sidebar";
-
-import { MessageSquare, Search } from "lucide-react";
-
-import { Button } from "@web/components/ui/button";
-import { Input } from "@web/components/ui/input";
-import { ScrollArea } from "@web/components/ui/scroll-area";
-import { NavUser } from "./nav-user";
-import { db } from '@web/lib/instant';
-import { type Chat, updateChat, deleteChat, togglePin } from '@web/lib/chats';
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarTrigger,
+} from '@web/components/ui/sidebar';
 import { authClient } from '@web/lib/auth-client';
-import { groupBy, pipe, sortBy, partition } from 'remeda';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { useConfirmDialog } from "./providers/confirm-dialog-provider";
+import { type Chat, deleteChat, togglePin, updateChat } from '@web/lib/chats';
+import { db } from '@web/lib/instant';
+import { Pin, PinOff, Plus, Trash2 } from 'lucide-react';
+import { MessageSquare, Search } from 'lucide-react';
+import * as React from 'react';
+import { groupBy, partition, pipe, sortBy } from 'remeda';
+import { NavUser } from './nav-user';
+import { useConfirmDialog } from './providers/confirm-dialog-provider';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -58,7 +50,7 @@ const groupChats = (chats: Chat[]) => {
       } else {
         return 'Older';
       }
-    })
+    }),
   );
 };
 
@@ -72,34 +64,31 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
   const { data } = db.useQuery(
     userId
       ? {
-        chats: {
-          $: {
-            where: {
-              userId: userId,
+          chats: {
+            $: {
+              where: {
+                userId: userId,
+              },
             },
           },
-        },
-      }
-      : {}
+        }
+      : {},
   );
 
   const chats = data?.chats || [];
   const filteredChats = searchQuery
-    ? chats.filter((chat) =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    ? chats.filter(chat =>
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : chats;
 
-  const [pinned, unpinned] = partition(
-    filteredChats,
-    (c) => c.pinned
-  );
+  const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
   const navigate = useNavigate();
 
   const handleUpdateTitle = () => {
     if (!editingChatId) return;
-    const chat = chats.find((c) => c.id === editingChatId);
+    const chat = chats.find(c => c.id === editingChatId);
     if (chat && editingTitle.trim() && editingTitle.trim() !== chat.title) {
       updateChat(chat, editingTitle.trim());
     }
@@ -138,49 +127,53 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         setEditingChatId(chat.id);
         setEditingTitle(chat.title);
       }}
-      className="group"
+      className='group'
     >
       {editingChatId === chat.id ? (
         <Input
           value={editingTitle}
-          onChange={(e) => setEditingTitle(e.target.value)}
+          onChange={e => setEditingTitle(e.target.value)}
           onBlur={handleUpdateTitle}
           onKeyDown={handleKeyDown}
           autoFocus
-          onFocus={(e) => e.target.select()}
+          onFocus={e => e.target.select()}
         />
       ) : (
         <Link
-          to="/$chatId"
+          to='/$chatId'
           params={{ chatId: chat.id }}
-          className="w-full"
+          className='w-full'
           activeProps={{
             className: 'bg-accent text-accent-foreground',
           }}
         >
-          <div className={sidebarMenuButtonVariants({ className: 'w-full justify-start relative' })}>
-            <MessageSquare className="mr-2" />
-            <span className="truncate">{chat.title}</span>
-            <div className="absolute right-0 top-0 h-full flex items-center gap-2">
+          <div
+            className={sidebarMenuButtonVariants({
+              className: 'relative w-full justify-start',
+            })}
+          >
+            <MessageSquare className='mr-2' />
+            <span className='truncate'>{chat.title}</span>
+            <div className='absolute top-0 right-0 flex h-full items-center gap-2'>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault();
                   togglePin(chat);
                 }}
               >
                 {chat.pinned ? (
-                  <PinOff className="w-4 h-4" />
+                  <PinOff className='h-4 w-4' />
                 ) : (
-                  <Pin className="w-4 h-4" />
+                  <Pin className='h-4 w-4' />
                 )}
               </button>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault();
                   handleDeleteChat(chat);
                 }}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className='h-4 w-4' />
               </button>
             </div>
           </div>
@@ -191,43 +184,41 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Sidebar collapsible="icon">
-        <SidebarHeader className="mt-2">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="sticky" />
-            <h2 className="text-lg font-semibold">T3.chat</h2>
+      <Sidebar collapsible='icon'>
+        <SidebarHeader className='mt-2'>
+          <div className='flex items-center gap-2'>
+            <SidebarTrigger className='sticky' />
+            <h2 className='text-lg font-semibold'>T3.chat</h2>
           </div>
         </SidebarHeader>
-        <SidebarContent className="overflow-hidden">
-          <div className="p-4 flex flex-col gap-4">
+        <SidebarContent className='overflow-hidden'>
+          <div className='flex flex-col gap-4 p-4'>
             <Button onClick={handleNewChat}>
-              <Plus className="mr-2" /> New Chat
+              <Plus className='mr-2' /> New Chat
             </Button>
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className='relative'>
+              <Search className='text-muted-foreground absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2' />
               <Input
-                placeholder="Search your threads..."
-                className="pl-8"
+                placeholder='Search your threads...'
+                className='pl-8'
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
-          <ScrollArea
-            className="h-full overflow-y-auto mr-2 masked-scroll-area"
-          >
+          <ScrollArea className='masked-scroll-area mr-2 h-full overflow-y-auto'>
             <SidebarMenu>
               {pinned.length > 0 && (
-                <div className="p-4">
-                  <div className="text-sm font-semibold text-muted-foreground mb-2 capitalize">
+                <div className='p-4'>
+                  <div className='text-muted-foreground mb-2 text-sm font-semibold capitalize'>
                     Pinned
                   </div>
                   {pinned.map(renderChat)}
                 </div>
               )}
               {Object.entries(groupedChats).map(([period, chats]) => (
-                <div key={period} className="p-4">
-                  <div className="text-sm font-semibold text-muted-foreground mb-2 capitalize">
+                <div key={period} className='p-4'>
+                  <div className='text-muted-foreground mb-2 text-sm font-semibold capitalize'>
                     {period}
                   </div>
                   {chats.map(renderChat)}
@@ -236,7 +227,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </ScrollArea>
         </SidebarContent>
-        <SidebarFooter className="mb-2">
+        <SidebarFooter className='mb-2'>
           <NavUser />
         </SidebarFooter>
         <SidebarRail />

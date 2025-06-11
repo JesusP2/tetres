@@ -7,7 +7,7 @@
     "types": ["vite/client", "./worker-configuration.d.ts"],
     "paths": {
       "@server/*": ["./src/worker/*"]
-    },
+    }
   },
   "include": ["src/worker"]
 }
