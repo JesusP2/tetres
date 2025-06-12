@@ -77,6 +77,7 @@ const _schema = i.schema({
     messages: i.entity({
       role: i.string(),
       content: i.json(),
+      aborted: i.date().optional(),
       model: i.string(),
       chatId: i.string().indexed(),
       updatedAt: i.date(),

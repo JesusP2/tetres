@@ -56,8 +56,8 @@ function Index() {
       [
         {
           chatId: newChatId,
-          role: 'assistant',
-          content: 'Hello! How can I help you today?',
+          role: 'user',
+          content: message,
           model: ui.defaultModel,
         },
       ],

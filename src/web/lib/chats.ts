@@ -4,6 +4,7 @@ import schema from '../../../instant.schema';
 import type { ModelId } from '@server/utils/models';
 
 export type Chat = InstaQLEntity<typeof schema, 'chats'>;
+export type Message = InstaQLEntity<typeof schema, 'messages'>;
 
 export function createChat(user: { id: string }, name: string, chatId: string, model: ModelId) {
   return db.transact(
@@ -18,6 +19,26 @@ export function createChat(user: { id: string }, name: string, chatId: string, m
       })
       .link({ user: user.id }),
   );
+}
+
+export function createMessage(
+  chatId: string,
+  messageId: string,
+  userId: string,
+  content: string,
+) {
+  const messageData = {
+    content,
+    role: 'user' as const,
+    model: 'user' as const,
+    userId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const tx = db.tx.messages[messageId].update(messageData).link({ chat: chatId });
+
+  return db.transact(tx);
 }
 
 export function updateChatTitle(chat: Chat, title: string) {

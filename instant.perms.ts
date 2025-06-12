@@ -83,12 +83,14 @@ const rules = {
       "auth.id != null && auth.id in data.ref('chat.userId')",
       'isLoggedIn',
       'auth.id != null',
+      'isAborted',
+      'data.aborted == null'
     ],
     allow: {
       view: 'isOwner',
       create: 'isLoggedIn',
       delete: 'isOwner',
-      update: 'isOwner',
+      update: 'isOwner && !isAborted',
     },
   },
 } satisfies InstantRules;

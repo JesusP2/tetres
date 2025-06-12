@@ -4,10 +4,10 @@ import { Input } from '@web/components/ui/input';
 import { ScrollArea } from '@web/components/ui/scroll-area';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { db } from '@web/lib/instant';
-import { type Chat, deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
+import { type Chat, deleteChat, togglePin, updateChatTitle, createChat, createMessage } from '@web/lib/chats';
 import type { MyUser } from '@web/hooks/use-user';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MessageSquare, Search, Pin, PinOff, Plus, Trash2 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -15,20 +15,13 @@ import {
   SidebarMenuItem,
 } from '@web/components/ui/sidebar';
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@web/components/ui/command';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from '@web/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useUI } from '@web/hooks/use-ui';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -215,42 +208,12 @@ export function ChatList({ user }: { user: MyUser }) {
           />
         </div>
       </div>
-      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
-        <DialogContent className='p-0' showCloseButton={false}>
-          <VisuallyHidden>
-            <DialogTitle>Search chats</DialogTitle>
-          </VisuallyHidden>
-          <VisuallyHidden>
-            <DialogDescription>
-              Search for a chat by its title.
-            </DialogDescription>
-          </VisuallyHidden>
-          <Command>
-            <CommandInput placeholder='Search your threads...' />
-            <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup>
-                {chats.map(chat => (
-                  <CommandItem
-                    key={chat.id}
-                    value={chat.title}
-                    onSelect={() => {
-                      navigate({
-                        to: '/$chatId',
-                        params: { chatId: chat.id },
-                      });
-                      setSearchDialogOpen(false);
-                    }}
-                  >
-                    <MessageSquare className='mr-2' />
-                    <span>{chat.title}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </DialogContent>
-      </Dialog>
+      <ChatSearch
+        isOpen={searchDialogOpen}
+        setIsOpen={setSearchDialogOpen}
+        chats={chats}
+        user={user}
+      />
       <ScrollArea className='masked-scroll-area mr-2 h-full overflow-y-auto'>
         <SidebarMenu>
           {pinned.length > 0 && (
@@ -273,4 +236,156 @@ export function ChatList({ user }: { user: MyUser }) {
       </ScrollArea>
     </>
   )
+}
+
+function ChatSearch({
+  isOpen,
+  setIsOpen,
+  chats,
+  user,
+}: {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  chats: Chat[];
+  user: MyUser;
+}) {
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { ui } = useUI();
+
+  const filtered = search
+    ? chats.filter(c => c.title.toLowerCase().includes(search.toLowerCase()))
+    : chats;
+
+  const handleCreateChat = async () => {
+    if (user.isPending || !search.trim() || !ui) return;
+    const newChatId = crypto.randomUUID();
+    const messageId = crypto.randomUUID();
+    const message = search.trim();
+    // Use the first available model as default
+    await createChat(user.data, "New Chat", newChatId, ui.defaultModel);
+    await createMessage(newChatId, messageId, user.data.id, message);
+    navigate({ to: '/$chatId', params: { chatId: newChatId } });
+    setIsOpen(false);
+    setSearch('');
+  };
+
+  const handleSelect = (chatId?: string) => {
+    if (chatId) {
+      navigate({ to: '/$chatId', params: { chatId } });
+      setIsOpen(false);
+      setSearch('');
+    } else {
+      void handleCreateChat();
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSearch('');
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [search]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedIndex(prev => {
+            const newIndex = prev + 1;
+            return newIndex >= filtered.length ? -1 : newIndex;
+          });
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedIndex(prev => {
+            const newIndex = prev - 1;
+            return newIndex < -1 ? filtered.length - 1 : newIndex;
+          });
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (selectedIndex === -1) {
+            handleSelect();
+          } else {
+            handleSelect(filtered[selectedIndex]?.id);
+          }
+          break;
+        case 'Escape':
+          setIsOpen(false);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectedIndex, filtered, search]);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent
+        className='p-0'
+        showCloseButton={false}
+        onOpenAutoFocus={e => {
+          e.preventDefault();
+          inputRef.current?.focus();
+        }}
+      >
+        <VisuallyHidden>
+          <DialogTitle>Search chats</DialogTitle>
+        </VisuallyHidden>
+        <VisuallyHidden>
+          <DialogDescription>
+            Search for a chat by its title or create a new one.
+          </DialogDescription>
+        </VisuallyHidden>
+        <div className='flex items-center gap-2 border-b p-3'>
+          <Search className='h-5 w-5 text-muted-foreground' />
+          <input
+            ref={inputRef}
+            type='text'
+            placeholder='Search chats...'
+            className='flex-1 bg-transparent text-sm focus:outline-none'
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <div className='p-2'>
+          <div className='flex items-center justify-between px-2 pb-2'>
+            <h2 className='text-xs font-semibold text-muted-foreground'>
+              {search ? 'Matching Chats' : 'Recent Chats'}
+            </h2>
+            <div className='flex items-center gap-1 text-xs text-muted-foreground'>
+              <span className='text-xs'>↩</span>
+              <span>
+                {selectedIndex === -1 ? 'to start new chat' : 'to open'}
+              </span>
+            </div>
+          </div>
+          <div className='chat-scrollbar max-h-[300px] overflow-y-auto'>
+            {filtered.map((chat, i) => (
+              <div
+                key={chat.id}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
+                  selectedIndex === i ? 'bg-accent' : ''
+                }`}
+                onClick={() => handleSelect(chat.id)}
+                onMouseMove={() => setSelectedIndex(i)}
+              >
+                <span className='truncate'>{chat.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
