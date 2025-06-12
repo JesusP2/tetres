@@ -99,12 +99,15 @@ export async function retryMessage(
       model: model,
       updatedAt: new Date().toISOString(),
     }),
-    createAssistantMessage({
-      chatId: targetMessage.chatId,
-      content: null,
-      model: model,
-      role: 'assistant',
-    }, newAssitantMessageId),
+    createAssistantMessage(
+      {
+        chatId: targetMessage.chatId,
+        content: null,
+        model: model,
+        role: 'assistant',
+      },
+      newAssitantMessageId,
+    ),
   ]);
 
   const conversationUpToTarget = messages.slice(0, targetIndex + 1);

@@ -6,11 +6,10 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@web/components/ui/sidebar';
-import * as React from 'react';
-import { NavUser } from './nav-user';
 import { useUser } from '@web/hooks/use-user';
+import * as React from 'react';
 import { ChatList } from './chat-list';
-
+import { NavUser } from './nav-user';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
   const user = useUser();

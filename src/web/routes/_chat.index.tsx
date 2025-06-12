@@ -4,12 +4,16 @@ import { ChatFooter } from '@web/components/chat/footer';
 import { Button } from '@web/components/ui/button';
 import { Card } from '@web/components/ui/card';
 import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
-import { createChat } from '@web/lib/chats';
-import { createAssistantMessage, createUserMessage, sendMessage } from '@web/lib/messages';
-import { z } from 'zod';
-import { useUser } from '@web/hooks/use-user';
 import { useUI } from '@web/hooks/use-ui';
+import { useUser } from '@web/hooks/use-user';
+import { createChat } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
+import {
+  createAssistantMessage,
+  createUserMessage,
+  sendMessage,
+} from '@web/lib/messages';
+import { z } from 'zod';
 
 const indexSearchSchema = z.object({
   new: z.boolean().optional(),
@@ -47,7 +51,7 @@ function Index() {
       role: 'user' as const,
       content: messageContent,
       model: ui.defaultModel,
-    }
+    };
     const userMessageTx = createUserMessage(message, id(), []);
     const newAsistantMessageId = id();
     const assistantMessageTx = createAssistantMessage(
@@ -68,7 +72,7 @@ function Index() {
       messageId: newAsistantMessageId,
       model: ui.defaultModel,
       chatId: message.chatId,
-    })
+    });
     navigate({
       to: '/$chatId',
       params: { chatId: newChatId },
@@ -114,7 +118,7 @@ function Index() {
         userId={!user.isPending ? user.data.id : undefined}
         onSubmit={handleCreateChat}
         selectedModel={ui?.defaultModel}
-        updateModel={(model) => updateUI({ defaultModel: model })}
+        updateModel={model => updateUI({ defaultModel: model })}
       />
     </div>
   );

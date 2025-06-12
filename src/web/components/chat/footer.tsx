@@ -1,5 +1,5 @@
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@web/components/ui/button';
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   Command,
   CommandEmpty,
@@ -144,13 +144,13 @@ export function ChatFooter({
   return (
     <div className='mx-auto w-full max-w-3xl rounded-sm bg-white shadow-md'>
       <form className='p-4' ref={formRef} onSubmit={handleSubmit}>
-        <div className='relative flex w-full flex-col rounded-md border border-input bg-transparent p-3 text-sm shadow-sm focus-within:outline-none focus-within:ring-1 focus-within:ring-ring'>
+        <div className='border-input focus-within:ring-ring relative flex w-full flex-col rounded-md border bg-transparent p-3 text-sm shadow-sm focus-within:ring-1 focus-within:outline-none'>
           {messageFiles && messageFiles.length > 0 && (
             <div className='mb-2 flex flex-wrap gap-2'>
               {messageFiles.map(file => (
                 <div
                   key={file.id}
-                  className='flex items-center gap-2 rounded-md bg-secondary p-1'
+                  className='bg-secondary flex items-center gap-2 rounded-md p-1'
                 >
                   {file.url ? (
                     <img
@@ -159,7 +159,7 @@ export function ChatFooter({
                       className='h-8 w-8 rounded-md object-cover'
                     />
                   ) : (
-                    <div className='flex h-8 w-8 items-center justify-center rounded-md bg-muted'>
+                    <div className='bg-muted flex h-8 w-8 items-center justify-center rounded-md'>
                       <Paperclip className='h-4 w-4' />
                     </div>
                   )}
@@ -220,9 +220,7 @@ export function ChatFooter({
               </DialogTrigger>
               <DialogContent className='p-0' showCloseButton={false}>
                 <VisuallyHidden>
-                  <DialogTitle>
-                    Model selection
-                  </DialogTitle>
+                  <DialogTitle>Model selection</DialogTitle>
                 </VisuallyHidden>
                 <VisuallyHidden>
                   <DialogDescription>
@@ -232,7 +230,7 @@ export function ChatFooter({
 
                 <Command>
                   <CommandInput placeholder='Search model...' />
-                  <CommandList className="chat-scrollbar">
+                  <CommandList className='chat-scrollbar'>
                     <CommandEmpty>No model found.</CommandEmpty>
                     <CommandGroup>
                       {models.map(m => (

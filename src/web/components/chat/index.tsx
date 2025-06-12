@@ -2,12 +2,15 @@ import { id } from '@instantdb/core';
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
 import { useChatScroll } from '@web/hooks/use-chat-scroll';
+import { useUser } from '@web/hooks/use-user';
+import { updateChatModel } from '@web/lib/chats';
+import { db } from '@web/lib/instant';
 import {
   copyMessageToClipboard,
-  retryMessage,
-  createUserMessage,
-  sendMessage,
   createAssistantMessage,
+  createUserMessage,
+  retryMessage,
+  sendMessage,
 } from '@web/lib/messages';
 import type { Chat as ChatType, Message } from '@web/lib/types';
 import { Check, Copy, Edit3, Loader2, RotateCcw, X } from 'lucide-react';
@@ -15,9 +18,6 @@ import { type Dispatch, type SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
 import { type ModelId } from '@server/utils/models';
 import { type AttachmentFile, ChatFooter } from './footer';
-import { useUser } from '@web/hooks/use-user';
-import { updateChatModel } from '@web/lib/chats';
-import { db } from '@web/lib/instant';
 
 type ChatProps = {
   chat: ChatType;
@@ -79,7 +79,11 @@ export function Chat({
         },
       ]);
       const fileIds = messageFiles.map(f => f.id);
-      const userMessageTx = createUserMessage(newUserMessage, newUserMessageId, fileIds);
+      const userMessageTx = createUserMessage(
+        newUserMessage,
+        newUserMessageId,
+        fileIds,
+      );
       const assistantMessageTx = createAssistantMessage(
         {
           chatId: chat.id,
@@ -98,7 +102,7 @@ export function Chat({
         messageId: newAssistantMessageId,
         model: chat.model as ModelId,
         chatId: chat.id,
-      })
+      });
       setMessageFiles([]);
     }
   };
@@ -284,7 +288,7 @@ export function Chat({
           setMessageFiles={setMessageFiles}
           onSubmit={handleNewMessage}
           selectedModel={chat.model as ModelId}
-          updateModel={(model) => updateChatModel(chat!, model)}
+          updateModel={model => updateChatModel(chat!, model)}
         />
       </div>
     </>

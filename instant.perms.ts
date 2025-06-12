@@ -84,7 +84,7 @@ const rules = {
       'isLoggedIn',
       'auth.id != null',
       'isAborted',
-      'data.aborted == null'
+      'data.aborted == null',
     ],
     allow: {
       view: 'isOwner',

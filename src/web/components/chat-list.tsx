@@ -1,29 +1,39 @@
+import { id } from '@instantdb/core';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@web/components/ui/button';
-import { Input } from '@web/components/ui/input';
-import { ScrollArea } from '@web/components/ui/scroll-area';
-import { groupBy, partition, pipe, sortBy } from 'remeda';
-import { db } from '@web/lib/instant';
-import { type Chat, deleteChat, togglePin, updateChatTitle, createChat } from '@web/lib/chats';
-import type { MyUser } from '@web/hooks/use-user';
-import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import { useEffect, useRef, useState } from 'react';
-import { MessageSquare, Search, Pin, PinOff, Plus, Trash2 } from 'lucide-react';
-import {
-  SidebarMenu,
-  sidebarMenuButtonVariants,
-  SidebarMenuItem,
-} from '@web/components/ui/sidebar';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from '@web/components/ui/dialog';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { Input } from '@web/components/ui/input';
+import { ScrollArea } from '@web/components/ui/scroll-area';
+import {
+  SidebarMenu,
+  sidebarMenuButtonVariants,
+  SidebarMenuItem,
+} from '@web/components/ui/sidebar';
 import { useUI } from '@web/hooks/use-ui';
-import { createAssistantMessage, createUserMessage, sendMessage } from '@web/lib/messages';
-import { id } from '@instantdb/core';
+import type { MyUser } from '@web/hooks/use-user';
+import {
+  type Chat,
+  createChat,
+  deleteChat,
+  togglePin,
+  updateChatTitle,
+} from '@web/lib/chats';
+import { db } from '@web/lib/instant';
+import {
+  createAssistantMessage,
+  createUserMessage,
+  sendMessage,
+} from '@web/lib/messages';
+import { MessageSquare, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { groupBy, partition, pipe, sortBy } from 'remeda';
+import { useConfirmDialog } from './providers/confirm-dialog-provider';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -65,21 +75,21 @@ export function ChatList({ user }: { user: MyUser }) {
   const { data } = db.useQuery(
     !user.isPending
       ? {
-        chats: {
-          $: {
-            where: {
-              userId: user.data.id,
+          chats: {
+            $: {
+              where: {
+                userId: user.data.id,
+              },
             },
           },
-        },
-      }
+        }
       : {},
   );
   const chats = data?.chats || [];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : chats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -235,7 +245,7 @@ export function ChatList({ user }: { user: MyUser }) {
         </SidebarMenu>
       </ScrollArea>
     </>
-  )
+  );
 }
 
 function ChatSearch({
@@ -265,14 +275,19 @@ function ChatSearch({
     setSearch('');
     const newChatId = id();
     const messageContent = search.trim();
-    const chatTx = createChat(user.data, "New Chat", newChatId, ui.defaultModel);
+    const chatTx = createChat(
+      user.data,
+      'New Chat',
+      newChatId,
+      ui.defaultModel,
+    );
     const message = {
       chatId: newChatId,
       role: 'user' as const,
       content: messageContent,
       model: ui.defaultModel,
-    }
-    const userMessageTx = createUserMessage(message, id(), [],)
+    };
+    const userMessageTx = createUserMessage(message, id(), []);
     const newAssistantMessageId = id();
     const assistantMessageTx = createAssistantMessage(
       {
@@ -292,7 +307,7 @@ function ChatSearch({
       messageId: newAssistantMessageId,
       model: ui.defaultModel,
       chatId: newChatId,
-    })
+    });
     await navigate({ to: '/$chatId', params: { chatId: newChatId } });
   };
 
@@ -373,7 +388,7 @@ function ChatSearch({
           </DialogDescription>
         </VisuallyHidden>
         <div className='flex items-center gap-2 border-b p-3'>
-          <Search className='h-5 w-5 text-muted-foreground' />
+          <Search className='text-muted-foreground h-5 w-5' />
           <input
             ref={inputRef}
             type='text'
@@ -385,10 +400,10 @@ function ChatSearch({
         </div>
         <div className='p-2'>
           <div className='flex items-center justify-between px-2 pb-2'>
-            <h2 className='text-xs font-semibold text-muted-foreground'>
+            <h2 className='text-muted-foreground text-xs font-semibold'>
               {search ? 'Matching Chats' : 'Recent Chats'}
             </h2>
-            <div className='flex items-center gap-1 text-xs text-muted-foreground'>
+            <div className='text-muted-foreground flex items-center gap-1 text-xs'>
               <span className='text-xs'>↩</span>
               <span>
                 {selectedIndex === -1 ? 'to start new chat' : 'to open'}
@@ -399,8 +414,9 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
-                  }`}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
+                  selectedIndex === i ? 'bg-accent' : ''
+                }`}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >

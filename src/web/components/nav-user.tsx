@@ -24,8 +24,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@web/components/ui/sidebar';
-import { buttonVariants } from './ui/button';
 import { useUser } from '@web/hooks/use-user';
+import { buttonVariants } from './ui/button';
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -51,16 +51,11 @@ export function NavUser() {
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
             >
               <Avatar className='h-8 w-8 rounded-lg grayscale'>
-                <AvatarImage
-                  src={user.data.image ?? ''}
-                  alt={user.data.name}
-                />
+                <AvatarImage src={user.data.image ?? ''} alt={user.data.name} />
                 <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
-                <span className='truncate font-medium'>
-                  {user.data.name}
-                </span>
+                <span className='truncate font-medium'>{user.data.name}</span>
                 <span className='text-muted-foreground truncate text-xs'>
                   {user.data.email}
                 </span>
@@ -84,9 +79,7 @@ export function NavUser() {
                   <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
-                  <span className='truncate font-medium'>
-                    {user.data.name}
-                  </span>
+                  <span className='truncate font-medium'>{user.data.name}</span>
                   <span className='text-muted-foreground truncate text-xs'>
                     {user.data.email}
                   </span>
