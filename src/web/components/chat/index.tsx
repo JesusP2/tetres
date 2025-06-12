@@ -13,8 +13,17 @@ import {
   sendMessage,
 } from '@web/lib/messages';
 import type { Chat as ChatType, Message } from '@web/lib/types';
-import { Check, Copy, Edit3, Loader2, RotateCcw, X } from 'lucide-react';
-import { type Dispatch, type SetStateAction, useState } from 'react';
+import {
+  Check,
+  Copy,
+  Edit3,
+  Loader2,
+  RotateCcw,
+  X,
+  BotIcon,
+  AlertTriangle,
+} from 'lucide-react';
+import { type Dispatch, Fragment, type SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
 import { type ModelId } from '@server/utils/models';
 import { type AttachmentFile, ChatFooter } from './footer';
@@ -167,6 +176,10 @@ export function Chat({
           <div className='mx-auto max-w-3xl space-y-4 px-4'>
             {messages.map(m => {
               const isEditing = editingMessageId === m.id;
+              const isLoading =
+                m.role === 'assistant' &&
+                (!m.content || Object.keys(m.content).length === 0);
+              const isAborted = m.aborted !== undefined;
               return m.role === 'user' ? (
                 <div data-role='user' key={m.id} className='flex justify-end'>
                   <div className='max-w-xs md:max-w-md'>
@@ -260,11 +273,37 @@ export function Chat({
                     )}
                   </div>
                 </div>
-              ) : (
+              ) : isLoading ? (
                 <div
                   key={m.id}
-                  dangerouslySetInnerHTML={{ __html: m.parsedContent || '' }}
-                />
+                  className='flex items-start gap-4'
+                  data-role='assistant'
+                >
+                  <div className='bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full'>
+                    <BotIcon className='h-5 w-5' />
+                  </div>
+                  <div className='flex flex-1 items-center space-y-2 pt-1'>
+                    <div className='flex items-center gap-1'>
+                      <div className='h-2 w-2 animate-bounce rounded-full bg-foreground [animation-delay:-0.3s]' />
+                      <div className='h-2 w-2 animate-bounce rounded-full bg-foreground [animation-delay:-0.15s]' />
+                      <div className='h-2 w-2 animate-bounce rounded-full bg-foreground' />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Fragment key={m.id}>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: m.parsedContent || '' }}
+                  />
+                  {isAborted && (
+                    <div className='bg-destructive/10 text-destructive border-destructive/20 m-4 flex items-center justify-between rounded-lg border p-3 text-sm'>
+                      <div className='flex items-center gap-2'>
+                        <AlertTriangle className='h-5 w-5' />
+                        <span>Message generation was stopped.</span>
+                      </div>
+                    </div>
+                  )}
+                </Fragment>
               );
             })}
           </div>
@@ -289,6 +328,7 @@ export function Chat({
           onSubmit={handleNewMessage}
           selectedModel={chat.model as ModelId}
           updateModel={model => updateChatModel(chat!, model)}
+          lastMessage={messages[messages.length - 1]}
         />
       </div>
     </>

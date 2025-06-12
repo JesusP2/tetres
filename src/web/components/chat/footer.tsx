@@ -16,9 +16,16 @@ import {
   DialogTrigger,
 } from '@web/components/ui/dialog';
 import { Textarea } from '@web/components/ui/textarea';
-import { uploadFile } from '@web/lib/messages';
+import { abortGeneration, uploadFile } from '@web/lib/messages';
 import { cn } from '@web/lib/utils';
-import { ArrowUp, Check, ChevronsUpDown, Paperclip, X } from 'lucide-react';
+import {
+  ArrowUp,
+  Check,
+  ChevronsUpDown,
+  Paperclip,
+  X,
+  Square,
+} from 'lucide-react';
 import {
   type ChangeEvent,
   type Dispatch,
@@ -29,6 +36,8 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { type ModelId, models } from '@server/utils/models';
+import { db } from '@web/lib/instant';
+import { type Message } from '@web/lib/types';
 
 export type AttachmentFile = {
   id: string;
@@ -44,6 +53,7 @@ type ChatFooterProps = {
   userId?: string;
   messageFiles?: AttachmentFile[];
   setMessageFiles?: Dispatch<SetStateAction<AttachmentFile[]>>;
+  lastMessage?: Message;
 };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -55,12 +65,22 @@ export function ChatFooter({
   userId,
   messageFiles,
   setMessageFiles,
+  lastMessage,
 }: ChatFooterProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState('');
 
   const model = models.find(m => m.id === selectedModel);
+
+  const isGenerating = lastMessage?.role === 'assistant' && !lastMessage.finished;
+
+  const handleStop = async () => {
+    if (lastMessage) {
+      await abortGeneration(lastMessage.id);
+    }
+  };
 
   const canAttachImage = (
     model?.architecture.input_modalities as readonly string[]
@@ -81,9 +101,6 @@ export function ChatFooter({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const message = new FormData(e.target as HTMLFormElement).get(
-      'message',
-    ) as string;
     if (!message.trim() && (!messageFiles || messageFiles.length === 0)) return;
     onSubmit(message);
     if (setMessageFiles && messageFiles && messageFiles.length > 0) {
@@ -94,7 +111,7 @@ export function ChatFooter({
       });
       setMessageFiles([]);
     }
-    formRef.current?.reset();
+    setMessage('');
   };
 
   const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -184,6 +201,8 @@ export function ChatFooter({
               name='message'
               placeholder='Type your message here...'
               className='field-size-content chat-scrollbar max-h-[175px] w-full resize-none border-none bg-transparent pr-16 shadow-none focus-visible:ring-0'
+              value={message}
+              onChange={e => setMessage(e.target.value)}
               onKeyDown={event => {
                 if (event.key === 'Enter' && !event.shiftKey) {
                   event.preventDefault();
@@ -191,13 +210,27 @@ export function ChatFooter({
                 }
               }}
             />
-            <Button
-              size='icon'
-              className='absolute right-2 bottom-2'
-              type='submit'
-            >
-              <ArrowUp className='h-4 w-4' />
-            </Button>
+            {isGenerating ? (
+              <Button
+                size='icon'
+                variant='destructive'
+                className='absolute right-2 bottom-2'
+                onClick={handleStop}
+              >
+                <Square className='h-4 w-4' />
+              </Button>
+            ) : (
+              <Button
+                size='icon'
+                className='absolute right-2 bottom-2'
+                type='submit'
+                disabled={
+                  !message.trim() && (!messageFiles || messageFiles.length === 0)
+                }
+              >
+                <ArrowUp className='h-4 w-4' />
+              </Button>
+            )}
           </div>
         </div>
         <div className='mt-2 flex items-center justify-between'>

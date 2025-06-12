@@ -293,7 +293,7 @@ function ChatSearch({
       {
         chatId: newChatId,
         role: 'assistant' as const,
-        content: null,
+        content: {},
         model: ui.defaultModel,
       },
       newAssistantMessageId,

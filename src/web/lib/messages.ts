@@ -102,7 +102,7 @@ export async function retryMessage(
     createAssistantMessage(
       {
         chatId: targetMessage.chatId,
-        content: null,
+        content: {},
         model: model,
         role: 'assistant',
       },
@@ -162,4 +162,14 @@ export async function uploadFile(file: File, userId: string) {
     contentDisposition: 'attachment',
   });
   return data.id;
+}
+
+export async function abortGeneration(messageId: string) {
+  const now = new Date().toISOString();
+  return db.transact(
+    db.tx.messages[messageId].update({
+      aborted: now,
+      finished: now,
+    }),
+  );
 }
