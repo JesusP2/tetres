@@ -1,5 +1,4 @@
 import { zValidator } from '@hono/zod-validator';
-import { id } from '@instantdb/core';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { streamText } from 'ai';
 import { Hono } from 'hono';
@@ -49,6 +48,16 @@ export const sendMessageToModel = async ({
   const messageId = config.messageId;
   let sqId = 0;
   for await (const text of textStream) {
+    const message = await db.query({
+      messages: {
+        $: {
+          where: {
+            id: messageId,
+          },
+        },
+      },
+    });
+    if (message.messages[0].aborted) break;
     await db
       .transact(
         db.tx.messages[messageId].merge({
