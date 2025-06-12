@@ -27,7 +27,7 @@ type GuestUser = {
   };
 };
 
-type MyUser =
+export type MyUser =
   | {
       isPending: true;
     }
