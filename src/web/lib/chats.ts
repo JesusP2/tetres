@@ -1,14 +1,16 @@
 import type { InstaQLEntity } from '@instantdb/react';
 import { db } from '@web/lib/instant';
 import schema from '../../../instant.schema';
+import type { ModelId } from '@server/utils/models';
 
 export type Chat = InstaQLEntity<typeof schema, 'chats'>;
 
-export function createChat(user: { id: string }, name: string, chatId: string) {
+export function createChat(user: { id: string }, name: string, chatId: string, model: ModelId) {
   return db.transact(
     db.tx.chats[chatId]
       .update({
         title: name,
+        model,
         pinned: false,
         userId: user.id,
         createdAt: new Date().toISOString(),
@@ -18,14 +20,24 @@ export function createChat(user: { id: string }, name: string, chatId: string) {
   );
 }
 
-export function updateChat(chat: Chat, name: string) {
+export function updateChatTitle(chat: Chat, title: string) {
   return db.transact(
     db.tx.chats[chat.id].update({
-      title: name,
+      title,
       updatedAt: new Date().toISOString(),
     }),
   );
 }
+
+export function updateChatModel(chat: Chat, model: ModelId) {
+  return db.transact(
+    db.tx.chats[chat.id].update({
+      model,
+      updatedAt: new Date().toISOString(),
+    }),
+  );
+}
+
 
 export function togglePin(chat: Chat) {
   return db.transact(

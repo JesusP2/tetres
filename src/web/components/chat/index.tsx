@@ -2,7 +2,6 @@ import { id } from '@instantdb/core';
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
 import { useChatScroll } from '@web/hooks/use-chat-scroll';
-import { authClient } from '@web/lib/auth-client';
 import {
   copyMessageToClipboard,
   type CreateMessageInput,
@@ -17,9 +16,10 @@ import { toast } from 'sonner';
 import { type ModelId } from '@server/utils/models';
 import { ChatFooter } from './footer';
 import { useUser } from '@web/hooks/use-user';
+import { updateChatModel } from '@web/lib/chats';
 
 type ChatProps = {
-  chat?: ChatType;
+  chat: ChatType;
   messages?: (Message & { parsedContent?: string })[];
   onSubmit?: (message: string) => void;
   setParsedMessages: Dispatch<SetStateAction<Message[]>>;
@@ -37,9 +37,6 @@ export function Chat({
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<ModelId>(
-    'openai/gpt-4.1-mini',
-  );
   const [messageFiles, setMessageFiles] = useState<string[]>([]);
   const {
     setActivateScroll,
@@ -60,7 +57,7 @@ export function Chat({
         chatId: chat.id,
         role: 'user' as const,
         content: message,
-        model: selectedModel,
+        model: chat.model as ModelId,
       };
       const messagesForApi: CreateMessageInput[] = [
         ...messages.map(m => ({
@@ -83,8 +80,8 @@ export function Chat({
         },
       ]);
       await saveMessage(newMessage, newMessageId, messageFiles);
-      setMessageFiles([]);
       await sendMessage(messagesForApi, user.data.id);
+      setMessageFiles([]);
     }
   };
 
@@ -109,7 +106,7 @@ export function Chat({
         message,
         editingContent,
         user.data.id,
-        selectedModel,
+        chat.model as ModelId,
       );
       setEditingMessageId(null);
       setEditingContent('');
@@ -208,7 +205,7 @@ export function Chat({
                                 m,
                                 m.content,
                                 user.data.id,
-                                selectedModel,
+                                chat.model as ModelId,
                               );
                             }}
                             title='Retry message'
@@ -266,8 +263,8 @@ export function Chat({
           userId={!user.isPending ? user.data.id : undefined}
           setMessageFiles={setMessageFiles}
           onSubmit={handleNewMessage}
-          selectedModel={selectedModel}
-          setSelectedModel={setSelectedModel}
+          selectedModel={chat.model as ModelId}
+          updateModel={(model) => updateChatModel(chat!, model)}
         />
       </div>
     </>

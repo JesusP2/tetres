@@ -8,14 +8,12 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   sidebarMenuButtonVariants,
   SidebarMenuItem,
   SidebarRail,
   SidebarTrigger,
 } from '@web/components/ui/sidebar';
-import { authClient } from '@web/lib/auth-client';
-import { type Chat, deleteChat, togglePin, updateChat } from '@web/lib/chats';
+import { type Chat, deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import { Pin, PinOff, Plus, Trash2 } from 'lucide-react';
 import { MessageSquare, Search } from 'lucide-react';
@@ -86,11 +84,11 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
   const groupedChats = groupChats(unpinned);
   const navigate = useNavigate();
 
-  const handleUpdateTitle = () => {
+  const handleUpdateTitle = async () => {
     if (!editingChatId) return;
     const chat = chats.find(c => c.id === editingChatId);
     if (chat && editingTitle.trim() && editingTitle.trim() !== chat.title) {
-      updateChat(chat, editingTitle.trim());
+      await updateChatTitle(chat, editingTitle.trim());
     }
     setEditingChatId(null);
     setEditingTitle('');
@@ -115,7 +113,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
   };
 
   const handleNewChat = () => {
-    if (session.data?.session) {
+    if (!user.isPending) {
       navigate({ to: '/', search: { new: true } });
     }
   };

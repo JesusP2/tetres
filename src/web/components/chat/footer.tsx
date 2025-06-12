@@ -28,8 +28,8 @@ import { type ModelId, models } from '@server/utils/models';
 
 type ChatFooterProps = {
   onSubmit: (message: string) => void;
-  selectedModel: ModelId;
-  setSelectedModel: Dispatch<SetStateAction<ModelId>>;
+  updateModel: (model: ModelId) => Promise<unknown>;
+  selectedModel?: ModelId;
   userId?: string;
   setMessageFiles?: Dispatch<SetStateAction<string[]>>;
 };
@@ -39,7 +39,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export function ChatFooter({
   onSubmit,
   selectedModel,
-  setSelectedModel,
+  updateModel,
   userId,
   setMessageFiles,
 }: ChatFooterProps) {
@@ -141,7 +141,7 @@ export function ChatFooter({
                           key={m.id}
                           value={m.id}
                           onSelect={currentValue => {
-                            setSelectedModel(currentValue as ModelId);
+                            updateModel(currentValue as ModelId);
                             setOpen(false);
                           }}
                         >

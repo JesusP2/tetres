@@ -68,6 +68,7 @@ const _schema = i.schema({
     chats: i.entity({
       title: i.string(),
       pinned: i.boolean(),
+      model: i.string(),
       projectId: i.string().indexed().optional(),
       userId: i.string().indexed(),
       updatedAt: i.date(),

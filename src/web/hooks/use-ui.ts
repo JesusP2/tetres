@@ -17,7 +17,9 @@ export function useUI() {
             },
           },
         }
-      : {},
+      : {
+        
+      },
   );
   const [ui, setUI] = useState<{
     id: string;
@@ -26,16 +28,24 @@ export function useUI() {
   useEffect(() => {
     if (user.isPending) return;
     const ui = data?.ui?.[0];
-    if (!ui && !isLoading) {
+    if (Array.isArray(data?.ui) && data?.ui.length === 0) {
+      console.log('no ui found');
       const uiId = id();
       setUI({
         id: uiId,
         defaultModel,
       });
       db.transact(
-        db.tx.ui[uiId].update({ userId: user.data.id, defaultModel }).link({
-          user: user.data.id,
-        }),
+        db.tx.ui[uiId]
+          .update({
+            userId: user.data.id,
+            defaultModel,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })
+          .link({
+            user: user.data.id,
+          }),
       );
       return;
     }
@@ -44,7 +54,7 @@ export function useUI() {
       id: ui.id,
       defaultModel: (ui.defaultModel as ModelId) || defaultModel,
     });
-  }, [data?.ui, user.isPending, isLoading, data?.ui]);
+  }, [data, user.isPending, isLoading]);
 
   async function updateUI(newUI: Partial<{ defaultModel: ModelId }>) {
     if (user.isPending || !ui) return;
@@ -54,6 +64,7 @@ export function useUI() {
     });
     await db.transact(db.tx.ui[ui.id].update(newUI));
   }
+
   return {
     ui,
     updateUI,

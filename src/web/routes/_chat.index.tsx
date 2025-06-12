@@ -6,10 +6,9 @@ import { Card } from '@web/components/ui/card';
 import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
 import { createChat } from '@web/lib/chats';
 import { saveMessage, sendMessage } from '@web/lib/messages';
-import { useState } from 'react';
 import { z } from 'zod';
-import type { ModelId } from '@server/utils/models';
 import { useUser } from '@web/hooks/use-user';
+import { useUI } from '@web/hooks/use-ui';
 
 const indexSearchSchema = z.object({
   new: z.boolean().optional(),
@@ -27,22 +26,20 @@ const suggestions = [
   'What is the meaning of life?',
 ];
 
-const defaultModelForUser = 'google/gemini-2.5-flash-preview-05-20';
 function Index() {
   const { new: isNew } = Route.useSearch();
   const navigate = useNavigate();
   const user = useUser();
-  // TODO: persist this in the database
-  const [defaultModel, setDefaultModel] =
-    useState<ModelId>(defaultModelForUser);
+  const { ui, updateUI } = useUI();
 
   const handleCreateChat = async (message: string) => {
-    if (user.isPending) return;
+    if (user.isPending || !ui) return;
     const newChatId = id();
     await createChat(
       { id: user.data.id },
       'New Chat',
       newChatId,
+      ui.defaultModel,
     );
     await new Promise(resolve => setTimeout(resolve, 1000));
     await saveMessage(
@@ -50,7 +47,7 @@ function Index() {
         chatId: newChatId,
         role: 'user',
         content: message,
-        model: defaultModel,
+        model: ui.defaultModel,
       },
       id(),
       [],
@@ -61,7 +58,7 @@ function Index() {
           chatId: newChatId,
           role: 'assistant',
           content: 'Hello! How can I help you today?',
-          model: defaultModel,
+          model: ui.defaultModel,
         },
       ],
       user.data.id,
@@ -110,11 +107,8 @@ function Index() {
       <ChatFooter
         userId={!user.isPending ? user.data.id : undefined}
         onSubmit={handleCreateChat}
-        selectedModel={defaultModelForUser}
-        setSelectedModel={model => {
-          setDefaultModel(model);
-          console.log('set default model for user:', model);
-        }}
+        selectedModel={ui?.defaultModel}
+        updateModel={(model) => updateUI({ defaultModel: model })}
       />
     </div>
   );

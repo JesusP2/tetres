@@ -41,6 +41,13 @@ export function useChatScroll({
   }, []);
 
   useEffect(() => {
+    if (
+      scrollButtonRef.current &&
+      scrollRef.current &&
+      scrollRef.current.scrollHeight === scrollRef.current.clientHeight
+    ) {
+      scrollButtonRef.current.style.display = 'none';
+    }
     if (isFirstScrollFired && !areChatsLoading) {
       setIsFirstScrollFired(false);
       scrollRef.current?.scrollIntoView({ behavior: 'instant' });
