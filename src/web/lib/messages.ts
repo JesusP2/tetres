@@ -151,5 +151,4 @@ export async function uploadFile(file: File, userId: string) {
     contentDisposition: 'attachment',
   });
   return data.id;
-  // await db.transact(db.tx.chats[chatId].link({ files: data.id }));
 }

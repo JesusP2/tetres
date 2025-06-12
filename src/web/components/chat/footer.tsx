@@ -15,23 +15,32 @@ import {
 import { Textarea } from '@web/components/ui/textarea';
 import { uploadFile } from '@web/lib/messages';
 import { cn } from '@web/lib/utils';
-import { ArrowUp, Check, ChevronsUpDown, Paperclip } from 'lucide-react';
+import { ArrowUp, Check, ChevronsUpDown, Paperclip, X } from 'lucide-react';
 import {
   type ChangeEvent,
   type Dispatch,
   type SetStateAction,
+  useEffect,
   useRef,
   useState,
 } from 'react';
 import { toast } from 'sonner';
 import { type ModelId, models } from '@server/utils/models';
 
+export type AttachmentFile = {
+  id: string;
+  name: string;
+  type: string;
+  url?: string;
+};
+
 type ChatFooterProps = {
   onSubmit: (message: string) => void;
   updateModel: (model: ModelId) => Promise<unknown>;
   selectedModel?: ModelId;
   userId?: string;
-  setMessageFiles?: Dispatch<SetStateAction<string[]>>;
+  messageFiles?: AttachmentFile[];
+  setMessageFiles?: Dispatch<SetStateAction<AttachmentFile[]>>;
 };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -41,6 +50,7 @@ export function ChatFooter({
   selectedModel,
   updateModel,
   userId,
+  messageFiles,
   setMessageFiles,
 }: ChatFooterProps) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -73,6 +83,14 @@ export function ChatFooter({
     ) as string;
     if (!message.trim()) return;
     onSubmit(message);
+    if (setMessageFiles && messageFiles && messageFiles.length > 0) {
+      messageFiles.forEach(file => {
+        if (file.url) {
+          URL.revokeObjectURL(file.url);
+        }
+      });
+      setMessageFiles([]);
+    }
     formRef.current?.reset();
   };
 
@@ -85,32 +103,99 @@ export function ChatFooter({
         return;
       }
       const fileId = await uploadFile(file, userId);
-      setMessageFiles(prev => [...prev, fileId]);
+      const newAttachment: AttachmentFile = {
+        id: fileId,
+        name: file.name,
+        type: file.type,
+      };
+
+      if (file.type.startsWith('image/')) {
+        newAttachment.url = URL.createObjectURL(file);
+      }
+      setMessageFiles(prev => [...(prev || []), newAttachment]);
     }
   };
+
+  const handleRemoveFile = (fileId: string) => {
+    if (!setMessageFiles || !messageFiles) return;
+
+    const fileToRemove = messageFiles.find(f => f.id === fileId);
+    if (fileToRemove?.url) {
+      URL.revokeObjectURL(fileToRemove.url);
+    }
+    setMessageFiles(files => files?.filter(f => f.id !== fileId) || []);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (messageFiles) {
+        messageFiles.forEach(file => {
+          if (file.url) {
+            URL.revokeObjectURL(file.url);
+          }
+        });
+      }
+    };
+  }, []);
 
   return (
     <div className='mx-auto w-full max-w-3xl rounded-sm bg-white shadow-md'>
       <form className='p-4' ref={formRef} onSubmit={handleSubmit}>
-        <div className='relative'>
-          <Textarea
-            name='message'
-            placeholder='Type your message here...'
-            className='field-size-content chat-scrollbar max-h-[175px] pr-16'
-            onKeyDown={event => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                formRef.current?.requestSubmit();
-              }
-            }}
-          />
-          <Button
-            size='icon'
-            className='absolute right-2 bottom-2'
-            type='submit'
-          >
-            <ArrowUp className='h-4 w-4' />
-          </Button>
+        <div className='relative flex w-full flex-col rounded-md border border-input bg-transparent p-3 text-sm shadow-sm focus-within:outline-none focus-within:ring-1 focus-within:ring-ring'>
+          {messageFiles && messageFiles.length > 0 && (
+            <div className='mb-2 flex flex-wrap gap-2'>
+              {messageFiles.map(file => (
+                <div
+                  key={file.id}
+                  className='flex items-center gap-2 rounded-md bg-secondary p-1'
+                >
+                  {file.url ? (
+                    <img
+                      src={file.url}
+                      alt={file.name}
+                      className='h-8 w-8 rounded-md object-cover'
+                    />
+                  ) : (
+                    <div className='flex h-8 w-8 items-center justify-center rounded-md bg-muted'>
+                      <Paperclip className='h-4 w-4' />
+                    </div>
+                  )}
+                  <span className='max-w-[100px] truncate text-sm'>
+                    {file.name}
+                  </span>
+                  <Button
+                    size='icon'
+                    variant='ghost'
+                    className='h-6 w-6 shrink-0 rounded-full'
+                    onClick={() => handleRemoveFile(file.id)}
+                  >
+                    <X className='h-4 w-4' />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className='relative'>
+            <Textarea
+              name='message'
+              placeholder='Type your message here...'
+              className='field-size-content chat-scrollbar max-h-[175px] w-full resize-none border-none bg-transparent pr-16 shadow-none focus-visible:ring-0'
+              onKeyDown={event => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+                  formRef.current?.requestSubmit();
+                }
+              }}
+            />
+            <Button
+              size='icon'
+              className='absolute right-2 bottom-2'
+              type='submit'
+            >
+              <ArrowUp className='h-4 w-4' />
+            </Button>
+          </div>
         </div>
         <div className='mt-2 flex items-center justify-between'>
           <div className='flex items-center gap-2'>

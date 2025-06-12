@@ -14,7 +14,7 @@ import { Check, Copy, Edit3, Loader2, RotateCcw, X } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
 import { type ModelId } from '@server/utils/models';
-import { ChatFooter } from './footer';
+import { type AttachmentFile, ChatFooter } from './footer';
 import { useUser } from '@web/hooks/use-user';
 import { updateChatModel } from '@web/lib/chats';
 
@@ -37,7 +37,7 @@ export function Chat({
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [messageFiles, setMessageFiles] = useState<string[]>([]);
+  const [messageFiles, setMessageFiles] = useState<AttachmentFile[]>([]);
   const {
     setActivateScroll,
     scrollRef,
@@ -79,7 +79,8 @@ export function Chat({
           createdAt: new Date().toISOString(),
         },
       ]);
-      await saveMessage(newMessage, newMessageId, messageFiles);
+      const fileIds = messageFiles.map(f => f.id);
+      await saveMessage(newMessage, newMessageId, fileIds);
       await sendMessage(messagesForApi, user.data.id);
       setMessageFiles([]);
     }
@@ -261,6 +262,7 @@ export function Chat({
         </Button>
         <ChatFooter
           userId={!user.isPending ? user.data.id : undefined}
+          messageFiles={messageFiles}
           setMessageFiles={setMessageFiles}
           onSubmit={handleNewMessage}
           selectedModel={chat.model as ModelId}
