@@ -1,4 +1,5 @@
 import { Button } from '@web/components/ui/button';
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   Command,
   CommandEmpty,
@@ -8,10 +9,12 @@ import {
   CommandList,
 } from '@web/components/ui/command';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@web/components/ui/popover';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@web/components/ui/dialog';
 import { Textarea } from '@web/components/ui/textarea';
 import { uploadFile } from '@web/lib/messages';
 import { cn } from '@web/lib/utils';
@@ -81,7 +84,7 @@ export function ChatFooter({
     const message = new FormData(e.target as HTMLFormElement).get(
       'message',
     ) as string;
-    if (!message.trim()) return;
+    if (!message.trim() && (!messageFiles || messageFiles.length === 0)) return;
     onSubmit(message);
     if (setMessageFiles && messageFiles && messageFiles.length > 0) {
       messageFiles.forEach(file => {
@@ -199,8 +202,8 @@ export function ChatFooter({
         </div>
         <div className='mt-2 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
                 <Button
                   variant='outline'
                   role='combobox'
@@ -214,11 +217,22 @@ export function ChatFooter({
                   </span>
                   <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className='w-[250px] p-0'>
+              </DialogTrigger>
+              <DialogContent className='p-0' showCloseButton={false}>
+                <VisuallyHidden>
+                  <DialogTitle>
+                    Model selection
+                  </DialogTitle>
+                </VisuallyHidden>
+                <VisuallyHidden>
+                  <DialogDescription>
+                    Select a model to chat with.
+                  </DialogDescription>
+                </VisuallyHidden>
+
                 <Command>
                   <CommandInput placeholder='Search model...' />
-                  <CommandList>
+                  <CommandList className="chat-scrollbar">
                     <CommandEmpty>No model found.</CommandEmpty>
                     <CommandGroup>
                       {models.map(m => (
@@ -244,8 +258,8 @@ export function ChatFooter({
                     </CommandGroup>
                   </CommandList>
                 </Command>
-              </PopoverContent>
-            </Popover>
+              </DialogContent>
+            </Dialog>
             {canAttach && (
               <>
                 <input
