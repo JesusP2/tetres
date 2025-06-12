@@ -7,13 +7,28 @@ import { db } from '@web/lib/instant';
 import { type Chat, deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
 import type { MyUser } from '@web/hooks/use-user';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MessageSquare, Search, Pin, PinOff, Plus, Trash2 } from 'lucide-react';
 import {
   SidebarMenu,
   sidebarMenuButtonVariants,
   SidebarMenuItem,
 } from '@web/components/ui/sidebar';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@web/components/ui/command';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@web/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -50,6 +65,7 @@ export function ChatList({ user }: { user: MyUser }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const { data } = db.useQuery(
     !user.isPending
       ? {
@@ -63,6 +79,18 @@ export function ChatList({ user }: { user: MyUser }) {
       }
       : {},
   );
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchDialogOpen(open => !open);
+      }
+    };
+
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, []);
 
   const chats = data?.chats || [];
   const filteredChats = searchQuery
@@ -187,6 +215,42 @@ export function ChatList({ user }: { user: MyUser }) {
           />
         </div>
       </div>
+      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+        <DialogContent className='p-0' showCloseButton={false}>
+          <VisuallyHidden>
+            <DialogTitle>Search chats</DialogTitle>
+          </VisuallyHidden>
+          <VisuallyHidden>
+            <DialogDescription>
+              Search for a chat by its title.
+            </DialogDescription>
+          </VisuallyHidden>
+          <Command>
+            <CommandInput placeholder='Search your threads...' />
+            <CommandList>
+              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandGroup>
+                {chats.map(chat => (
+                  <CommandItem
+                    key={chat.id}
+                    value={chat.title}
+                    onSelect={() => {
+                      navigate({
+                        to: '/$chatId',
+                        params: { chatId: chat.id },
+                      });
+                      setSearchDialogOpen(false);
+                    }}
+                  >
+                    <MessageSquare className='mr-2' />
+                    <span>{chat.title}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </DialogContent>
+      </Dialog>
       <ScrollArea className='masked-scroll-area mr-2 h-full overflow-y-auto'>
         <SidebarMenu>
           {pinned.length > 0 && (

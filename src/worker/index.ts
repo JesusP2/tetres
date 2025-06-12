@@ -54,18 +54,29 @@ export const sendMessageToModel = async ({
             })
             .link({ chat: config.chatId }),
         )
-        .catch(err => console.error("I'M FAILING HERE:", err));
+        .catch(console.error);
     } else {
+      // const start = Date.now();
+      // db.query({
+      //   messages: {
+      //     $: {
+      //       where: {
+      //         id: messageId,
+      //       },
+      //     },
+      //   },
+      // })
+      //   .then(message => {
+      //     console.log('took:', Date.now() - start);
+      //     console.log(message);
+      //   })
+      //   .catch(console.error);
       await db
         .transact(
           db.tx.messages[messageId].merge({
-            // role: 'assistant',
-            // chatId: config.chatId,
             content: {
               [sqId]: text,
             },
-            // createdAt: new Date().toISOString(),
-            // updatedAt: new Date().toISOString(),
           }),
         )
         .catch(console.error);
@@ -87,6 +98,7 @@ const bodySchema = z.object({
     chatId: z.string(),
   }),
 });
+
 const app = new Hono<AppBindings>({ strict: false })
   .use(cors())
   .use(envMiddleware)
