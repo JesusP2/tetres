@@ -49,49 +49,15 @@ export const sendMessageToModel = async ({
   const messageId = config.messageId;
   let sqId = 0;
   for await (const text of textStream) {
-    if (sqId === 0) {
-      await db
-        .transact(
-          db.tx.messages[messageId]
-            .update({
-              role: 'assistant',
-              chatId: config.chatId,
-              content: {
-                [sqId]: text,
-              },
-              model: config.model,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            })
-            .link({ chat: config.chatId }),
-        )
-        .catch(console.error);
-    } else {
-      // const start = Date.now();
-      // db.query({
-      //   messages: {
-      //     $: {
-      //       where: {
-      //         id: messageId,
-      //       },
-      //     },
-      //   },
-      // })
-      //   .then(message => {
-      //     console.log('took:', Date.now() - start);
-      //     console.log(message);
-      //   })
-      //   .catch(console.error);
-      await db
-        .transact(
-          db.tx.messages[messageId].merge({
-            content: {
-              [sqId]: text,
-            },
-          }),
-        )
-        .catch(console.error);
-    }
+    await db
+      .transact(
+        db.tx.messages[messageId].merge({
+          content: {
+            [sqId]: text,
+          },
+        }),
+      )
+      .catch(console.error);
     sqId++;
   }
   await db.transact(
