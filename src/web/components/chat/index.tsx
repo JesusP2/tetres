@@ -4,10 +4,10 @@ import { Textarea } from '@web/components/ui/textarea';
 import { useChatScroll } from '@web/hooks/use-chat-scroll';
 import {
   copyMessageToClipboard,
-  type CreateMessageInput,
   retryMessage,
-  createMessage,
+  createUserMessage,
   sendMessage,
+  createAssistantMessage,
 } from '@web/lib/messages';
 import type { Chat as ChatType, Message } from '@web/lib/types';
 import { Check, Copy, Edit3, Loader2, RotateCcw, X } from 'lucide-react';
@@ -17,6 +17,7 @@ import { type ModelId } from '@server/utils/models';
 import { type AttachmentFile, ChatFooter } from './footer';
 import { useUser } from '@web/hooks/use-user';
 import { updateChatModel } from '@web/lib/chats';
+import { db } from '@web/lib/instant';
 
 type ChatProps = {
   chat: ChatType;
@@ -53,35 +54,51 @@ export function Chat({
     }
     setActivateScroll(true);
     if (chat) {
-      const newMessage = {
+      const newUserMessage = {
         chatId: chat.id,
         role: 'user' as const,
         content: message,
         model: chat.model as ModelId,
       };
-      const messagesForApi: CreateMessageInput[] = [
+      const messagesForApi = [
         ...messages.map(m => ({
-          chatId: chat.id,
           role: m.role as 'user' | 'assistant',
           content: m.content,
-          model: m.model as ModelId,
         })),
-        newMessage,
+        newUserMessage,
       ];
-      const newMessageId = id();
+      const newUserMessageId = id();
+      const newAssistantMessageId = id();
       setParsedMessages(prev => [
         ...prev,
         {
-          ...newMessage,
-          role: newMessage.role,
-          id: newMessageId,
+          ...newUserMessage,
+          id: newUserMessageId,
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
         },
       ]);
       const fileIds = messageFiles.map(f => f.id);
-      await createMessage(newMessage, newMessageId, fileIds);
-      await sendMessage(messagesForApi, user.data.id);
+      const userMessageTx = createUserMessage(newUserMessage, newUserMessageId, fileIds);
+      const assistantMessageTx = createAssistantMessage(
+        {
+          chatId: chat.id,
+          role: 'assistant' as const,
+          content: {},
+          model: chat.model as ModelId,
+        },
+        newAssistantMessageId,
+      );
+      // NOTE: assistant message always beats user message
+      await db.transact([userMessageTx]);
+      await db.transact([assistantMessageTx]);
+      await sendMessage({
+        messages: messagesForApi,
+        userId: user.data.id,
+        messageId: newAssistantMessageId,
+        model: chat.model as ModelId,
+        chatId: chat.id,
+      })
       setMessageFiles([]);
     }
   };
@@ -100,6 +117,7 @@ export function Chat({
       return;
     }
 
+    // TODO: isProcessing is probably not needed
     setIsProcessing(true);
     try {
       await retryMessage(
@@ -199,9 +217,9 @@ export function Chat({
                             size='sm'
                             variant='ghost'
                             className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
-                            onClick={() => {
+                            onClick={async () => {
                               if (user.isPending) return;
-                              retryMessage(
+                              await retryMessage(
                                 messages,
                                 m,
                                 m.content,

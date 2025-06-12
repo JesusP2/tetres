@@ -11,19 +11,31 @@ import { envMiddleware } from './middleware/env-middleware';
 import { AppBindings } from './types';
 import { HttpError } from './utils/http-error';
 
-type Messages = Parameters<typeof streamText>[0]['messages'];
+const bodySchema = z.object({
+  messages: z.array(
+    z.object({
+      role: z.enum(['user', 'assistant']),
+      content: z.string(),
+    }),
+  ),
+  config: z.object({
+    model: z.string(),
+    userId: z.string(),
+    chatId: z.string(),
+    messageId: z.string(),
+  }),
+});
+
+type Body = z.infer<typeof bodySchema>;
+// type Messages = Parameters<typeof streamText>[0]['messages'];
 export const sendMessageToModel = async ({
   messages,
   config,
   db,
   apiKey,
 }: {
-  messages: Messages;
-  config: {
-    model: string;
-    userId: string;
-    chatId: string;
-  };
+  messages: Body['messages'];
+  config: Body['config'];
   db: AppBindings['Variables']['db'];
   apiKey: string;
 }) => {
@@ -34,11 +46,10 @@ export const sendMessageToModel = async ({
     model: openrouter(config.model),
     messages,
   });
-  let messageId: string | null = null;
+  const messageId = config.messageId;
   let sqId = 0;
   for await (const text of textStream) {
-    if (!messageId) {
-      messageId = id();
+    if (sqId === 0) {
       await db
         .transact(
           db.tx.messages[messageId]
@@ -83,21 +94,12 @@ export const sendMessageToModel = async ({
     }
     sqId++;
   }
-};
-
-const bodySchema = z.object({
-  messages: z.array(
-    z.object({
-      role: z.enum(['user', 'assistant']),
-      content: z.string(),
+  await db.transact(
+    db.tx.messages[messageId].update({
+      finished: new Date().toISOString(),
     }),
-  ),
-  config: z.object({
-    model: z.string(),
-    userId: z.string(),
-    chatId: z.string(),
-  }),
-});
+  );
+};
 
 const app = new Hono<AppBindings>({ strict: false })
   .use(cors())

@@ -22,7 +22,7 @@ import {
 } from '@web/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useUI } from '@web/hooks/use-ui';
-import { createMessage, sendMessage } from '@web/lib/messages';
+import { createAssistantMessage, createUserMessage, sendMessage } from '@web/lib/messages';
 import { id } from '@instantdb/core';
 
 const groupChats = (chats: Chat[]) => {
@@ -265,16 +265,34 @@ function ChatSearch({
     setSearch('');
     const newChatId = id();
     const messageContent = search.trim();
-    // Use the first available model as default
-    await createChat(user.data, "New Chat", newChatId, ui.defaultModel);
+    const chatTx = createChat(user.data, "New Chat", newChatId, ui.defaultModel);
     const message = {
       chatId: newChatId,
       role: 'user' as const,
       content: messageContent,
       model: ui.defaultModel,
     }
-    await createMessage(message, id(), [],)
-    await sendMessage([message], user.data.id);
+    const userMessageTx = createUserMessage(message, id(), [],)
+    const newAssistantMessageId = id();
+    const assistantMessageTx = createAssistantMessage(
+      {
+        chatId: newChatId,
+        role: 'assistant' as const,
+        content: null,
+        model: ui.defaultModel,
+      },
+      newAssistantMessageId,
+    );
+    await db.transact([chatTx, userMessageTx]);
+    // NOTE: assistant message always beats user message
+    await db.transact([assistantMessageTx]);
+    await sendMessage({
+      messages: [message],
+      userId: user.data.id,
+      messageId: newAssistantMessageId,
+      model: ui.defaultModel,
+      chatId: newChatId,
+    })
     await navigate({ to: '/$chatId', params: { chatId: newChatId } });
   };
 

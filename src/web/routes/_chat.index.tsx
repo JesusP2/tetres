@@ -5,10 +5,11 @@ import { Button } from '@web/components/ui/button';
 import { Card } from '@web/components/ui/card';
 import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
 import { createChat } from '@web/lib/chats';
-import { createMessage, sendMessage } from '@web/lib/messages';
+import { createAssistantMessage, createUserMessage, sendMessage } from '@web/lib/messages';
 import { z } from 'zod';
 import { useUser } from '@web/hooks/use-user';
 import { useUI } from '@web/hooks/use-ui';
+import { db } from '@web/lib/instant';
 
 const indexSearchSchema = z.object({
   new: z.boolean().optional(),
@@ -35,7 +36,7 @@ function Index() {
   const handleCreateChat = async (messageContent: string) => {
     if (user.isPending || !ui) return;
     const newChatId = id();
-    await createChat(
+    const chatTx = createChat(
       user.data,
       'New Chat',
       newChatId,
@@ -47,8 +48,27 @@ function Index() {
       content: messageContent,
       model: ui.defaultModel,
     }
-    await createMessage(message, id(), []);
-    await sendMessage([message], user.data.id,);
+    const userMessageTx = createUserMessage(message, id(), []);
+    const newAsistantMessageId = id();
+    const assistantMessageTx = createAssistantMessage(
+      {
+        chatId: newChatId,
+        content: {},
+        role: 'assistant' as const,
+        model: ui.defaultModel,
+      },
+      newAsistantMessageId,
+    );
+    await db.transact([chatTx, userMessageTx]);
+    // NOTE: assistant message always beats user message
+    await db.transact([assistantMessageTx]);
+    await sendMessage({
+      messages: [message],
+      userId: user.data.id,
+      messageId: newAsistantMessageId,
+      model: ui.defaultModel,
+      chatId: message.chatId,
+    })
     navigate({
       to: '/$chatId',
       params: { chatId: newChatId },

@@ -8,25 +8,30 @@ export type Message = InstaQLEntity<typeof schema, 'messages'>;
 export type CreateMessageInput = {
   chatId: string;
   role: 'user' | 'assistant';
-  content: string;
+  content: any;
   model: ModelId;
 };
 
-export async function sendMessage(
-  messages: CreateMessageInput[],
-  userId: string,
-) {
-  const lastMessage = messages[messages.length - 1];
-  if (!lastMessage?.model) return;
+export async function sendMessage({
+  messages,
+  userId,
+  messageId,
+  model,
+  chatId,
+}: {
+  messages: { role: 'user' | 'assistant'; content: string | null }[];
+  userId: string;
+  messageId: string;
+  model: ModelId;
+  chatId: string;
+}) {
   const body = {
-    messages: messages.map(message => ({
-      role: message.role,
-      content: message.content,
-    })),
+    messages,
     config: {
-      model: lastMessage.model,
+      model,
       userId,
-      chatId: lastMessage.chatId,
+      chatId,
+      messageId,
     },
   };
   await fetch('/api/model', {
@@ -38,53 +43,40 @@ export async function sendMessage(
   });
 }
 
-export async function createMessage(
-  newMessage: CreateMessageInput,
+export function createUserMessage(
+  message: CreateMessageInput,
   id: string,
   files: string[],
 ) {
-  return db
-    .transact(
-      db.tx.messages[id]
-        .update({
-          ...newMessage,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-        .link({ chat: newMessage.chatId })
-        .link({ $files: files }),
-    )
-    .catch(console.error);
-}
-
-function editMessage(message: Message, newContent: string) {
-  return db.transact(
-    db.tx.messages[message.id].update({
-      content: newContent,
+  return db.tx.messages[id]
+    .update({
+      ...message,
+      finished: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }),
-  );
+    })
+    .link({ chat: message.chatId })
+    .link({ $files: files });
 }
 
-export function deleteMessage(message: Message) {
-  return db.transact(db.tx.messages[message.id].delete());
-}
-
-export function deleteMessagesAfter(
-  messages: Message[],
-  targetMessage: Message,
+export function createAssistantMessage(
+  message: CreateMessageInput,
+  id: string,
 ) {
-  const targetIndex = messages.findIndex(m => m.id === targetMessage.id);
-  if (targetIndex === -1) return Promise.resolve();
+  return db.tx.messages[id]
+    .update({
+      ...message,
+      finished: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+    .link({ chat: message.chatId });
+}
 
-  const messagesToDelete = messages.slice(targetIndex + 1);
-  if (messagesToDelete.length === 0) return Promise.resolve();
-
-  const deleteTransactions = messagesToDelete.map(message =>
-    db.tx.messages[message.id].delete(),
-  );
-
-  return db.transact(deleteTransactions);
+function getLastUserMessage(messages: { role: 'user' | 'assistant' }[]) {
+  return messages[messages.length - 1]?.role === 'user'
+    ? messages[messages.length - 1]
+    : messages[messages.length - 2];
 }
 
 export async function retryMessage(
@@ -94,30 +86,46 @@ export async function retryMessage(
   userId: string,
   model: ModelId,
 ) {
-  await deleteMessagesAfter(messages, targetMessage);
-
-  await editMessage(targetMessage, newContent);
-
-  // Finally, regenerate the conversation from this point
   const targetIndex = messages.findIndex(m => m.id === targetMessage.id);
+  const messagesToDelete = messages.slice(targetIndex + 1);
+  const deleteActions = messagesToDelete.map(m =>
+    db.tx.messages[m.id].delete(),
+  );
+  const newAssitantMessageId = id();
+  await db.transact([
+    ...deleteActions,
+    db.tx.messages[targetMessage.id].update({
+      content: newContent,
+      model: model,
+      updatedAt: new Date().toISOString(),
+    }),
+    createAssistantMessage({
+      chatId: targetMessage.chatId,
+      content: null,
+      model: model,
+      role: 'assistant',
+    }, newAssitantMessageId),
+  ]);
+
   const conversationUpToTarget = messages.slice(0, targetIndex + 1);
 
-  const messagesForAPI: CreateMessageInput[] = conversationUpToTarget.map(
-    m => ({
-      chatId: targetMessage.chatId,
-      role: m.role as 'user' | 'assistant',
-      content: m.id === targetMessage.id ? newContent : m.content,
-      model: m.model as ModelId,
-    }),
-  );
-  const lastMessage = messagesForAPI[messagesForAPI.length - 1];
-  if (!lastMessage) {
+  const messagesForAPI = conversationUpToTarget.map(m => ({
+    role: m.role as 'user' | 'assistant',
+    content: m.id === targetMessage.id ? newContent : m.content,
+  }));
+  const lastUsersMessage = getLastUserMessage(messagesForAPI);
+  if (!lastUsersMessage) {
     console.error('this should never happen');
     return;
   }
-  lastMessage.model = model;
 
-  return sendMessage(messagesForAPI, userId);
+  return sendMessage({
+    messages: messagesForAPI,
+    userId,
+    messageId: newAssitantMessageId,
+    model: model,
+    chatId: targetMessage.chatId,
+  });
 }
 
 export function copyMessageToClipboard(message: Message) {
