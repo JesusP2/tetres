@@ -4,7 +4,7 @@ import { Input } from '@web/components/ui/input';
 import { ScrollArea } from '@web/components/ui/scroll-area';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { db } from '@web/lib/instant';
-import { type Chat, deleteChat, togglePin, updateChatTitle, createChat, createMessage } from '@web/lib/chats';
+import { type Chat, deleteChat, togglePin, updateChatTitle, createChat } from '@web/lib/chats';
 import type { MyUser } from '@web/hooks/use-user';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
 import { useEffect, useRef, useState } from 'react';
@@ -22,6 +22,8 @@ import {
 } from '@web/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useUI } from '@web/hooks/use-ui';
+import { createMessage, sendMessage } from '@web/lib/messages';
+import { id } from '@instantdb/core';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -54,6 +56,7 @@ const groupChats = (chats: Chat[]) => {
 };
 
 export function ChatList({ user }: { user: MyUser }) {
+  const navigate = useNavigate();
   const { confirmDelete } = useConfirmDialog();
   const [searchQuery, setSearchQuery] = useState('');
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
@@ -72,29 +75,14 @@ export function ChatList({ user }: { user: MyUser }) {
       }
       : {},
   );
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setSearchDialogOpen(open => !open);
-      }
-    };
-
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, []);
-
   const chats = data?.chats || [];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
       chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
     )
     : chats;
-
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
-  const navigate = useNavigate();
 
   const handleUpdateTitle = async () => {
     if (!editingChatId) return;
@@ -129,6 +117,18 @@ export function ChatList({ user }: { user: MyUser }) {
       navigate({ to: '/', search: { new: true } });
     }
   };
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchDialogOpen(open => !open);
+      }
+    };
+
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, []);
 
   const renderChat = (chat: Chat) => (
     <SidebarMenuItem
@@ -261,15 +261,21 @@ function ChatSearch({
 
   const handleCreateChat = async () => {
     if (user.isPending || !search.trim() || !ui) return;
-    const newChatId = crypto.randomUUID();
-    const messageId = crypto.randomUUID();
-    const message = search.trim();
-    // Use the first available model as default
-    await createChat(user.data, "New Chat", newChatId, ui.defaultModel);
-    await createMessage(newChatId, messageId, user.data.id, message);
-    navigate({ to: '/$chatId', params: { chatId: newChatId } });
     setIsOpen(false);
     setSearch('');
+    const newChatId = id();
+    const messageContent = search.trim();
+    // Use the first available model as default
+    await createChat(user.data, "New Chat", newChatId, ui.defaultModel);
+    const message = {
+      chatId: newChatId,
+      role: 'user' as const,
+      content: messageContent,
+      model: ui.defaultModel,
+    }
+    await createMessage(message, id(), [],)
+    await sendMessage([message], user.data.id);
+    await navigate({ to: '/$chatId', params: { chatId: newChatId } });
   };
 
   const handleSelect = (chatId?: string) => {
@@ -288,6 +294,7 @@ function ChatSearch({
     }
   }, [isOpen]);
 
+  // TODO: this useEfffect shouldn't be necessary
   useEffect(() => {
     setSelectedIndex(-1);
   }, [search]);
@@ -374,9 +381,8 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
-                  selectedIndex === i ? 'bg-accent' : ''
-                }`}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
+                  }`}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >

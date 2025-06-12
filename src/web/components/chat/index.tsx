@@ -6,7 +6,7 @@ import {
   copyMessageToClipboard,
   type CreateMessageInput,
   retryMessage,
-  saveMessage,
+  createMessage,
   sendMessage,
 } from '@web/lib/messages';
 import type { Chat as ChatType, Message } from '@web/lib/types';
@@ -80,7 +80,7 @@ export function Chat({
         },
       ]);
       const fileIds = messageFiles.map(f => f.id);
-      await saveMessage(newMessage, newMessageId, fileIds);
+      await createMessage(newMessage, newMessageId, fileIds);
       await sendMessage(messagesForApi, user.data.id);
       setMessageFiles([]);
     }

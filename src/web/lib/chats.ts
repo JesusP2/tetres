@@ -21,26 +21,6 @@ export function createChat(user: { id: string }, name: string, chatId: string, m
   );
 }
 
-export function createMessage(
-  chatId: string,
-  messageId: string,
-  userId: string,
-  content: string,
-) {
-  const messageData = {
-    content,
-    role: 'user' as const,
-    model: 'user' as const,
-    userId,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  const tx = db.tx.messages[messageId].update(messageData).link({ chat: chatId });
-
-  return db.transact(tx);
-}
-
 export function updateChatTitle(chat: Chat, title: string) {
   return db.transact(
     db.tx.chats[chat.id].update({

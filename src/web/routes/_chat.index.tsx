@@ -5,7 +5,7 @@ import { Button } from '@web/components/ui/button';
 import { Card } from '@web/components/ui/card';
 import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
 import { createChat } from '@web/lib/chats';
-import { saveMessage, sendMessage } from '@web/lib/messages';
+import { createMessage, sendMessage } from '@web/lib/messages';
 import { z } from 'zod';
 import { useUser } from '@web/hooks/use-user';
 import { useUI } from '@web/hooks/use-ui';
@@ -32,37 +32,23 @@ function Index() {
   const user = useUser();
   const { ui, updateUI } = useUI();
 
-  const handleCreateChat = async (message: string) => {
+  const handleCreateChat = async (messageContent: string) => {
     if (user.isPending || !ui) return;
     const newChatId = id();
     await createChat(
-      { id: user.data.id },
+      user.data,
       'New Chat',
       newChatId,
       ui.defaultModel,
     );
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await saveMessage(
-      {
-        chatId: newChatId,
-        role: 'user',
-        content: message,
-        model: ui.defaultModel,
-      },
-      id(),
-      [],
-    );
-    await sendMessage(
-      [
-        {
-          chatId: newChatId,
-          role: 'user',
-          content: message,
-          model: ui.defaultModel,
-        },
-      ],
-      user.data.id,
-    );
+    const message = {
+      chatId: newChatId,
+      role: 'user' as const,
+      content: messageContent,
+      model: ui.defaultModel,
+    }
+    await createMessage(message, id(), []);
+    await sendMessage([message], user.data.id,);
     navigate({
       to: '/$chatId',
       params: { chatId: newChatId },

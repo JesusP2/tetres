@@ -38,7 +38,7 @@ export async function sendMessage(
   });
 }
 
-export async function saveMessage(
+export async function createMessage(
   newMessage: CreateMessageInput,
   id: string,
   files: string[],
