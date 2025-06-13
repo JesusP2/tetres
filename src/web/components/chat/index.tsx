@@ -10,7 +10,6 @@ import {
   createAssistantMessage,
   createUserMessage,
   retryMessage,
-  sendMessage,
 } from '@web/lib/messages';
 import type { Chat as ChatType, Message } from '@web/lib/types';
 import {
@@ -29,6 +28,7 @@ import { toast } from 'sonner';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
 import { ChatFooter } from './footer';
+import { sendMessage } from '@web/services';
 
 type ChatProps = {
   chat: ChatType;
@@ -342,7 +342,6 @@ export function Chat({
           Scroll to bottom
         </Button>
         <ChatFooter
-          userId={!user.isPending ? user.data.id : undefined}
           onSubmit={handleNewMessage}
           selectedModel={chat.model as ModelId}
           updateModel={model => updateChatModel(chat!, model)}

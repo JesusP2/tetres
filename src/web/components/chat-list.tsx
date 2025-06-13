@@ -18,7 +18,6 @@ import {
 import { useUI } from '@web/hooks/use-ui';
 import type { MyUser } from '@web/hooks/use-user';
 import {
-  type Chat,
   createChat,
   deleteChat,
   togglePin,
@@ -28,12 +27,13 @@ import { db } from '@web/lib/instant';
 import {
   createAssistantMessage,
   createUserMessage,
-  sendMessage,
 } from '@web/lib/messages';
 import { MessageSquare, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
+import { sendMessage } from '@web/services';
+import type { Chat } from '@web/lib/types';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();

@@ -3,7 +3,7 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { streamText } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { createRouteHandler } from 'uploadthing/server';
+import { createRouteHandler, UTApi } from 'uploadthing/server';
 import { z } from 'zod/v4';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
@@ -96,6 +96,14 @@ const app = new Hono<AppBindings>({ strict: false })
       },
     });
     return handlers(c.req.raw);
+  })
+  .delete('/api/storage/:fileKey', async c => {
+    const fileKey = c.req.param('fileKey');
+    const utapi = new UTApi({
+      token: c.env.UPLOADTHING_TOKEN,
+    });
+    await utapi.deleteFiles(fileKey);
+    return c.json({ success: true });
   })
   .post('/api/model', zValidator('json', bodySchema), async c => {
     const body = c.req.valid('json');

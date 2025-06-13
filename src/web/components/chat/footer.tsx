@@ -23,6 +23,7 @@ import {
   ArrowUp,
   Check,
   ChevronsUpDown,
+  LoaderCircleIcon,
   Paperclip,
   Square,
   X,
@@ -31,6 +32,7 @@ import { useRef, useState } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { MyUploadButton } from '../upload-button';
+import { deleteFile } from '@web/services';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -47,7 +49,6 @@ export function ChatFooter({
   onSubmit,
   selectedModel,
   updateModel,
-  userId,
   lastMessage,
 }: ChatFooterProps) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -77,28 +78,28 @@ export function ChatFooter({
 
   let acceptTypes = '';
   if (canAttachImage && canAttachFile) {
-    acceptTypes = 'image/*,.pdf';
+    acceptTypes = 'image/*,.pdf,.txt';
   } else if (canAttachImage) {
     acceptTypes = 'image/*';
   } else if (canAttachFile) {
-    acceptTypes = '.pdf';
+    acceptTypes = '.pdf,.txt';
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!message.trim() && (!messageFiles || messageFiles.length === 0)) return;
-    await onSubmit(message, messageFiles);
-    if (setMessageFiles && messageFiles && messageFiles.length > 0) {
-      setMessageFiles([]);
-    }
+    if (!message.trim() || messageFiles.find(file => typeof file === 'string') || isProcessing) return;
+    setMessageFiles([]);
+    await onSubmit(message, messageFiles as ClientUploadedFileData<null>[]);
     setMessage('');
   };
 
-  const handleRemoveFile = (fileId: string) => {
-    if (!setMessageFiles || !messageFiles) return;
+  const handleRemoveFile = async (file: ClientUploadedFileData<null> | string) => {
+    if (!setMessageFiles || !messageFiles || typeof file === 'string') return;
 
-    const fileToRemove = messageFiles.find(f => f.id === fileId);
-    setMessageFiles(files => files?.filter(f => f.id !== fileId) || []);
+    const fileToRemove = messageFiles.find(f => typeof f !== 'string' && f.key === file.key);
+    if (typeof fileToRemove === 'string' || !fileToRemove) return;
+    setMessageFiles(files => files?.filter(f => typeof f !== 'string' && f.key !== f.key) || []);
+    await deleteFile(fileToRemove.key)
   };
 
   return (
@@ -113,7 +114,7 @@ export function ChatFooter({
                   className='bg-secondary flex items-center gap-2 rounded-md p-1'
                 >
                   {typeof file === 'string' ? (
-                    <div>loading...</div>
+                    <div><LoaderCircleIcon size={16} className="animate-spin" /></div>
                   ) : file.type.startsWith('image/') ? (
                     <img
                       src={file.ufsUrl}
@@ -132,7 +133,7 @@ export function ChatFooter({
                     size='icon'
                     variant='ghost'
                     className='h-6 w-6 shrink-0 rounded-full'
-                    onClick={() => handleRemoveFile(file.id)}
+                    onClick={() => handleRemoveFile(file)}
                   >
                     <X className='h-4 w-4' />
                   </Button>
@@ -191,6 +192,7 @@ export function ChatFooter({
                 onClientUploadComplete={files => {
                   const file = files[0];
                   if (!file) return;
+                  setIsProcessing(false);
                   setMessageFiles(prev => {
                     const files = prev.slice(0, prev.length - 1);
                     return [...files, file];

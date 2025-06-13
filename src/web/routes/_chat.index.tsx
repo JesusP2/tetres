@@ -11,8 +11,8 @@ import { db } from '@web/lib/instant';
 import {
   createAssistantMessage,
   createUserMessage,
-  sendMessage,
 } from '@web/lib/messages';
+import { sendMessage } from '@web/services';
 import { z } from 'zod';
 
 const indexSearchSchema = z.object({
