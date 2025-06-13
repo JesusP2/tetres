@@ -32,9 +32,9 @@ import { ChatFooter } from './footer';
 
 type ChatProps = {
   chat: ChatType;
-  messages?: (Message & { parsedContent?: string })[];
+  messages?: (Message & { highlightedText?: string })[];
   onSubmit?: (message: string) => void;
-  setParsedMessages: Dispatch<SetStateAction<Message[]>>;
+  setParsedMessages: Dispatch<SetStateAction<(Message & { highlightedText?: string })[]>>;
   areChatsLoading: boolean;
 };
 
@@ -73,19 +73,13 @@ export function Chat({
         content: message,
         model: chat.model as ModelId,
       };
-      const messagesForApi = [
-        ...messages.map(m => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        })),
-        newUserMessage,
-      ];
       const newUserMessageId = id();
       const newAssistantMessageId = id();
       setParsedMessages(prev => [
         ...prev,
         {
           ...newUserMessage,
+          files,
           id: newUserMessageId,
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -122,6 +116,47 @@ export function Chat({
         userMessageTx.link({ files: _files.map(file => file.id) }),
       ]);
       await db.transact([assistantMessageTx]);
+
+      function filesToMessages(file: ClientUploadedFileData<null>) {
+        if (file.type.startsWith('image/')) {
+          return {
+            type: 'image',
+            image: file.ufsUrl,
+            mimeType: file.type,
+          };
+        } else {
+          return {
+            type: 'file',
+            data: file.ufsUrl,
+            filename: file.name,
+            mimeType: file.type,
+          };
+        }
+      }
+
+      function transformMessageContent(m: Message) {
+        let content = [{
+          type: 'text',
+          text: m.content,
+        }]
+        const files = m.files
+        if (files) {
+          content = [...content, ...files.map(file => filesToMessages(file))]
+        }
+        return content;
+      }
+      const messagesForApi = [
+        ...messages.map(m => {
+          return {
+            role: m.role as 'user' | 'assistant',
+            content: transformMessageContent(m),
+          };
+        }),
+        {
+          ...newUserMessage,
+          content: transformMessageContent({...newUserMessage, files}),
+        }
+      ];
       await sendMessage({
         messages: messagesForApi,
         userId: user.data.id,
@@ -312,7 +347,7 @@ export function Chat({
               ) : (
                 <Fragment key={m.id}>
                   <div
-                    dangerouslySetInnerHTML={{ __html: m.parsedContent || '' }}
+                    dangerouslySetInnerHTML={{ __html: m.highlightedText || '' }}
                   />
                   <MessageAttachments files={m.files || []} />
                   {isAborted && (

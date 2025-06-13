@@ -8,24 +8,10 @@ import { z } from 'zod/v4';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
 import { envMiddleware } from './middleware/env-middleware';
+import { bodySchema } from './schemas';
 import { AppBindings } from './types';
 import { uploadRouter } from './uploadrouter';
 import { HttpError } from './utils/http-error';
-
-const bodySchema = z.object({
-  messages: z.array(
-    z.object({
-      role: z.enum(['user', 'assistant']),
-      content: z.string(),
-    }),
-  ),
-  config: z.object({
-    model: z.string(),
-    userId: z.string(),
-    chatId: z.string(),
-    messageId: z.string(),
-  }),
-});
 
 type Body = z.infer<typeof bodySchema>;
 export const sendMessageToModel = async ({

@@ -64,7 +64,15 @@ function Index() {
     // NOTE: assistant message always beats user message
     await db.transact([assistantMessageTx]);
     await sendMessage({
-      messages: [message],
+      messages: [{
+        ...message,
+        content: [
+          {
+            type: 'text',
+            text: message.content,
+          }
+        ]
+      }],
       userId: user.data.id,
       messageId: newAsistantMessageId,
       model: ui.defaultModel,

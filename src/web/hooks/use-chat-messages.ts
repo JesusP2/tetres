@@ -36,7 +36,7 @@ export function useChatMessages() {
     }, 0);
     return `${messageId}-${contentHash}`;
   }, []);
-  const [parsedMessages, setParsedMessages] = useState<Message[]>([]);
+  const [parsedMessages, setParsedMessages] = useState<(Message & { highlightedText?: string })[]>([]);
 
   useEffect(() => {
     if (isLoading || !data?.chats[0]?.messages) {
@@ -59,16 +59,16 @@ export function useChatMessages() {
             return {
               ...message,
               content: objectToString(message.content),
-              parsedContent: parsedMessageCache.get(cacheKey)!,
+              highlightedText: parsedMessageCache.get(cacheKey)!,
             };
           }
           // Parse and cache
-          const parsedContent = await parseMessage(message.content);
-          parsedMessageCache.set(cacheKey, parsedContent);
+          const highlightedText = await parseMessage(message.content);
+          parsedMessageCache.set(cacheKey, highlightedText);
           return {
             ...message,
             content: objectToString(message.content),
-            parsedContent,
+            highlightedText: highlightedText,
           };
         }),
       );

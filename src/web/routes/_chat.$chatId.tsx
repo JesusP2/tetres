@@ -15,7 +15,7 @@ function RouteComponent() {
     chat,
   } = useChatMessages();
   if (!isLoading && !chat) return <Navigate to='/' />;
-  if (areChatsLoading || !chat) return <div>Loading...</div>;
+  if (areChatsLoading || !chat) return null;
 
   return (
     <Chat

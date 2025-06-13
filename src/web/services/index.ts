@@ -1,4 +1,5 @@
 import type { ModelId } from '@server/utils/models';
+import type { Body } from '@server/types';
 
 export async function sendMessage({
   messages,
@@ -7,7 +8,7 @@ export async function sendMessage({
   model,
   chatId,
 }: {
-  messages: { role: 'user' | 'assistant'; content: string | null }[];
+  messages: Body['messages'];
   userId: string;
   messageId: string;
   model: ModelId;
