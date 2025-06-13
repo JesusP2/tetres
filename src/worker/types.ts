@@ -3,7 +3,7 @@ import { env } from 'cloudflare:workers';
 import { Hono } from 'hono';
 import type { Auth, Session, User } from '@server/auth';
 import { AppSchema } from '../../instant.schema';
-import { bodySchema } from './schemas';
+import { bodySchema, textPartSchema, filePartSchema, imagePartSchema } from './schemas';
 import { z } from 'zod/v4';
 
 export interface AppBindings {
@@ -19,6 +19,6 @@ export interface AppBindings {
 export type AppOpenAPI = Hono<AppBindings>;
 export type Body = z.infer<typeof bodySchema>;
 export type APIMessage = Body['messages'][number];
-export type TextPart = APIMessage['content'][number];
-export type FilePart = APIMessage['content'][number];
-export type ImagePart = APIMessage['content'][number];
+export type TextPart = z.infer<typeof textPartSchema>;
+export type FilePart = z.infer<typeof filePartSchema>;
+export type ImagePart = z.infer<typeof imagePartSchema>;
