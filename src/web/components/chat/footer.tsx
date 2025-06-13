@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from '@web/components/ui/dialog';
 import { Textarea } from '@web/components/ui/textarea';
-import { abortGeneration, uploadFile } from '@web/lib/messages';
+import { abortGeneration } from '@web/lib/messages';
 import { cn } from '@web/lib/utils';
 import {
   ArrowUp,
@@ -27,52 +27,36 @@ import {
   Square,
 } from 'lucide-react';
 import {
-  type ChangeEvent,
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
   useRef,
   useState,
 } from 'react';
-import { toast } from 'sonner';
 import { type ModelId, models } from '@server/utils/models';
-import type { Message } from '@web/lib/chats';
-
-export type AttachmentFile = {
-  id: string;
-  name: string;
-  type: string;
-  url?: string;
-};
+import { MyUploadButton } from '../upload-button';
+import type { Message } from '@web/lib/types';
+import type { ClientUploadedFileData } from 'uploadthing/types';
 
 type ChatFooterProps = {
-  onSubmit: (message: string) => void;
+  onSubmit: (message: string) => PromiseLike<void>;
   updateModel: (model: ModelId) => Promise<unknown>;
   selectedModel?: ModelId;
   userId?: string;
-  messageFiles?: AttachmentFile[];
-  setMessageFiles?: Dispatch<SetStateAction<AttachmentFile[]>>;
   lastMessage?: Message;
 };
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function ChatFooter({
   onSubmit,
   selectedModel,
   updateModel,
   userId,
-  messageFiles,
-  setMessageFiles,
   lastMessage,
 }: ChatFooterProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageFiles, setMessageFiles] = useState<(ClientUploadedFileData<null> | string)[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const model = models.find(m => m.id === selectedModel);
-
   const isGenerating = lastMessage?.role === 'assistant' && !lastMessage.finished;
 
   const handleStop = async () => {
@@ -98,44 +82,20 @@ export function ChatFooter({
     acceptTypes = '.pdf';
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!message.trim() && (!messageFiles || messageFiles.length === 0)) return;
-    onSubmit(message);
+    await onSubmit(message);
     if (setMessageFiles && messageFiles && messageFiles.length > 0) {
       messageFiles.forEach(file => {
-        if (file.url) {
-          URL.revokeObjectURL(file.url);
+        if (file instanceof File) return;
+        if (file.ufsUrl) {
+          URL.revokeObjectURL(file.ufsUrl);
         }
       });
       setMessageFiles([]);
     }
     setMessage('');
-  };
-
-  const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (!userId || !setMessageFiles) return;
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.name.includes('/')) {
-      toast.error('File name cannot contain "/".');
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error('File size cannot exceed 10MB.');
-      return;
-    }
-    const fileId = await uploadFile(file, userId);
-    const newAttachment: AttachmentFile = {
-      id: fileId,
-      name: file.name,
-      type: file.type,
-    };
-
-    if (file.type.startsWith('image/')) {
-      newAttachment.url = URL.createObjectURL(file);
-    }
-    setMessageFiles(prev => [...(prev || []), newAttachment]);
   };
 
   const handleRemoveFile = (fileId: string) => {
@@ -148,18 +108,6 @@ export function ChatFooter({
     setMessageFiles(files => files?.filter(f => f.id !== fileId) || []);
   };
 
-  useEffect(() => {
-    return () => {
-      if (messageFiles) {
-        messageFiles.forEach(file => {
-          if (file.url) {
-            URL.revokeObjectURL(file.url);
-          }
-        });
-      }
-    };
-  }, []);
-
   return (
     <div className='mx-auto w-full max-w-3xl rounded-sm bg-white shadow-md'>
       <form className='p-4' ref={formRef} onSubmit={handleSubmit}>
@@ -168,28 +116,30 @@ export function ChatFooter({
             <div className='mb-2 flex flex-wrap gap-2'>
               {messageFiles.map(file => (
                 <div
-                  key={file.id}
+                  key={typeof file === 'string' ? file : file.ufsUrl}
                   className='bg-secondary flex items-center gap-2 rounded-md p-1'
                 >
-                  {file.url ? (
-                    <img
-                      src={file.url}
-                      alt={file.name}
-                      className='h-8 w-8 rounded-md object-cover'
-                    />
-                  ) : (
-                    <div className='bg-muted flex h-8 w-8 items-center justify-center rounded-md'>
-                      <Paperclip className='h-4 w-4' />
-                    </div>
-                  )}
+                  {
+                    typeof file === 'string' ? <div>loading...</div>
+                      : file.type.startsWith('image/') ? (
+                        <img
+                          src={file.ufsUrl}
+                          alt={file.name}
+                          className='h-8 w-8 rounded-md object-cover'
+                        />
+                      ) : (
+                        <div className='bg-muted flex h-8 w-8 items-center justify-center rounded-md'>
+                          <Paperclip className='h-4 w-4' />
+                        </div>
+                      )}
                   <span className='max-w-[100px] truncate text-sm'>
-                    {file.name}
+                    {typeof file === 'string' ? file : file.name}
                   </span>
                   <Button
                     size='icon'
                     variant='ghost'
                     className='h-6 w-6 shrink-0 rounded-full'
-                    onClick={() => handleRemoveFile(file.id)}
+                    onClick={() => handleRemoveFile(file.)}
                   >
                     <X className='h-4 w-4' />
                   </Button>
@@ -295,23 +245,28 @@ export function ChatFooter({
               </DialogContent>
             </Dialog>
             {canAttach && (
-              <>
-                <input
-                  type='file'
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  accept={acceptTypes}
-                  className='hidden'
-                />
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip className='h-4 w-4' />
-                </Button>
-              </>
+              <MyUploadButton
+                disabled={isProcessing}
+                onClientUploadComplete={files => {
+                  const file = files[0];
+                  if (!file) return;
+                  setMessageFiles(prev => {
+                    const files = prev.slice(0, prev.length - 1);
+                    return [...files, file];
+                  })
+                }}
+                onUploadBegin={() => setIsProcessing(true)}
+                onBeforeUploadBegin={(files) => {
+                  return files.map(file => {
+                    setMessageFiles(prev => {
+                      return [...prev, file.name];
+                    })
+                    return new File([file], `${userId}/${file.name}`, { type: file.type })
+                  });
+                }}
+                endpoint="uploader"
+                acceptTypes={acceptTypes}
+              />
             )}
           </div>
         </div>
