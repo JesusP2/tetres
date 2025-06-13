@@ -102,8 +102,7 @@ export function Chat({
         newAssistantMessageId,
       );
       const _files = files.map(file => {
-        const { lastModified, url, appUrl, customId, serverData, ...rest } = file;
-        return { id: id(), file: { ...rest, chatId: chat.id } }
+        return { id: id(), file: { name: file.name, size: file.size, type: file.type, key: file.key, ufsUrl: file.ufsUrl, fileHash: file.fileHash, chatId: chat.id } }
       });
       await db.transact(_files.map(file => db.tx.files[file.id].update(file.file)))
       await db.transact([userMessageTx.link({ files: _files.map(file => file.id) })]);
