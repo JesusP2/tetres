@@ -287,7 +287,7 @@ function ChatSearch({
       content: messageContent,
       model: ui.defaultModel,
     };
-    const userMessageTx = createUserMessage(message, id(), []);
+    const userMessageTx = createUserMessage(message, id());
     const newAssistantMessageId = id();
     const assistantMessageTx = createAssistantMessage(
       {

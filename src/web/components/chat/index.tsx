@@ -22,13 +22,13 @@ import {
   X,
   BotIcon,
   AlertTriangle,
-  Download,
   FileText,
 } from 'lucide-react';
 import { type Dispatch, Fragment, type SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
 import { type ModelId } from '@server/utils/models';
-import { type AttachmentFile, ChatFooter } from './footer';
+import { ChatFooter } from './footer';
+import type { ClientUploadedFileData } from 'uploadthing/types';
 
 type ChatProps = {
   chat: ChatType;
@@ -49,7 +49,6 @@ export function Chat({
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [messageFiles, setMessageFiles] = useState<AttachmentFile[]>([]);
   const {
     setActivateScroll,
     scrollRef,
@@ -57,7 +56,7 @@ export function Chat({
     scrollButtonRef,
   } = useChatScroll({ messages, areChatsLoading });
 
-  const handleNewMessage = async (message: string) => {
+  const handleNewMessage = async (message: string, files: ClientUploadedFileData<null>[]) => {
     if (user.isPending) return;
     if (onSubmit) {
       onSubmit(message);
@@ -89,11 +88,9 @@ export function Chat({
           createdAt: new Date().toISOString(),
         },
       ]);
-      const fileIds = messageFiles.map(f => f.id);
       const userMessageTx = createUserMessage(
         newUserMessage,
         newUserMessageId,
-        fileIds,
       );
       const assistantMessageTx = createAssistantMessage(
         {
@@ -104,8 +101,12 @@ export function Chat({
         },
         newAssistantMessageId,
       );
-      // NOTE: assistant message always beats user message
-      await db.transact([userMessageTx]);
+      const _files = files.map(file => {
+        const { lastModified, url, appUrl, customId, serverData, ...rest } = file;
+        return { id: id(), file: { ...rest, chatId: chat.id } }
+      });
+      await db.transact(_files.map(file => db.tx.files[file.id].update(file.file)))
+      await db.transact([userMessageTx.link({ files: _files.map(file => file.id) })]);
       await db.transact([assistantMessageTx]);
       await sendMessage({
         messages: messagesForApi,
@@ -114,7 +115,6 @@ export function Chat({
         model: chat.model as ModelId,
         chatId: chat.id,
       });
-      setMessageFiles([]);
     }
   };
 
@@ -228,42 +228,10 @@ export function Chat({
                       </div>
                     ) : (
                       <div className='group'>
-                        <div className='bg-primary text-primary-foreground rounded-lg p-2'>
-                          {m.content}
+                        <div className='bg-primary rounded-lg p-2'>
+                          <span className="text-primary-foreground">{m.content}</span>
+                          <MessageAttachments files={m.files || []} />
                         </div>
-                        {m.$files && m.$files.length > 0 && (
-                          <div className='mt-2 space-y-2'>
-                            {m.$files.map(file => (
-                              <div key={file.id}>
-                                {file['content-type'].startsWith('image/') ? (
-                                  <img
-                                    src={file.url}
-                                    alt={file.path?.split('/').pop()}
-                                    className='max-w-xs rounded-lg'
-                                  />
-                                ) : file['content-type'] === 'application/pdf' ? (
-                                  <a
-                                    href={file.url}
-                                    download={file.path?.split('/').pop()}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                  >
-                                    <Button
-                                      variant='outline'
-                                      className='w-full justify-start'
-                                    >
-                                      <FileText className='h-4 w-4' />
-                                      <span className='truncate flex-1'>
-                                        {file.path?.split('/').pop()}
-                                      </span>
-                                      <Download className='ml-2 h-4 w-4' />
-                                    </Button>
-                                  </a>
-                                ) : null}
-                              </div>
-                            ))}
-                          </div>
-                        )}
                         <div className='mt-1 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
                           <Button
                             size='sm'
@@ -330,39 +298,7 @@ export function Chat({
                   <div
                     dangerouslySetInnerHTML={{ __html: m.parsedContent || '' }}
                   />
-                  {m.$files && m.$files.length > 0 && (
-                    <div className='mt-2 space-y-2'>
-                      {m.$files.map(file => (
-                        <div key={file.id}>
-                          {file['content-type'].startsWith('image/') ? (
-                            <img
-                              src={file.url}
-                              alt={file.path?.split('/').pop()}
-                              className='max-w-xs rounded-lg'
-                            />
-                          ) : file['content-type'] === 'application/pdf' ? (
-                            <a
-                              href={file.url}
-                              download={file.path?.split('/').pop()}
-                              target='_blank'
-                              rel='noopener noreferrer'
-                            >
-                              <Button
-                                variant='outline'
-                                className='w-full justify-start'
-                              >
-                                <FileText className='h-4 w-4' />
-                                <span className='truncate flex-1'>
-                                  {file.path?.split('/').pop()}
-                                </span>
-                                <Download className='ml-2 h-4 w-4' />
-                              </Button>
-                            </a>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <MessageAttachments files={m.files || []} />
                   {isAborted && (
                     <div className='bg-destructive/10 text-destructive border-destructive/20 m-4 flex items-center justify-between rounded-lg border p-3 text-sm'>
                       <div className='flex items-center gap-2'>
@@ -391,8 +327,6 @@ export function Chat({
         </Button>
         <ChatFooter
           userId={!user.isPending ? user.data.id : undefined}
-          messageFiles={messageFiles}
-          setMessageFiles={setMessageFiles}
           onSubmit={handleNewMessage}
           selectedModel={chat.model as ModelId}
           updateModel={model => updateChatModel(chat!, model)}
@@ -401,4 +335,41 @@ export function Chat({
       </div>
     </>
   );
+}
+
+function MessageAttachments({ files }: { files: ClientUploadedFileData<null>[] }) {
+  return (
+    files.length > 0 && (
+      <div className='mt-2 space-y-2'>
+        {files.map(file => (
+          <div key={file.key}>
+            {file.type.startsWith('image/') ? (
+              <img
+                src={file.ufsUrl}
+                alt={file.name}
+                className='max-w-xs rounded-lg'
+              />
+            ) : file.type === 'application/pdf' ? (
+              <a
+                href={file.ufsUrl}
+                download={file.name}
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                <Button
+                  variant='outline'
+                  className='w-full justify-start'
+                >
+                  <FileText className='h-4 w-4' />
+                  <span className='truncate flex-1'>
+                    {file.name}
+                  </span>
+                </Button>
+              </a>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    )
+  )
 }

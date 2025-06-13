@@ -9,6 +9,15 @@ const _schema = i.schema({
     $users: i.entity({
       email: i.string().unique().indexed(),
     }),
+    files: i.entity({
+      name: i.string(),
+      ufsUrl: i.string(),
+      type: i.string(),
+      key: i.string(),
+      size: i.number(),
+      fileHash: i.string(),
+      chatId: i.string().indexed(),
+    }),
     users: i.entity({
       name: i.string(),
       email: i.string().unique(),
@@ -165,13 +174,13 @@ const _schema = i.schema({
       },
       reverse: { on: 'users', has: 'many', label: 'chats' },
     },
-    message$files: {
+    messageFiles: {
       forward: {
         on: 'messages',
         has: 'many',
-        label: '$files',
+        label: 'files',
       },
-      reverse: { on: '$files', has: 'one', label: 'message' },
+      reverse: { on: 'files', has: 'one', label: 'message' },
     },
     messagesChat: {
       forward: {

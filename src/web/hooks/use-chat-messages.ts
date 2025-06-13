@@ -23,11 +23,10 @@ export function useChatMessages() {
     chats: {
       $: { where: { id: chatId } },
       messages: {
-        $files: {},
+        files: {},
       },
     },
   });
-  console.log(data)
   const [areChatsLoading, setAreChatsLoading] = useState(isLoading);
 
   const createCacheKey = useCallback((messageId: string, content: string) => {

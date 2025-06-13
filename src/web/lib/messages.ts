@@ -44,7 +44,6 @@ export async function sendMessage({
 export function createUserMessage(
   message: CreateMessageInput,
   id: string,
-  files: string[],
 ) {
   return db.tx.messages[id]
     .update({
@@ -54,7 +53,6 @@ export function createUserMessage(
       updatedAt: new Date().toISOString(),
     })
     .link({ chat: message.chatId })
-    .link({ $files: files });
 }
 
 export function createAssistantMessage(

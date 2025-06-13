@@ -36,7 +36,7 @@ import type { Message } from '@web/lib/types';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 
 type ChatFooterProps = {
-  onSubmit: (message: string) => PromiseLike<void>;
+  onSubmit: (message: string, files: ClientUploadedFileData<null>[]) => PromiseLike<void>;
   updateModel: (model: ModelId) => Promise<unknown>;
   selectedModel?: ModelId;
   userId?: string;
@@ -51,7 +51,6 @@ export function ChatFooter({
   lastMessage,
 }: ChatFooterProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [messageFiles, setMessageFiles] = useState<(ClientUploadedFileData<null> | string)[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -85,14 +84,8 @@ export function ChatFooter({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!message.trim() && (!messageFiles || messageFiles.length === 0)) return;
-    await onSubmit(message);
+    await onSubmit(message, messageFiles);
     if (setMessageFiles && messageFiles && messageFiles.length > 0) {
-      messageFiles.forEach(file => {
-        if (file instanceof File) return;
-        if (file.ufsUrl) {
-          URL.revokeObjectURL(file.ufsUrl);
-        }
-      });
       setMessageFiles([]);
     }
     setMessage('');
@@ -102,9 +95,6 @@ export function ChatFooter({
     if (!setMessageFiles || !messageFiles) return;
 
     const fileToRemove = messageFiles.find(f => f.id === fileId);
-    if (fileToRemove?.url) {
-      URL.revokeObjectURL(fileToRemove.url);
-    }
     setMessageFiles(files => files?.filter(f => f.id !== fileId) || []);
   };
 
@@ -139,7 +129,7 @@ export function ChatFooter({
                     size='icon'
                     variant='ghost'
                     className='h-6 w-6 shrink-0 rounded-full'
-                    onClick={() => handleRemoveFile(file.)}
+                    onClick={() => handleRemoveFile(file.id)}
                   >
                     <X className='h-4 w-4' />
                   </Button>
@@ -187,63 +177,7 @@ export function ChatFooter({
         </div>
         <div className='mt-2 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  type="button"
-                  variant='outline'
-                  role='combobox'
-                  aria-expanded={open}
-                  className='w-[250px] justify-between'
-                >
-                  <span className='truncate'>
-                    {selectedModel
-                      ? models.find(m => m.id === selectedModel)?.name
-                      : 'Select model...'}
-                  </span>
-                  <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className='p-0' showCloseButton={false}>
-                <VisuallyHidden>
-                  <DialogTitle>Model selection</DialogTitle>
-                </VisuallyHidden>
-                <VisuallyHidden>
-                  <DialogDescription>
-                    Select a model to chat with.
-                  </DialogDescription>
-                </VisuallyHidden>
-
-                <Command>
-                  <CommandInput placeholder='Search model...' />
-                  <CommandList className='chat-scrollbar'>
-                    <CommandEmpty>No model found.</CommandEmpty>
-                    <CommandGroup>
-                      {models.map(m => (
-                        <CommandItem
-                          key={m.id}
-                          value={m.id}
-                          onSelect={currentValue => {
-                            updateModel(currentValue as ModelId);
-                            setOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              selectedModel === m.id
-                                ? 'opacity-100'
-                                : 'opacity-0',
-                            )}
-                          />
-                          {m.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </DialogContent>
-            </Dialog>
+            <ModelsButton selectedModel={selectedModel} updateModel={updateModel} />
             {canAttach && (
               <MyUploadButton
                 disabled={isProcessing}
@@ -261,7 +195,7 @@ export function ChatFooter({
                     setMessageFiles(prev => {
                       return [...prev, file.name];
                     })
-                    return new File([file], `${userId}/${file.name}`, { type: file.type })
+                    return file;
                   });
                 }}
                 endpoint="uploader"
@@ -273,4 +207,73 @@ export function ChatFooter({
       </form>
     </div>
   );
+}
+
+export function ModelsButton({
+  selectedModel,
+  updateModel,
+}: {
+  selectedModel?: ModelId;
+  updateModel: (model: ModelId) => Promise<unknown>;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          type="button"
+          variant='outline'
+          role='combobox'
+          aria-expanded={open}
+          className='w-[250px] justify-between'
+        >
+          <span className='truncate'>
+            {selectedModel
+              ? models.find(m => m.id === selectedModel)?.name
+              : 'Select model...'}
+          </span>
+          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className='p-0' showCloseButton={false}>
+        <VisuallyHidden>
+          <DialogTitle>Model selection</DialogTitle>
+        </VisuallyHidden>
+        <VisuallyHidden>
+          <DialogDescription>
+            Select a model to chat with.
+          </DialogDescription>
+        </VisuallyHidden>
+
+        <Command>
+          <CommandInput placeholder='Search model...' />
+          <CommandList className='chat-scrollbar'>
+            <CommandEmpty>No model found.</CommandEmpty>
+            <CommandGroup>
+              {models.map(m => (
+                <CommandItem
+                  key={m.id}
+                  value={m.id}
+                  onSelect={currentValue => {
+                    updateModel(currentValue as ModelId);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      selectedModel === m.id
+                        ? 'opacity-100'
+                        : 'opacity-0',
+                    )}
+                  />
+                  {m.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </DialogContent>
+    </Dialog>
+  )
 }

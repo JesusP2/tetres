@@ -1,5 +1,6 @@
 import type { InstaQLEntity } from '@instantdb/core';
 import type schema from '../../../instant.schema';
+import type { ClientUploadedFileData } from 'uploadthing/types';
 
 export type Chat = InstaQLEntity<typeof schema, 'chats'>;
 export type File = InstaQLEntity<typeof schema, '$files'> & {
@@ -7,5 +8,5 @@ export type File = InstaQLEntity<typeof schema, '$files'> & {
   'content-type': string;
 };
 export type Message = InstaQLEntity<typeof schema, 'messages'> & {
-  $files?: File[];
+  files?: ClientUploadedFileData<null>[];
 };

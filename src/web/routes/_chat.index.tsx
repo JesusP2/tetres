@@ -52,7 +52,7 @@ function Index() {
       content: messageContent,
       model: ui.defaultModel,
     };
-    const userMessageTx = createUserMessage(message, id(), []);
+    const userMessageTx = createUserMessage(message, id());
     const newAsistantMessageId = id();
     const assistantMessageTx = createAssistantMessage(
       {
