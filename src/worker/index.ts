@@ -12,6 +12,7 @@ import { bodySchema } from './schemas';
 import { AppBindings } from './types';
 import { uploadRouter } from './uploadrouter';
 import { HttpError } from './utils/http-error';
+import { models } from './utils/models';
 
 type Body = z.infer<typeof bodySchema>;
 export const sendMessageToModel = async ({
@@ -93,6 +94,29 @@ const app = new Hono<AppBindings>({ strict: false })
   })
   .post('/api/model', zValidator('json', bodySchema), async c => {
     const body = c.req.valid('json');
+    const modelId = body.config.model;
+    const model = models.find(m => m.id === modelId);
+
+    if (model && !model.architecture.input_modalities.includes('file')) {
+      const filteredMessages = [];
+      for (const message of body.messages) {
+        let keep = true;
+        if (message.role === 'user' || message.role === 'assistant') {
+          if (Array.isArray(message.content)) {
+            for (const part of message.content) {
+              if (part.type === 'file') {
+                keep = false;
+                break;
+              }
+            }
+          }
+        }
+        if (keep) {
+          filteredMessages.push(message);
+        }
+      }
+      body.messages = filteredMessages;
+    }
     c.executionCtx.waitUntil(
       sendMessageToModel({
         ...body,

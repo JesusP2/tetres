@@ -31,6 +31,7 @@ import { MessageSquare, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
+import { createMessageObject, messageToAPIMessage } from '@web/lib/utils/message';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -72,21 +73,21 @@ export function ChatList({ user }: { user: MyUser }) {
   const { data } = db.useQuery(
     !user.isPending
       ? {
-          chats: {
-            $: {
-              where: {
-                userId: user.data.id,
-              },
+        chats: {
+          $: {
+            where: {
+              userId: user.data.id,
             },
           },
-        }
+        },
+      }
       : {},
   );
   const chats = data?.chats || [];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
     : chats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -278,40 +279,30 @@ function ChatSearch({
       newChatId,
       ui.defaultModel,
     );
-    const message = {
+    const userMessage = createMessageObject({
       chatId: newChatId,
-      role: 'user' as const,
+      role: 'user',
       content: messageContent,
       model: ui.defaultModel,
-    };
-    const userMessageTx = createUserMessage(message, id());
-    const newAssistantMessageId = id();
-    const assistantMessageTx = createAssistantMessage(
-      {
-        chatId: newChatId,
-        role: 'assistant' as const,
-        content: {},
-        model: ui.defaultModel,
-      },
-      newAssistantMessageId,
-    );
+      finished: new Date().toISOString(),
+    });
+    const assistantMessage = createMessageObject({
+      chatId: newChatId,
+      role: 'assistant',
+      content: {},
+      model: ui.defaultModel,
+    });
+    const apiMessage = messageToAPIMessage(userMessage);
+    const userMessageTx = createUserMessage(userMessage);
+    const assistantMessageTx = createAssistantMessage(assistantMessage);
     await db.transact([chatTx, userMessageTx]);
-    // NOTE: assistant message always beats user message
     await db.transact([assistantMessageTx]);
     await sendMessage({
-      messages: [{
-        ...message,
-        content: [
-          {
-            type: 'text',
-            text: message.content,
-          }
-        ]
-      }],
+      messages: [apiMessage],
       userId: user.data.id,
-      messageId: newAssistantMessageId,
+      messageId: assistantMessage.id,
       model: ui.defaultModel,
-      chatId: newChatId,
+      chatId: userMessage.chatId,
     });
     await navigate({ to: '/$chatId', params: { chatId: newChatId } });
   };
@@ -419,9 +410,8 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
-                  selectedIndex === i ? 'bg-accent' : ''
-                }`}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
+                  }`}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >

@@ -9,3 +9,7 @@ SCROLLING IS HARD
 - tools
 - pdfs
 - delete localStorage userId key on login
+- add file on attach
+
+ClientUploadedFileData, File, IFile
+Message, APIMessage

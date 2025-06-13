@@ -17,18 +17,18 @@ export const models = [
       'stop',
     ],
   },
-  {
-    id: 'deepseek/deepseek-r1-0528:free',
-    name: 'DeepSeek: R1 0528 (free)',
-    architecture: {
-      modality: 'text->text',
-      input_modalities: ['text'],
-      output_modalities: ['text'],
-      tokenizer: 'DeepSeek',
-      instruct_type: 'deepseek-r1',
-    },
-    supported_parameters: ['reasoning', 'include_reasoning', 'stop'],
-  },
+  // {
+  //   id: 'deepseek/deepseek-r1-0528:free',
+  //   name: 'DeepSeek: R1 0528 (free)',
+  //   architecture: {
+  //     modality: 'text->text',
+  //     input_modalities: ['text'],
+  //     output_modalities: ['text'],
+  //     tokenizer: 'DeepSeek',
+  //     instruct_type: 'deepseek-r1',
+  //   },
+  //   supported_parameters: ['reasoning', 'include_reasoning', 'stop'],
+  // },
   {
     id: 'anthropic/claude-sonnet-4',
     name: 'Anthropic: Claude Sonnet 4',
@@ -99,18 +99,18 @@ export const models = [
       'web_search_options',
     ],
   },
-  {
-    id: 'deepseek/deepseek-chat-v3-0324:free',
-    name: 'DeepSeek: DeepSeek V3 0324 (free)',
-    architecture: {
-      modality: 'text->text',
-      input_modalities: ['text'],
-      output_modalities: ['text'],
-      tokenizer: 'DeepSeek',
-      instruct_type: null,
-    },
-    supported_parameters: ['tools', 'tool_choice', 'stop'],
-  },
+  // {
+  //   id: 'deepseek/deepseek-chat-v3-0324:free',
+  //   name: 'DeepSeek: DeepSeek V3 0324 (free)',
+  //   architecture: {
+  //     modality: 'text->text',
+  //     input_modalities: ['text'],
+  //     output_modalities: ['text'],
+  //     tokenizer: 'DeepSeek',
+  //     instruct_type: null,
+  //   },
+  //   supported_parameters: ['tools', 'tool_choice', 'stop'],
+  // },
   {
     id: 'anthropic/claude-3.7-sonnet',
     name: 'Anthropic: Claude 3.7 Sonnet',
@@ -141,18 +141,18 @@ export const models = [
     },
     supported_parameters: ['tools', 'tool_choice', 'stop'],
   },
-  {
-    id: 'deepseek/deepseek-r1:free',
-    name: 'DeepSeek: R1 (free)',
-    architecture: {
-      modality: 'text->text',
-      input_modalities: ['text'],
-      output_modalities: ['text'],
-      tokenizer: 'DeepSeek',
-      instruct_type: 'deepseek-r1',
-    },
-    supported_parameters: ['reasoning', 'include_reasoning', 'stop'],
-  },
+  // {
+  //   id: 'deepseek/deepseek-r1:free',
+  //   name: 'DeepSeek: R1 (free)',
+  //   architecture: {
+  //     modality: 'text->text',
+  //     input_modalities: ['text'],
+  //     output_modalities: ['text'],
+  //     tokenizer: 'DeepSeek',
+  //     instruct_type: 'deepseek-r1',
+  //   },
+  //   supported_parameters: ['reasoning', 'include_reasoning', 'stop'],
+  // },
   {
     id: 'openai/gpt-4o-mini',
     name: 'OpenAI: GPT-4o-mini',

@@ -1,36 +1,20 @@
 import { id } from '@instantdb/react';
 import { db } from '@web/lib/instant';
 import type { Message } from '@web/lib/types';
+import { sendMessage } from '@web/services';
 import type { ModelId } from '@server/utils/models';
 
-export type CreateMessageInput = {
-  chatId: string;
-  role: 'user' | 'assistant';
-  content: any;
-  model: ModelId;
-};
-
-export function createUserMessage(message: CreateMessageInput, id: string) {
-  return db.tx.messages[id]
-    .update({
-      ...message,
-      finished: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
-    .link({ chat: message.chatId });
+export function createUserMessage(message: Message) {
+  const { files, ...rest } = message;
+  return db.tx.messages[message.id].update(rest).link({ chat: message.chatId });
 }
 
-export function createAssistantMessage(
-  message: CreateMessageInput,
-  id: string,
-) {
-  return db.tx.messages[id]
+export function createAssistantMessage(message: Message) {
+  const { files, ...rest } = message;
+  return db.tx.messages[message.id]
     .update({
-      ...message,
+      ...rest,
       finished: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     })
     .link({ chat: message.chatId });
 }

@@ -2,7 +2,7 @@ import { useParams } from '@tanstack/react-router';
 import { db } from '@web/lib/instant';
 import { renderMarkdown } from '@web/lib/syntax-highlighting';
 import type { Message } from '@web/lib/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const objectToString = (obj: any): string => {
   if (typeof obj === 'string') return obj;
@@ -17,6 +17,14 @@ async function parseMessage(message: string) {
 
 const parsedMessageCache = new Map<string, string>();
 
+function createCacheKey(messageId: string, content: string) {
+  const contentHash = content.split('').reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return `${messageId}-${contentHash}`;
+}
+
 export function useChatMessages() {
   const { chatId } = useParams({ from: '/_chat/$chatId' });
   const { isLoading, data } = db.useQuery({
@@ -29,21 +37,16 @@ export function useChatMessages() {
   });
   const [areChatsLoading, setAreChatsLoading] = useState(isLoading);
 
-  const createCacheKey = useCallback((messageId: string, content: string) => {
-    const contentHash = content.split('').reduce((a, b) => {
-      a = (a << 5) - a + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    return `${messageId}-${contentHash}`;
-  }, []);
-  const [parsedMessages, setParsedMessages] = useState<(Message & { highlightedText?: string })[]>([]);
+  const [parsedMessages, setParsedMessages] = useState<
+    (Message & { highlightedText?: string })[]
+  >([]);
 
   useEffect(() => {
     if (isLoading || !data?.chats[0]?.messages) {
       setParsedMessages([]);
       return;
     }
-    const rawMessages = data.chats[0].messages;
+    const rawMessages = data.chats[0].messages as Message[];
     // Process messages and handle caching
     const processMessages = async () => {
       const processedMessages = await Promise.all(

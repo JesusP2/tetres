@@ -9,6 +9,7 @@ import { useUser } from '@web/hooks/use-user';
 import { createChat } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
+import { createMessageObject, messageToAPIMessage } from '@web/lib/utils/message';
 import { sendMessage } from '@web/services';
 import { z } from 'zod';
 
@@ -34,6 +35,7 @@ function Index() {
   const user = useUser();
   const { ui, updateUI } = useUI();
 
+  // TODO: handle files
   const handleCreateChat = async (messageContent: string) => {
     if (user.isPending || !ui) return;
     const newChatId = id();
@@ -43,40 +45,31 @@ function Index() {
       newChatId,
       ui.defaultModel,
     );
-    const message = {
-      chatId: newChatId,
-      role: 'user' as const,
+    const userMessage = createMessageObject({
+      role: 'user',
       content: messageContent,
       model: ui.defaultModel,
-    };
-    const userMessageTx = createUserMessage(message, id());
-    const newAsistantMessageId = id();
-    const assistantMessageTx = createAssistantMessage(
-      {
-        chatId: newChatId,
-        content: {},
-        role: 'assistant' as const,
-        model: ui.defaultModel,
-      },
-      newAsistantMessageId,
-    );
+      finished: new Date().toISOString(),
+      chatId: newChatId,
+    });
+    const assistantMessage = createMessageObject({
+      role: 'assistant',
+      content: {},
+      model: ui.defaultModel,
+      chatId: newChatId,
+    });
+    const apiMessage = messageToAPIMessage(userMessage);
+    const userMessageTx = createUserMessage(userMessage);
+    const assistantMessageTx = createAssistantMessage(assistantMessage);
     await db.transact([chatTx, userMessageTx]);
     // NOTE: assistant message always beats user message
     await db.transact([assistantMessageTx]);
     await sendMessage({
-      messages: [{
-        ...message,
-        content: [
-          {
-            type: 'text',
-            text: message.content,
-          }
-        ]
-      }],
+      messages: [apiMessage],
       userId: user.data.id,
-      messageId: newAsistantMessageId,
+      messageId: assistantMessage.id,
       model: ui.defaultModel,
-      chatId: message.chatId,
+      chatId: userMessage.chatId,
     });
     navigate({
       to: '/$chatId',

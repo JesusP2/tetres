@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
 import { ChatFooter } from './footer';
+import { createMessageObject, fileToIFile, messageToAPIMessage } from '@web/lib/utils/message';
 
 type ChatProps = {
   chat: ChatType;
@@ -67,100 +68,41 @@ export function Chat({
     }
     setActivateScroll(true);
     if (chat) {
-      const newUserMessage = {
-        chatId: chat.id,
-        role: 'user' as const,
+      const newUserMessage = createMessageObject({
+        role: 'user',
         content: message,
         model: chat.model as ModelId,
-      };
-      const newUserMessageId = id();
-      const newAssistantMessageId = id();
+        chatId: chat.id,
+        finished: new Date().toISOString(),
+        files: files.map(file => fileToIFile(file, chat.id)),
+      })
+      const newAssistantMessage = createMessageObject({
+        role: 'assistant',
+        content: {},
+        model: chat.model as ModelId,
+        chatId: chat.id,
+      });
       setParsedMessages(prev => [
         ...prev,
-        {
-          ...newUserMessage,
-          files,
-          id: newUserMessageId,
-          updatedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-        },
+        newUserMessage,
       ]);
-      const userMessageTx = createUserMessage(newUserMessage, newUserMessageId);
-      const assistantMessageTx = createAssistantMessage(
-        {
-          chatId: chat.id,
-          role: 'assistant' as const,
-          content: {},
-          model: chat.model as ModelId,
-        },
-        newAssistantMessageId,
-      );
-      const _files = files.map(file => {
-        return {
-          id: id(),
-          file: {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            key: file.key,
-            ufsUrl: file.ufsUrl,
-            fileHash: file.fileHash,
-            chatId: chat.id,
-          },
-        };
-      });
+      const userMessageTx = createUserMessage(newUserMessage);
+      const assistantMessageTx = createAssistantMessage(newAssistantMessage);
+      const ifiles = files.map(file => fileToIFile(file, chat.id));
       await db.transact(
-        _files.map(file => db.tx.files[file.id].update(file.file)),
+        ifiles.map(file => db.tx.files[file.id].update(file)),
       );
       await db.transact([
-        userMessageTx.link({ files: _files.map(file => file.id) }),
+        userMessageTx.link({ files: ifiles.map(file => file.id) }),
       ]);
       await db.transact([assistantMessageTx]);
 
-      function filesToMessages(file: ClientUploadedFileData<null>) {
-        if (file.type.startsWith('image/')) {
-          return {
-            type: 'image',
-            image: file.ufsUrl,
-            mimeType: file.type,
-          };
-        } else {
-          return {
-            type: 'file',
-            data: file.ufsUrl,
-            filename: file.name,
-            mimeType: file.type,
-          };
-        }
-      }
-
-      function transformMessageContent(m: Message) {
-        let content = [{
-          type: 'text',
-          text: m.content,
-        }]
-        const files = m.files
-        if (files) {
-          content = [...content, ...files.map(file => filesToMessages(file))]
-        }
-        return content;
-      }
-      const messagesForApi = [
-        ...messages.map(m => {
-          return {
-            role: m.role as 'user' | 'assistant',
-            content: transformMessageContent(m),
-          };
-        }),
-        {
-          ...newUserMessage,
-          content: transformMessageContent({...newUserMessage, files}),
-        }
-      ];
+      const messagesForApi = messages.map(m => messageToAPIMessage(m));
+      messagesForApi.push(messageToAPIMessage(newUserMessage));
       await sendMessage({
         messages: messagesForApi,
         userId: user.data.id,
-        messageId: newAssistantMessageId,
+        messageId: newAssistantMessage.id,
         model: chat.model as ModelId,
         chatId: chat.id,
       });

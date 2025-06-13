@@ -18,3 +18,7 @@ export interface AppBindings {
 
 export type AppOpenAPI = Hono<AppBindings>;
 export type Body = z.infer<typeof bodySchema>;
+export type APIMessage = Body['messages'][number];
+export type TextPart = APIMessage['content'][number];
+export type FilePart = APIMessage['content'][number];
+export type ImagePart = APIMessage['content'][number];
