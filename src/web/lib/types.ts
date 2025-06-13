@@ -1,5 +1,11 @@
-import type { Chat as ChatType } from './chats';
-import type { Message as MessageType } from './messages';
+import type { InstaQLEntity } from '@instantdb/core';
+import type schema from '../../../instant.schema';
 
-export type Chat = ChatType;
-export type Message = MessageType;
+export type Chat = InstaQLEntity<typeof schema, 'chats'>;
+export type File = InstaQLEntity<typeof schema, '$files'> & {
+  'content-disposition'?: string;
+  'content-type': string;
+};
+export type Message = InstaQLEntity<typeof schema, 'messages'> & {
+  $files?: File[];
+};

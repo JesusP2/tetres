@@ -22,6 +22,8 @@ import {
   X,
   BotIcon,
   AlertTriangle,
+  Download,
+  FileText,
 } from 'lucide-react';
 import { type Dispatch, Fragment, type SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
@@ -229,6 +231,39 @@ export function Chat({
                         <div className='bg-primary text-primary-foreground rounded-lg p-2'>
                           {m.content}
                         </div>
+                        {m.$files && m.$files.length > 0 && (
+                          <div className='mt-2 space-y-2'>
+                            {m.$files.map(file => (
+                              <div key={file.id}>
+                                {file['content-type'].startsWith('image/') ? (
+                                  <img
+                                    src={file.url}
+                                    alt={file.path?.split('/').pop()}
+                                    className='max-w-xs rounded-lg'
+                                  />
+                                ) : file['content-type'] === 'application/pdf' ? (
+                                  <a
+                                    href={file.url}
+                                    download={file.path?.split('/').pop()}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                  >
+                                    <Button
+                                      variant='outline'
+                                      className='w-full justify-start'
+                                    >
+                                      <FileText className='h-4 w-4' />
+                                      <span className='truncate flex-1'>
+                                        {file.path?.split('/').pop()}
+                                      </span>
+                                      <Download className='ml-2 h-4 w-4' />
+                                    </Button>
+                                  </a>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         <div className='mt-1 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
                           <Button
                             size='sm'
@@ -295,6 +330,39 @@ export function Chat({
                   <div
                     dangerouslySetInnerHTML={{ __html: m.parsedContent || '' }}
                   />
+                  {m.$files && m.$files.length > 0 && (
+                    <div className='mt-2 space-y-2'>
+                      {m.$files.map(file => (
+                        <div key={file.id}>
+                          {file['content-type'].startsWith('image/') ? (
+                            <img
+                              src={file.url}
+                              alt={file.path?.split('/').pop()}
+                              className='max-w-xs rounded-lg'
+                            />
+                          ) : file['content-type'] === 'application/pdf' ? (
+                            <a
+                              href={file.url}
+                              download={file.path?.split('/').pop()}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                            >
+                              <Button
+                                variant='outline'
+                                className='w-full justify-start'
+                              >
+                                <FileText className='h-4 w-4' />
+                                <span className='truncate flex-1'>
+                                  {file.path?.split('/').pop()}
+                                </span>
+                                <Download className='ml-2 h-4 w-4' />
+                              </Button>
+                            </a>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {isAborted && (
                     <div className='bg-destructive/10 text-destructive border-destructive/20 m-4 flex items-center justify-between rounded-lg border p-3 text-sm'>
                       <div className='flex items-center gap-2'>

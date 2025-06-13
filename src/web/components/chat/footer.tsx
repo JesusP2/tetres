@@ -36,8 +36,7 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { type ModelId, models } from '@server/utils/models';
-import { db } from '@web/lib/instant';
-import { type Message } from '@web/lib/types';
+import type { Message } from '@web/lib/chats';
 
 export type AttachmentFile = {
   id: string;
@@ -117,23 +116,26 @@ export function ChatFooter({
   const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!userId || !setMessageFiles) return;
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error('File size cannot exceed 10MB.');
-        return;
-      }
-      const fileId = await uploadFile(file, userId);
-      const newAttachment: AttachmentFile = {
-        id: fileId,
-        name: file.name,
-        type: file.type,
-      };
-
-      if (file.type.startsWith('image/')) {
-        newAttachment.url = URL.createObjectURL(file);
-      }
-      setMessageFiles(prev => [...(prev || []), newAttachment]);
+    if (!file) return;
+    if (file.name.includes('/')) {
+      toast.error('File name cannot contain "/".');
+      return;
     }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('File size cannot exceed 10MB.');
+      return;
+    }
+    const fileId = await uploadFile(file, userId);
+    const newAttachment: AttachmentFile = {
+      id: fileId,
+      name: file.name,
+      type: file.type,
+    };
+
+    if (file.type.startsWith('image/')) {
+      newAttachment.url = URL.createObjectURL(file);
+    }
+    setMessageFiles(prev => [...(prev || []), newAttachment]);
   };
 
   const handleRemoveFile = (fileId: string) => {
@@ -238,6 +240,7 @@ export function ChatFooter({
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button
+                  type="button"
                   variant='outline'
                   role='combobox'
                   aria-expanded={open}
@@ -303,6 +306,7 @@ export function ChatFooter({
                 <Button
                   variant='ghost'
                   size='icon'
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Paperclip className='h-4 w-4' />

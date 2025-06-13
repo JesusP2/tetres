@@ -1,9 +1,7 @@
-import { id, type InstaQLEntity } from '@instantdb/react';
+import { id } from '@instantdb/react';
 import { db } from '@web/lib/instant';
 import type { ModelId } from '@server/utils/models';
-import schema from '../../../instant.schema';
-
-export type Message = InstaQLEntity<typeof schema, 'messages'>;
+import type { Message } from '@web/lib/types';
 
 export type CreateMessageInput = {
   chatId: string;
@@ -156,7 +154,7 @@ export function copyMessageToClipboard(message: Message) {
   }
 }
 export async function uploadFile(file: File, userId: string) {
-  const path = `${userId}/${id()}-${file.name}`;
+  const path = `${userId}/${id()}/${file.name}`;
   const { data } = await db.storage.uploadFile(path, file, {
     contentType: file.type,
     contentDisposition: 'attachment',

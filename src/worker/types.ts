@@ -1,4 +1,4 @@
-import { InstantAdminDatabase } from '@instantdb/admin';
+import type { InstantAdminDatabase } from '@instantdb/admin';
 import { env } from 'cloudflare:workers';
 import { Hono } from 'hono';
 import type { Auth, Session, User } from '@server/auth';

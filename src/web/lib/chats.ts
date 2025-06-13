@@ -1,10 +1,6 @@
-import type { InstaQLEntity } from '@instantdb/react';
 import { db } from '@web/lib/instant';
 import type { ModelId } from '@server/utils/models';
-import schema from '../../../instant.schema';
-
-export type Chat = InstaQLEntity<typeof schema, 'chats'>;
-export type Message = InstaQLEntity<typeof schema, 'messages'>;
+import type { Chat } from './types';
 
 export function createChat(
   user: { id: string },
