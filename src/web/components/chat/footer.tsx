@@ -19,6 +19,7 @@ import { Textarea } from '@web/components/ui/textarea';
 import { abortGeneration } from '@web/lib/messages';
 import type { Message } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
+import { deleteFile } from '@web/services';
 import {
   ArrowUp,
   Check,
@@ -32,7 +33,6 @@ import { useRef, useState } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { MyUploadButton } from '../upload-button';
-import { deleteFile } from '@web/services';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -87,19 +87,31 @@ export function ChatFooter({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!message.trim() || messageFiles.find(file => typeof file === 'string') || isProcessing) return;
+    if (
+      !message.trim() ||
+      messageFiles.find(file => typeof file === 'string') ||
+      isProcessing
+    )
+      return;
     setMessageFiles([]);
     await onSubmit(message, messageFiles as ClientUploadedFileData<null>[]);
     setMessage('');
   };
 
-  const handleRemoveFile = async (file: ClientUploadedFileData<null> | string) => {
+  const handleRemoveFile = async (
+    file: ClientUploadedFileData<null> | string,
+  ) => {
     if (!setMessageFiles || !messageFiles || typeof file === 'string') return;
 
-    const fileToRemove = messageFiles.find(f => typeof f !== 'string' && f.key === file.key);
+    const fileToRemove = messageFiles.find(
+      f => typeof f !== 'string' && f.key === file.key,
+    );
     if (typeof fileToRemove === 'string' || !fileToRemove) return;
-    setMessageFiles(files => files?.filter(f => typeof f !== 'string' && f.key !== f.key) || []);
-    await deleteFile(fileToRemove.key)
+    setMessageFiles(
+      files =>
+        files?.filter(f => typeof f !== 'string' && f.key !== f.key) || [],
+    );
+    await deleteFile(fileToRemove.key);
   };
 
   return (
@@ -114,7 +126,9 @@ export function ChatFooter({
                   className='bg-secondary flex items-center gap-2 rounded-md p-1'
                 >
                   {typeof file === 'string' ? (
-                    <div><LoaderCircleIcon size={16} className="animate-spin" /></div>
+                    <div>
+                      <LoaderCircleIcon size={16} className='animate-spin' />
+                    </div>
                   ) : file.type.startsWith('image/') ? (
                     <img
                       src={file.ufsUrl}

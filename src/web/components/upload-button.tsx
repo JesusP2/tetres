@@ -13,7 +13,10 @@ export function MyUploadButton(
     <div>
       <Tooltip>
         <TooltipTrigger asChild>
-          <label data-ut-element='button' className={buttonVariants({ variant: 'outline' })}>
+          <label
+            data-ut-element='button'
+            className={buttonVariants({ variant: 'outline' })}
+          >
             <input
               className='hidden'
               type='file'
@@ -32,9 +35,7 @@ export function MyUploadButton(
         </TooltipTrigger>
         <TooltipContent>
           Add an attachment
-          <div>
-            Accepts: Text, PNG, JPEG, GIF, WebP, HEIC, PDF
-          </div>
+          <div>Accepts: Text, PNG, JPEG, GIF, WebP, HEIC, PDF</div>
         </TooltipContent>
       </Tooltip>
       <div data-ut-element='allowed-content' className='sr-only'>

@@ -8,10 +8,7 @@ import { useUI } from '@web/hooks/use-ui';
 import { useUser } from '@web/hooks/use-user';
 import { createChat } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
-import {
-  createAssistantMessage,
-  createUserMessage,
-} from '@web/lib/messages';
+import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
 import { sendMessage } from '@web/services';
 import { z } from 'zod';
 

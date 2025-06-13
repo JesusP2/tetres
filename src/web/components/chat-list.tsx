@@ -24,16 +24,13 @@ import {
   updateChatTitle,
 } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
-import {
-  createAssistantMessage,
-  createUserMessage,
-} from '@web/lib/messages';
+import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
+import type { Chat } from '@web/lib/types';
+import { sendMessage } from '@web/services';
 import { MessageSquare, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import { sendMessage } from '@web/services';
-import type { Chat } from '@web/lib/types';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();

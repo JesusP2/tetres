@@ -1,4 +1,4 @@
-import type { ModelId } from "@server/utils/models";
+import type { ModelId } from '@server/utils/models';
 
 export async function sendMessage({
   messages,
