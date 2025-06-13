@@ -1,7 +1,7 @@
 import { id } from '@instantdb/react';
 import { db } from '@web/lib/instant';
-import type { ModelId } from '@server/utils/models';
 import type { Message } from '@web/lib/types';
+import type { ModelId } from '@server/utils/models';
 
 export type CreateMessageInput = {
   chatId: string;
@@ -41,10 +41,7 @@ export async function sendMessage({
   });
 }
 
-export function createUserMessage(
-  message: CreateMessageInput,
-  id: string,
-) {
+export function createUserMessage(message: CreateMessageInput, id: string) {
   return db.tx.messages[id]
     .update({
       ...message,
@@ -52,7 +49,7 @@ export function createUserMessage(
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
-    .link({ chat: message.chatId })
+    .link({ chat: message.chatId });
 }
 
 export function createAssistantMessage(

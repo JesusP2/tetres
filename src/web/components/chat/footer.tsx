@@ -17,26 +17,26 @@ import {
 } from '@web/components/ui/dialog';
 import { Textarea } from '@web/components/ui/textarea';
 import { abortGeneration } from '@web/lib/messages';
+import type { Message } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import {
   ArrowUp,
   Check,
   ChevronsUpDown,
   Paperclip,
-  X,
   Square,
+  X,
 } from 'lucide-react';
-import {
-  useRef,
-  useState,
-} from 'react';
+import { useRef, useState } from 'react';
+import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { MyUploadButton } from '../upload-button';
-import type { Message } from '@web/lib/types';
-import type { ClientUploadedFileData } from 'uploadthing/types';
 
 type ChatFooterProps = {
-  onSubmit: (message: string, files: ClientUploadedFileData<null>[]) => PromiseLike<void>;
+  onSubmit: (
+    message: string,
+    files: ClientUploadedFileData<null>[],
+  ) => PromiseLike<void>;
   updateModel: (model: ModelId) => Promise<unknown>;
   selectedModel?: ModelId;
   userId?: string;
@@ -52,11 +52,14 @@ export function ChatFooter({
 }: ChatFooterProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [message, setMessage] = useState('');
-  const [messageFiles, setMessageFiles] = useState<(ClientUploadedFileData<null> | string)[]>([]);
+  const [messageFiles, setMessageFiles] = useState<
+    (ClientUploadedFileData<null> | string)[]
+  >([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const model = models.find(m => m.id === selectedModel);
-  const isGenerating = lastMessage?.role === 'assistant' && !lastMessage.finished;
+  const isGenerating =
+    lastMessage?.role === 'assistant' && !lastMessage.finished;
 
   const handleStop = async () => {
     if (lastMessage) {
@@ -109,19 +112,19 @@ export function ChatFooter({
                   key={typeof file === 'string' ? file : file.ufsUrl}
                   className='bg-secondary flex items-center gap-2 rounded-md p-1'
                 >
-                  {
-                    typeof file === 'string' ? <div>loading...</div>
-                      : file.type.startsWith('image/') ? (
-                        <img
-                          src={file.ufsUrl}
-                          alt={file.name}
-                          className='h-8 w-8 rounded-md object-cover'
-                        />
-                      ) : (
-                        <div className='bg-muted flex h-8 w-8 items-center justify-center rounded-md'>
-                          <Paperclip className='h-4 w-4' />
-                        </div>
-                      )}
+                  {typeof file === 'string' ? (
+                    <div>loading...</div>
+                  ) : file.type.startsWith('image/') ? (
+                    <img
+                      src={file.ufsUrl}
+                      alt={file.name}
+                      className='h-8 w-8 rounded-md object-cover'
+                    />
+                  ) : (
+                    <div className='bg-muted flex h-8 w-8 items-center justify-center rounded-md'>
+                      <Paperclip className='h-4 w-4' />
+                    </div>
+                  )}
                   <span className='max-w-[100px] truncate text-sm'>
                     {typeof file === 'string' ? file : file.name}
                   </span>
@@ -167,7 +170,8 @@ export function ChatFooter({
                 className='absolute right-2 bottom-2'
                 type='submit'
                 disabled={
-                  !message.trim() && (!messageFiles || messageFiles.length === 0)
+                  !message.trim() &&
+                  (!messageFiles || messageFiles.length === 0)
                 }
               >
                 <ArrowUp className='h-4 w-4' />
@@ -177,7 +181,10 @@ export function ChatFooter({
         </div>
         <div className='mt-2 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <ModelsButton selectedModel={selectedModel} updateModel={updateModel} />
+            <ModelsButton
+              selectedModel={selectedModel}
+              updateModel={updateModel}
+            />
             {canAttach && (
               <MyUploadButton
                 disabled={isProcessing}
@@ -187,18 +194,18 @@ export function ChatFooter({
                   setMessageFiles(prev => {
                     const files = prev.slice(0, prev.length - 1);
                     return [...files, file];
-                  })
+                  });
                 }}
                 onUploadBegin={() => setIsProcessing(true)}
-                onBeforeUploadBegin={(files) => {
+                onBeforeUploadBegin={files => {
                   return files.map(file => {
                     setMessageFiles(prev => {
                       return [...prev, file.name];
-                    })
+                    });
                     return file;
                   });
                 }}
-                endpoint="uploader"
+                endpoint='uploader'
                 acceptTypes={acceptTypes}
               />
             )}
@@ -221,7 +228,7 @@ export function ModelsButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          type="button"
+          type='button'
           variant='outline'
           role='combobox'
           aria-expanded={open}
@@ -240,9 +247,7 @@ export function ModelsButton({
           <DialogTitle>Model selection</DialogTitle>
         </VisuallyHidden>
         <VisuallyHidden>
-          <DialogDescription>
-            Select a model to chat with.
-          </DialogDescription>
+          <DialogDescription>Select a model to chat with.</DialogDescription>
         </VisuallyHidden>
 
         <Command>
@@ -262,9 +267,7 @@ export function ModelsButton({
                   <Check
                     className={cn(
                       'mr-2 h-4 w-4',
-                      selectedModel === m.id
-                        ? 'opacity-100'
-                        : 'opacity-0',
+                      selectedModel === m.id ? 'opacity-100' : 'opacity-0',
                     )}
                   />
                   {m.name}
@@ -275,5 +278,5 @@ export function ModelsButton({
         </Command>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

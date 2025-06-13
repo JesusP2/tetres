@@ -14,21 +14,21 @@ import {
 } from '@web/lib/messages';
 import type { Chat as ChatType, Message } from '@web/lib/types';
 import {
+  AlertTriangle,
+  BotIcon,
   Check,
   Copy,
   Edit3,
+  FileText,
   Loader2,
   RotateCcw,
   X,
-  BotIcon,
-  AlertTriangle,
-  FileText,
 } from 'lucide-react';
 import { type Dispatch, Fragment, type SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
+import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
 import { ChatFooter } from './footer';
-import type { ClientUploadedFileData } from 'uploadthing/types';
 
 type ChatProps = {
   chat: ChatType;
@@ -56,7 +56,10 @@ export function Chat({
     scrollButtonRef,
   } = useChatScroll({ messages, areChatsLoading });
 
-  const handleNewMessage = async (message: string, files: ClientUploadedFileData<null>[]) => {
+  const handleNewMessage = async (
+    message: string,
+    files: ClientUploadedFileData<null>[],
+  ) => {
     if (user.isPending) return;
     if (onSubmit) {
       onSubmit(message);
@@ -88,10 +91,7 @@ export function Chat({
           createdAt: new Date().toISOString(),
         },
       ]);
-      const userMessageTx = createUserMessage(
-        newUserMessage,
-        newUserMessageId,
-      );
+      const userMessageTx = createUserMessage(newUserMessage, newUserMessageId);
       const assistantMessageTx = createAssistantMessage(
         {
           chatId: chat.id,
@@ -102,10 +102,25 @@ export function Chat({
         newAssistantMessageId,
       );
       const _files = files.map(file => {
-        return { id: id(), file: { name: file.name, size: file.size, type: file.type, key: file.key, ufsUrl: file.ufsUrl, fileHash: file.fileHash, chatId: chat.id } }
+        return {
+          id: id(),
+          file: {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            key: file.key,
+            ufsUrl: file.ufsUrl,
+            fileHash: file.fileHash,
+            chatId: chat.id,
+          },
+        };
       });
-      await db.transact(_files.map(file => db.tx.files[file.id].update(file.file)))
-      await db.transact([userMessageTx.link({ files: _files.map(file => file.id) })]);
+      await db.transact(
+        _files.map(file => db.tx.files[file.id].update(file.file)),
+      );
+      await db.transact([
+        userMessageTx.link({ files: _files.map(file => file.id) }),
+      ]);
       await db.transact([assistantMessageTx]);
       await sendMessage({
         messages: messagesForApi,
@@ -228,7 +243,9 @@ export function Chat({
                     ) : (
                       <div className='group'>
                         <div className='bg-primary rounded-lg p-2'>
-                          <span className="text-primary-foreground">{m.content}</span>
+                          <span className='text-primary-foreground'>
+                            {m.content}
+                          </span>
                           <MessageAttachments files={m.files || []} />
                         </div>
                         <div className='mt-1 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
@@ -286,9 +303,9 @@ export function Chat({
                   </div>
                   <div className='flex flex-1 items-center space-y-2 pt-1'>
                     <div className='flex items-center gap-1'>
-                      <div className='h-2 w-2 animate-bounce rounded-full bg-foreground [animation-delay:-0.3s]' />
-                      <div className='h-2 w-2 animate-bounce rounded-full bg-foreground [animation-delay:-0.15s]' />
-                      <div className='h-2 w-2 animate-bounce rounded-full bg-foreground' />
+                      <div className='bg-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]' />
+                      <div className='bg-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:-0.15s]' />
+                      <div className='bg-foreground h-2 w-2 animate-bounce rounded-full' />
                     </div>
                   </div>
                 </div>
@@ -336,7 +353,11 @@ export function Chat({
   );
 }
 
-function MessageAttachments({ files }: { files: ClientUploadedFileData<null>[] }) {
+function MessageAttachments({
+  files,
+}: {
+  files: ClientUploadedFileData<null>[];
+}) {
   return (
     files.length > 0 && (
       <div className='mt-2 space-y-2'>
@@ -355,14 +376,9 @@ function MessageAttachments({ files }: { files: ClientUploadedFileData<null>[] }
                 target='_blank'
                 rel='noopener noreferrer'
               >
-                <Button
-                  variant='outline'
-                  className='w-full justify-start'
-                >
+                <Button variant='outline' className='w-full justify-start'>
                   <FileText className='h-4 w-4' />
-                  <span className='truncate flex-1'>
-                    {file.name}
-                  </span>
+                  <span className='flex-1 truncate'>{file.name}</span>
                 </Button>
               </a>
             ) : null}
@@ -370,5 +386,5 @@ function MessageAttachments({ files }: { files: ClientUploadedFileData<null>[] }
         ))}
       </div>
     )
-  )
+  );
 }
