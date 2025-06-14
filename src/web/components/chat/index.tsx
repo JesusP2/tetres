@@ -104,7 +104,7 @@ export function Chat({
         messages: messagesForApi,
         userId: user.data.id,
         messageId: newAssistantMessage.id,
-        model: chat.model as ModelId,
+        model: chat.model,
         chatId: chat.id,
       });
     }

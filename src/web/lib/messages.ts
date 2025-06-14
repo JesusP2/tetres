@@ -3,6 +3,7 @@ import { db } from '@web/lib/instant';
 import type { Message } from '@web/lib/types';
 import { sendMessage } from '@web/services';
 import type { ModelId } from '@server/utils/models';
+import { createMessageObject, messageToAPIMessage } from './utils/message';
 
 export function createUserMessage(message: Message) {
   const { files, ...rest } = message;
@@ -37,7 +38,12 @@ export async function retryMessage(
   const deleteActions = messagesToDelete.map(m =>
     db.tx.messages[m.id].delete(),
   );
-  const newAssitantMessageId = id();
+  const newAssistantMessage = createMessageObject({
+    role: 'assistant',
+    content: {},
+    chatId: targetMessage.chatId,
+    model: model,
+  });
   await db.transact([
     ...deleteActions,
     db.tx.messages[targetMessage.id].update({
@@ -45,33 +51,17 @@ export async function retryMessage(
       model: model,
       updatedAt: new Date().toISOString(),
     }),
-    createAssistantMessage(
-      {
-        chatId: targetMessage.chatId,
-        content: {},
-        model: model,
-        role: 'assistant',
-      },
-      newAssitantMessageId,
-    ),
+    createAssistantMessage(newAssistantMessage),
   ]);
 
   const conversationUpToTarget = messages.slice(0, targetIndex + 1);
-
-  const messagesForAPI = conversationUpToTarget.map(m => ({
-    role: m.role as 'user' | 'assistant',
-    content: m.id === targetMessage.id ? newContent : m.content,
-  }));
-  const lastUsersMessage = getLastUserMessage(messagesForAPI);
-  if (!lastUsersMessage) {
-    console.error('this should never happen');
-    return;
-  }
-
+  const messagesForApi = conversationUpToTarget.map(m =>
+    messageToAPIMessage(m),
+  );
   return sendMessage({
-    messages: messagesForAPI,
+    messages: messagesForApi,
     userId,
-    messageId: newAssitantMessageId,
+    messageId: newAssistantMessage.id,
     model: model,
     chatId: targetMessage.chatId,
   });
