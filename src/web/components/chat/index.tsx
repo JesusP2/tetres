@@ -170,7 +170,7 @@ export function Chat({
           ref={messagesContainerRef}
           className='chat-scrollbar h-screen overflow-y-auto'
         >
-          <div className='mx-auto max-w-3xl space-y-4 px-4'>
+          <div className='mx-auto max-w-3xl space-y-4 px-4 mb-10'>
             {messages.map(m => {
               const isEditing = editingMessageId === m.id;
               const isLoading =

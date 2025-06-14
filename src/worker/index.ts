@@ -29,9 +29,22 @@ export const sendMessageToModel = async ({
   const openrouter = createOpenRouter({
     apiKey,
   });
-  const model = `${config.model}`;
+  let model: string = config.model;
+  if (config.web) {
+    model = `${config.model}:online`;
+  }
+  const settings: {
+    reasoning?: {
+      effort: 'low' | 'medium' | 'high';
+    };
+  } = {};
+  if (config.reasoning !== 'off') {
+    settings.reasoning = {
+      effort: config.reasoning,
+    };
+  }
   const { textStream } = streamText({
-    model: openrouter(model),
+    model: openrouter(model, settings),
     messages,
   });
   const messageId = config.messageId;

@@ -88,5 +88,10 @@ export const bodySchema = z.object({
     userId: z.string(),
     chatId: z.string(),
     messageId: z.string(),
+    web: z.boolean().optional().default(false),
+    reasoning: z
+      .enum(['off', 'low', 'medium', 'high'])
+      .optional()
+      .default('off'),
   }),
 });
