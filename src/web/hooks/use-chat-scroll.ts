@@ -7,7 +7,7 @@ export function useChatScroll({
 }: {
   chatId: string;
   messagesContainerRef: React.RefObject<HTMLDivElement | null>;
-  messages: any[];
+  messages: unknown[];
 }) {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const isAtBottomRef = useRef(true);
@@ -49,7 +49,7 @@ export function useChatScroll({
 
   useEffect(() => {
     if (isAtBottomRef.current) {
-      scrollToBottom('smooth');
+      scrollToBottom('instant');
     }
   }, [messages, messages.length]);
 
