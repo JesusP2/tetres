@@ -26,12 +26,15 @@ import {
 import { db } from '@web/lib/instant';
 import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
 import type { Chat } from '@web/lib/types';
+import {
+  createMessageObject,
+  messageToAPIMessage,
+} from '@web/lib/utils/message';
 import { sendMessage } from '@web/services';
 import { MessageSquare, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import { createMessageObject, messageToAPIMessage } from '@web/lib/utils/message';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -73,21 +76,21 @@ export function ChatList({ user }: { user: MyUser }) {
   const { data } = db.useQuery(
     !user.isPending
       ? {
-        chats: {
-          $: {
-            where: {
-              userId: user.data.id,
+          chats: {
+            $: {
+              where: {
+                userId: user.data.id,
+              },
             },
           },
-        },
-      }
+        }
       : {},
   );
   const chats = data?.chats || [];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : chats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -410,8 +413,9 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
-                  }`}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
+                  selectedIndex === i ? 'bg-accent' : ''
+                }`}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >

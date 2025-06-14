@@ -10,3 +10,4 @@ src/lib/tsr/*
 migrations/
 worker-configuration.d.ts
 pnpm-lock.yaml
+src/web/routeTree.gen.ts

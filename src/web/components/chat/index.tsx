@@ -12,6 +12,11 @@ import {
   retryMessage,
 } from '@web/lib/messages';
 import type { Chat as ChatType, Message } from '@web/lib/types';
+import {
+  createMessageObject,
+  fileToIFile,
+  messageToAPIMessage,
+} from '@web/lib/utils/message';
 import { sendMessage } from '@web/services';
 import {
   AlertTriangle,
@@ -29,13 +34,14 @@ import { toast } from 'sonner';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
 import { ChatFooter } from './footer';
-import { createMessageObject, fileToIFile, messageToAPIMessage } from '@web/lib/utils/message';
 
 type ChatProps = {
   chat: ChatType;
   messages?: (Message & { highlightedText?: string })[];
   onSubmit?: (message: string) => void;
-  setParsedMessages: Dispatch<SetStateAction<(Message & { highlightedText?: string })[]>>;
+  setParsedMessages: Dispatch<
+    SetStateAction<(Message & { highlightedText?: string })[]>
+  >;
   areChatsLoading: boolean;
 };
 
@@ -75,23 +81,18 @@ export function Chat({
         chatId: chat.id,
         finished: new Date().toISOString(),
         files: files.map(file => fileToIFile(file, chat.id)),
-      })
+      });
       const newAssistantMessage = createMessageObject({
         role: 'assistant',
         content: {},
         model: chat.model as ModelId,
         chatId: chat.id,
       });
-      setParsedMessages(prev => [
-        ...prev,
-        newUserMessage,
-      ]);
+      setParsedMessages(prev => [...prev, newUserMessage]);
       const userMessageTx = createUserMessage(newUserMessage);
       const assistantMessageTx = createAssistantMessage(newAssistantMessage);
       const ifiles = files.map(file => fileToIFile(file, chat.id));
-      await db.transact(
-        ifiles.map(file => db.tx.files[file.id].update(file)),
-      );
+      await db.transact(ifiles.map(file => db.tx.files[file.id].update(file)));
       await db.transact([
         userMessageTx.link({ files: ifiles.map(file => file.id) }),
       ]);
@@ -289,7 +290,9 @@ export function Chat({
               ) : (
                 <Fragment key={m.id}>
                   <div
-                    dangerouslySetInnerHTML={{ __html: m.highlightedText || '' }}
+                    dangerouslySetInnerHTML={{
+                      __html: m.highlightedText || '',
+                    }}
                   />
                   <MessageAttachments files={m.files || []} />
                   {isAborted && (

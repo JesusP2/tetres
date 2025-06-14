@@ -1,10 +1,15 @@
 import type { InstantAdminDatabase } from '@instantdb/admin';
 import { env } from 'cloudflare:workers';
 import { Hono } from 'hono';
+import { z } from 'zod/v4';
 import type { Auth, Session, User } from '@server/auth';
 import { AppSchema } from '../../instant.schema';
-import { bodySchema, textPartSchema, filePartSchema, imagePartSchema } from './schemas';
-import { z } from 'zod/v4';
+import {
+  bodySchema,
+  filePartSchema,
+  imagePartSchema,
+  textPartSchema,
+} from './schemas';
 
 export interface AppBindings {
   Bindings: typeof env;

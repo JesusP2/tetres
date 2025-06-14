@@ -1,5 +1,5 @@
-import type { ModelId } from '@server/utils/models';
 import type { Body } from '@server/types';
+import type { ModelId } from '@server/utils/models';
 
 export async function sendMessage({
   messages,
