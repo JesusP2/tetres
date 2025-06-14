@@ -52,7 +52,6 @@ export const sendMessageToModel = async ({
   let sqId = 0;
   let compoundedTime = 0;
   let last = new Date().getTime();
-  const start = new Date().getTime();
   for await (const text of response.textStream) {
     compoundedTime += new Date().getTime() - last;
     const message = await db.query({
