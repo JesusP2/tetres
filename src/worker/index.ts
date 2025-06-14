@@ -43,23 +43,16 @@ export const sendMessageToModel = async ({
       effort: config.reasoning,
     };
   }
-  const { textStream } = streamText({
+  const response = streamText({
     model: openrouter(model, settings),
     messages,
   });
   const messageId = config.messageId;
   let sqId = 0;
-  for await (const text of textStream) {
-    const message = await db.query({
-      messages: {
-        $: {
-          where: {
-            id: messageId,
-          },
-        },
-      },
-    });
-    if (message.messages[0].aborted) break;
+  let compoundedTime = 0;
+  let last = new Date().getTime();
+  for await (const text of response.textStream) {
+    compoundedTime += new Date().getTime() - last;
     await db
       .transact(
         db.tx.messages[messageId].merge({
@@ -70,9 +63,13 @@ export const sendMessageToModel = async ({
       )
       .catch(console.error);
     sqId++;
+    last = new Date().getTime();
   }
+  const usage = await response.usage;
   await db.transact(
     db.tx.messages[messageId].update({
+      time: compoundedTime,
+      tokens: usage.completionTokens,
       finished: new Date().toISOString(),
     }),
   );

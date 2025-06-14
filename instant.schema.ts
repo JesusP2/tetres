@@ -88,6 +88,8 @@ const _schema = i.schema({
       content: i.json(),
       aborted: i.date().optional(),
       finished: i.date().optional(),
+      tokens: i.number().optional(),
+      time: i.number().optional(),
       model: i.string(),
       chatId: i.string().indexed(),
       updatedAt: i.date(),
