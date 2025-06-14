@@ -1,7 +1,7 @@
 import { useParams } from '@tanstack/react-router';
 import { db } from '@web/lib/instant';
 import { renderMarkdown } from '@web/lib/syntax-highlighting';
-import type { Message } from '@web/lib/types';
+import type { Chat, Message } from '@web/lib/types';
 import { useEffect, useState } from 'react';
 
 const objectToString = (obj: any): string => {
@@ -81,7 +81,7 @@ export function useChatMessages() {
 
     processMessages();
   }, [data?.chats[0]?.messages, isLoading, parseMessage, createCacheKey]);
-  const chat = data?.chats[0];
+  const chat = data?.chats[0] as Chat;
 
   return {
     isLoading,

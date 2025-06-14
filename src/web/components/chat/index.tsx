@@ -29,7 +29,13 @@ import {
   RotateCcw,
   X,
 } from 'lucide-react';
-import { type Dispatch, Fragment, type SetStateAction, useState } from 'react';
+import {
+  type Dispatch,
+  Fragment,
+  type SetStateAction,
+  useState,
+  useRef,
+} from 'react';
 import { toast } from 'sonner';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
@@ -42,7 +48,6 @@ type ChatProps = {
   setParsedMessages: Dispatch<
     SetStateAction<(Message & { highlightedText?: string })[]>
   >;
-  areChatsLoading: boolean;
 };
 
 export function Chat({
@@ -50,18 +55,17 @@ export function Chat({
   messages = [],
   onSubmit,
   setParsedMessages,
-  areChatsLoading,
 }: ChatProps) {
   const user = useUser();
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const {
-    setActivateScroll,
-    scrollRef,
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const { showScrollButton, scrollToBottom } = useChatScroll({
+    chatId: chat?.id ?? '',
     messagesContainerRef,
-    scrollButtonRef,
-  } = useChatScroll({ messages, areChatsLoading });
+    messages,
+  });
 
   const handleNewMessage = async (
     message: string,
@@ -72,7 +76,6 @@ export function Chat({
       onSubmit(message);
       return;
     }
-    setActivateScroll(true);
     if (chat) {
       const newUserMessage = createMessageObject({
         role: 'user',
@@ -307,24 +310,23 @@ export function Chat({
               );
             })}
           </div>
-          <div ref={scrollRef} id='scroll' className='h-40 w-full' />
+          <div id='scroll' className='h-40 w-full' />
         </div>
       </div>
       <div className='absolute bottom-0 w-full'>
-        <Button
-          ref={scrollButtonRef}
-          variant='default'
-          className='mx-auto mb-3 block'
-          onClick={() => {
-            scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-          }}
-        >
-          Scroll to bottom
-        </Button>
+        {showScrollButton && (
+          <Button
+            variant='default'
+            className='mx-auto mb-3 block'
+            onClick={() => scrollToBottom('smooth')}
+          >
+            Scroll to bottom
+          </Button>
+        )}
         <ChatFooter
           onSubmit={handleNewMessage}
           selectedModel={chat.model as ModelId}
-          updateModel={model => updateChatModel(chat!, model)}
+          updateModel={model => updateChatModel(chat, model)}
           lastMessage={messages[messages.length - 1]}
         />
       </div>
@@ -332,37 +334,43 @@ export function Chat({
   );
 }
 
-function MessageAttachments({
-  files,
-}: {
-  files: ClientUploadedFileData<null>[];
-}) {
+type AttachmentFile = {
+  key: string;
+  name: string;
+  type: string;
+  ufsUrl: string | null;
+};
+
+function MessageAttachments({ files }: { files: AttachmentFile[] }) {
   return (
     files.length > 0 && (
       <div className='mt-2 space-y-2'>
-        {files.map(file => (
-          <div key={file.key}>
-            {file.type.startsWith('image/') ? (
-              <img
-                src={file.ufsUrl}
-                alt={file.name}
-                className='max-w-xs rounded-lg'
-              />
-            ) : file.type === 'application/pdf' ? (
-              <a
-                href={file.ufsUrl}
-                download={file.name}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                <Button variant='outline' className='w-full justify-start'>
-                  <FileText className='h-4 w-4' />
-                  <span className='flex-1 truncate'>{file.name}</span>
-                </Button>
-              </a>
-            ) : null}
-          </div>
-        ))}
+        {files.map(
+          file =>
+            file.ufsUrl && (
+              <div key={file.key}>
+                {file.type.startsWith('image/') ? (
+                  <img
+                    src={file.ufsUrl}
+                    alt={file.name}
+                    className='max-w-xs rounded-lg'
+                  />
+                ) : file.type === 'application/pdf' ? (
+                  <a
+                    href={file.ufsUrl}
+                    download={file.name}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                  >
+                    <Button variant='outline' className='w-full justify-start'>
+                      <FileText className='h-4 w-4' />
+                      <span className='flex-1 truncate'>{file.name}</span>
+                    </Button>
+                  </a>
+                ) : null}
+              </div>
+            ),
+        )}
       </div>
     )
   );

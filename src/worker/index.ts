@@ -29,8 +29,9 @@ export const sendMessageToModel = async ({
   const openrouter = createOpenRouter({
     apiKey,
   });
+  const model = `${config.model}`;
   const { textStream } = streamText({
-    model: openrouter(config.model),
+    model: openrouter(model),
     messages,
   });
   const messageId = config.messageId;
