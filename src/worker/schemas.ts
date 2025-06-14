@@ -95,3 +95,8 @@ export const bodySchema = z.object({
       .default('off'),
   }),
 });
+
+export const renameChatSchema = z.object({
+  chatId: z.string(),
+  message: z.string(),
+});

@@ -30,7 +30,7 @@ import {
   createMessageObject,
   messageToAPIMessage,
 } from '@web/lib/utils/message';
-import { sendMessage } from '@web/services';
+import { renameChat, sendMessage } from '@web/services';
 import { Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
@@ -298,15 +298,18 @@ function ChatSearch({
     const userMessageTx = createUserMessage(userMessage);
     const assistantMessageTx = createAssistantMessage(assistantMessage);
     await db.transact([chatTx, userMessageTx, assistantMessageTx]);
-    await sendMessage({
-      messages: [apiMessage],
-      userId: user.data.id,
-      messageId: assistantMessage.id,
-      model: ui.defaultModel,
-      chatId: userMessage.chatId,
-      webSearchEnabled: false,
-      reasoning: 'off',
-    });
+    await Promise.all([
+      renameChat(newChatId, messageContent),
+      sendMessage({
+        messages: [apiMessage],
+        userId: user.data.id,
+        messageId: assistantMessage.id,
+        model: ui.defaultModel,
+        chatId: userMessage.chatId,
+        webSearchEnabled: false,
+        reasoning: 'off',
+      })
+    ])
     await navigate({ to: '/$chatId', params: { chatId: newChatId } });
   };
 

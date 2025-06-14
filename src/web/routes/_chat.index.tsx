@@ -14,7 +14,7 @@ import {
   fileToIFile,
   messageToAPIMessage,
 } from '@web/lib/utils/message';
-import { sendMessage } from '@web/services';
+import { renameChat, sendMessage } from '@web/services';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { z } from 'zod';
 
@@ -41,7 +41,7 @@ function Index() {
   const { ui, updateUI } = useUI();
 
   const handleCreateChat = async (
-    message: string,
+    messageContent: string,
     files: ClientUploadedFileData<null>[],
     webSearchEnabled: boolean,
     reasoning: 'off' | 'low' | 'medium' | 'high',
@@ -56,7 +56,7 @@ function Index() {
     );
     const userMessage = createMessageObject({
       role: 'user',
-      content: message,
+      content: messageContent,
       model: ui.defaultModel,
       chatId: newChatId,
       finished: new Date().toISOString(),
@@ -74,15 +74,18 @@ function Index() {
     await db.transact([...ifiles.map(file => db.tx.files[file.id].update(file)), chatTx, userMessageTx.link({ files: ifiles.map(file => file.id) }), assistantMessageTx]);
 
     const apiMessage = messageToAPIMessage(userMessage);
-    await sendMessage({
-      messages: [apiMessage],
-      userId: user.data.id,
-      messageId: assistantMessage.id,
-      model: ui.defaultModel,
-      chatId: userMessage.chatId,
-      webSearchEnabled,
-      reasoning,
-    });
+    await Promise.all([
+      renameChat(newChatId, messageContent),
+      sendMessage({
+        messages: [apiMessage],
+        userId: user.data.id,
+        messageId: assistantMessage.id,
+        model: ui.defaultModel,
+        chatId: userMessage.chatId,
+        webSearchEnabled,
+        reasoning,
+      })
+    ])
     navigate({
       to: '/$chatId',
       params: { chatId: newChatId },

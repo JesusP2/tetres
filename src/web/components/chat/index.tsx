@@ -93,9 +93,14 @@ export function Chat({
       const userMessageTx = createUserMessage(newUserMessage);
       const assistantMessageTx = createAssistantMessage(newAssistantMessage);
       const ifiles = files.map(file => fileToIFile(file, chat.id));
-      await db.transact([...ifiles.map(file => db.tx.files[file.id].update(file)), userMessageTx.link({ files: ifiles.map(file => file.id) }), assistantMessageTx, db.tx.chats[chat.id].update({
-        updatedAt: new Date().toISOString()
-      })]);
+      await db.transact([
+        ...ifiles.map(file => db.tx.files[file.id]!.update(file)),
+        userMessageTx.link({ files: ifiles.map(file => file.id) }),
+        assistantMessageTx,
+        db.tx.chats[chat.id]!.update({
+          updatedAt: new Date().toISOString(),
+        }),
+      ]);
 
       const messagesForApi = messages.map(m => messageToAPIMessage(m));
       messagesForApi.push(messageToAPIMessage(newUserMessage));
@@ -204,7 +209,7 @@ export function Chat({
       if (fileIds?.length) {
         links.files = fileIds;
       }
-      return db.tx.messages[newMsgId].update(newMessageData).link(links);
+      return db.tx.messages[newMsgId]!.update(newMessageData).link(links);
     });
 
     try {
@@ -283,7 +288,17 @@ export function Chat({
                           </span>
                           <MessageAttachments files={m.files || []} />
                         </div>
-                        <div className='mt-1 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
+                        <div className='mt-1 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100'>
+                          {m.time && (
+                            <span className='text-muted-foreground text-xs'>
+                              {(m.time / 1000).toFixed(2)}s
+                            </span>
+                          )}
+                          {m.tokens && (
+                            <span className='text-muted-foreground text-xs'>
+                              {m.tokens} tokens
+                            </span>
+                          )}
                           <Button
                             size='sm'
                             variant='ghost'
@@ -360,7 +375,17 @@ export function Chat({
                       </div>
                     </div>
                   )}
-                  <div className='mt-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
+                  <div className='mt-1 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100'>
+                    {m.time && (
+                      <span className='text-muted-foreground text-xs'>
+                        {(m.time / 1000).toFixed(2)}s
+                      </span>
+                    )}
+                    {m.tokens && (
+                      <span className='text-muted-foreground text-xs'>
+                        {m.tokens} tokens
+                      </span>
+                    )}
                     <Button
                       size='sm'
                       variant='ghost'

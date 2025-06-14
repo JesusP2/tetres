@@ -43,3 +43,17 @@ export async function deleteFile(fileKey: string) {
     method: 'DELETE',
   });
 }
+
+export async function renameChat(chatId: string, message: string) {
+  const body = {
+    chatId,
+    message,
+  };
+  await fetch('/api/rename-chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+}
