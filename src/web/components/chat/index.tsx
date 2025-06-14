@@ -1,8 +1,10 @@
+import { id } from '@instantdb/react';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
-import { useChatScroll } from '../../hooks/use-chat-scroll';
 import { useUser } from '@web/hooks/use-user';
 import { updateChatModel } from '@web/lib/chats';
+import { createChat } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import {
   createAssistantMessage,
@@ -23,21 +25,14 @@ import {
   Edit3,
   Loader2,
   RotateCcw,
-  X,
   Split,
+  X,
 } from 'lucide-react';
-import {
-  type Dispatch,
-  type SetStateAction,
-  useState,
-  useRef,
-} from 'react';
+import { type Dispatch, type SetStateAction, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
-import { useNavigate } from '@tanstack/react-router';
-import { createChat } from '@web/lib/chats';
-import { id } from '@instantdb/react';
+import { useChatScroll } from '../../hooks/use-chat-scroll';
 import { ChatFooter } from './footer';
 import { MessageAttachments } from './message-attachments';
 
@@ -142,7 +137,7 @@ export function Chat({
         user.data.id,
         chat.model as ModelId,
         false,
-        'off'
+        'off',
       );
       setEditingMessageId(null);
       setEditingContent('');
@@ -231,7 +226,7 @@ export function Chat({
           ref={messagesContainerRef}
           className='chat-scrollbar h-screen overflow-y-auto'
         >
-          <div className='mx-auto max-w-3xl space-y-4 px-4 mb-10'>
+          <div className='mx-auto mb-10 max-w-3xl space-y-4 px-4'>
             {messages.map(m => {
               const isEditing = editingMessageId === m.id;
               const isLoading =
@@ -305,7 +300,7 @@ export function Chat({
                                 user.data.id,
                                 chat.model as ModelId,
                                 false,
-                                'off'
+                                'off',
                               );
                             }}
                             title='Retry message'
@@ -352,7 +347,7 @@ export function Chat({
                   </div>
                 </div>
               ) : (
-                <div data-role="assistant" key={m.id} className="group">
+                <div data-role='assistant' key={m.id} className='group'>
                   <div
                     dangerouslySetInnerHTML={{
                       __html: m.highlightedText || '',
@@ -401,7 +396,7 @@ export function Chat({
                           user.data.id,
                           chat.model as ModelId,
                           false,
-                          'off'
+                          'off',
                         );
                       }}
                       title='Retry message'

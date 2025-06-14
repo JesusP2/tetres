@@ -54,4 +54,4 @@ export function useChatScroll({
   }, [messages, messages.length]);
 
   return { showScrollButton, scrollToBottom };
-} 
+}

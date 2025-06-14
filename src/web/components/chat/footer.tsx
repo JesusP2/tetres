@@ -116,7 +116,12 @@ export function ChatFooter({
       return;
     setMessageFiles([]);
     setMessage('');
-    await onSubmit(message, messageFiles as ClientUploadedFileData<null>[], webSearchEnabled, reasoningLevel);
+    await onSubmit(
+      message,
+      messageFiles as ClientUploadedFileData<null>[],
+      webSearchEnabled,
+      reasoningLevel,
+    );
   };
 
   const handleRemoveFile = async (
@@ -351,7 +356,7 @@ function ReasoningDropdown({
       <DropdownMenuTrigger asChild>
         <Button variant='outline' size='sm' className='flex items-center gap-2'>
           {reasoningLevel === 'off' ? (
-            <Brain className='h-4 w-4 text-muted-foreground' />
+            <Brain className='text-muted-foreground h-4 w-4' />
           ) : (
             <Brain className='h-4 w-4' />
           )}
@@ -366,17 +371,19 @@ function ReasoningDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {Object.entries(reasoningConfig).map(([level, { icon: Icon, label }]) => (
-          <DropdownMenuItem
-            key={level}
-            onSelect={() =>
-              setReasoningLevel(level as 'off' | 'low' | 'medium' | 'high')
-            }
-          >
-            <Icon className='mr-2 h-4 w-4' />
-            <span>{label}</span>
-          </DropdownMenuItem>
-        ))}
+        {Object.entries(reasoningConfig).map(
+          ([level, { icon: Icon, label }]) => (
+            <DropdownMenuItem
+              key={level}
+              onSelect={() =>
+                setReasoningLevel(level as 'off' | 'low' | 'medium' | 'high')
+              }
+            >
+              <Icon className='mr-2 h-4 w-4' />
+              <span>{label}</span>
+            </DropdownMenuItem>
+          ),
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

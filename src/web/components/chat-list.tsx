@@ -76,21 +76,21 @@ export function ChatList({ user }: { user: MyUser }) {
   const { data } = db.useQuery(
     !user.isPending
       ? {
-        chats: {
-          $: {
-            where: {
-              userId: user.data.id,
+          chats: {
+            $: {
+              where: {
+                userId: user.data.id,
+              },
             },
           },
-        },
-      }
+        }
       : {},
   );
   const chats = (data?.chats || []) as Chat[];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : chats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -414,8 +414,9 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
-                  }`}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
+                  selectedIndex === i ? 'bg-accent' : ''
+                }`}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >

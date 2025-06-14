@@ -9,7 +9,11 @@ import { useUser } from '@web/hooks/use-user';
 import { createChat } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
-import { createMessageObject, fileToIFile, messageToAPIMessage } from '@web/lib/utils/message';
+import {
+  createMessageObject,
+  fileToIFile,
+  messageToAPIMessage,
+} from '@web/lib/utils/message';
 import { sendMessage } from '@web/services';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { z } from 'zod';
@@ -69,7 +73,10 @@ function Index() {
     const assistantMessageTx = createAssistantMessage(assistantMessage);
     const ifiles = files.map(file => fileToIFile(file, newChatId));
     await db.transact(ifiles.map(file => db.tx.files[file.id].update(file)));
-    await db.transact([chatTx, userMessageTx.link({ files: ifiles.map(file => file.id) })]);
+    await db.transact([
+      chatTx,
+      userMessageTx.link({ files: ifiles.map(file => file.id) }),
+    ]);
     await db.transact([assistantMessageTx]);
 
     const apiMessage = messageToAPIMessage(userMessage);
