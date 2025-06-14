@@ -32,6 +32,8 @@ export async function retryMessage(
   newContent: string,
   userId: string,
   model: ModelId,
+  webSearchEnabled: boolean,
+  reasoning: 'off' | 'low' | 'medium' | 'high',
 ) {
   const targetIndex = messages.findIndex(m => m.id === targetMessage.id);
   const messagesToDelete = messages.slice(targetIndex + 1);
@@ -64,33 +66,11 @@ export async function retryMessage(
     messageId: newAssistantMessage.id,
     model: model,
     chatId: targetMessage.chatId,
+    webSearchEnabled,
+    reasoning,
   });
 }
 
-export function copyMessageToClipboard(message: Message) {
-  if (navigator.clipboard && window.isSecureContext) {
-    return navigator.clipboard.writeText(message.content);
-  } else {
-    // Fallback for non-secure contexts
-    const textArea = document.createElement('textarea');
-    textArea.value = message.content;
-    textArea.style.position = 'absolute';
-    textArea.style.left = '-999999px';
-
-    document.body.prepend(textArea);
-    textArea.select();
-
-    try {
-      document.execCommand('copy');
-    } catch (error) {
-      console.error('Failed to copy text: ', error);
-    } finally {
-      textArea.remove();
-    }
-
-    return Promise.resolve();
-  }
-}
 export async function uploadFile(file: File, userId: string) {
   const path = `${userId}/${id()}/${file.name}`;
   const { data } = await db.storage.uploadFile(path, file, {

@@ -31,7 +31,7 @@ import {
   messageToAPIMessage,
 } from '@web/lib/utils/message';
 import { sendMessage } from '@web/services';
-import { MessageSquare, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
+import { Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
@@ -173,7 +173,6 @@ export function ChatList({ user }: { user: MyUser }) {
               className: 'relative w-full justify-start',
             })}
           >
-            <MessageSquare className='mr-2' />
             <span className='truncate'>{chat.title}</span>
             <div className='absolute top-0 right-0 flex h-full items-center gap-2'>
               <button

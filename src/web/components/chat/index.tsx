@@ -5,7 +5,6 @@ import { useUser } from '@web/hooks/use-user';
 import { updateChatModel } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import {
-  copyMessageToClipboard,
   createAssistantMessage,
   createUserMessage,
   retryMessage,
@@ -19,17 +18,16 @@ import {
 import { sendMessage } from '@web/services';
 import {
   AlertTriangle,
-  BotIcon,
   Check,
   Copy,
   Edit3,
   Loader2,
   RotateCcw,
   X,
+  Split,
 } from 'lucide-react';
 import {
   type Dispatch,
-  Fragment,
   type SetStateAction,
   useState,
   useRef,
@@ -139,6 +137,8 @@ export function Chat({
         editingContent,
         user.data.id,
         chat.model as ModelId,
+        false,
+        'off'
       );
       setEditingMessageId(null);
       setEditingContent('');
@@ -153,7 +153,7 @@ export function Chat({
 
   const handleCopyMessage = async (message: Message) => {
     try {
-      await copyMessageToClipboard(message);
+      await navigator.clipboard.writeText(message.content);
       toast.success('Message copied to clipboard');
     } catch (error) {
       console.error('Failed to copy message:', error);
@@ -164,6 +164,9 @@ export function Chat({
   const handleCancelEdit = () => {
     setEditingMessageId(null);
     setEditingContent('');
+  };
+
+  const createNewBranch = async (message: Message) => {
   };
 
   return (
@@ -192,9 +195,9 @@ export function Chat({
                           autoFocus
                           disabled={isProcessing}
                           onKeyDown={e => {
+                            e.preventDefault();
+                            if (isProcessing) return;
                             if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              if (isProcessing) return;
                               handleSaveRetry(m);
                             }
                             if (e.key === 'Escape') {
@@ -239,12 +242,15 @@ export function Chat({
                             className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
                             onClick={async () => {
                               if (user.isPending) return;
+                              // TODO: pass webSearchEnabled and reasoning params
                               await retryMessage(
                                 messages,
                                 m,
                                 m.content,
                                 user.data.id,
                                 chat.model as ModelId,
+                                false,
+                                'off'
                               );
                             }}
                             title='Retry message'
@@ -282,9 +288,6 @@ export function Chat({
                   className='flex items-start gap-4'
                   data-role='assistant'
                 >
-                  <div className='bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full'>
-                    <BotIcon className='h-5 w-5' />
-                  </div>
                   <div className='flex flex-1 items-center space-y-2 pt-1'>
                     <div className='flex items-center gap-1'>
                       <div className='bg-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:-0.3s]' />
@@ -294,7 +297,7 @@ export function Chat({
                   </div>
                 </div>
               ) : (
-                <Fragment key={m.id}>
+                <div data-role="assistant" key={m.id} className="group">
                   <div
                     dangerouslySetInnerHTML={{
                       __html: m.highlightedText || '',
@@ -309,7 +312,50 @@ export function Chat({
                       </div>
                     </div>
                   )}
-                </Fragment>
+                  <div className='mt-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
+                    <Button
+                      size='sm'
+                      variant='ghost'
+                      className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
+                      onClick={() => handleCopyMessage(m)}
+                      title='Copy message'
+                    >
+                      <Copy className='h-3 w-3' />
+                    </Button>
+                    <Button
+                      size='sm'
+                      variant='ghost'
+                      className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
+                      onClick={() => createNewBranch(m)}
+                      title='Branch off'
+                      disabled={isProcessing}
+                    >
+                      <Split className='h-3 w-3' />
+                    </Button>
+                    <Button
+                      size='sm'
+                      variant='ghost'
+                      className='h-6 w-6 p-0 opacity-60 hover:opacity-100'
+                      onClick={async () => {
+                        if (user.isPending) return;
+                        // TODO: pass webSearchEnabled and reasoning params
+                        await retryMessage(
+                          messages,
+                          m,
+                          m.content,
+                          user.data.id,
+                          chat.model as ModelId,
+                          false,
+                          'off'
+                        );
+                      }}
+                      title='Retry message'
+                      disabled={isProcessing}
+                    >
+                      <RotateCcw className='h-3 w-3' />
+                    </Button>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -336,4 +382,3 @@ export function Chat({
     </>
   );
 }
-
