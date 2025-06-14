@@ -9,8 +9,9 @@ import { useUser } from '@web/hooks/use-user';
 import { createChat } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
-import { createMessageObject, messageToAPIMessage } from '@web/lib/utils/message';
+import { createMessageObject, fileToIFile, messageToAPIMessage } from '@web/lib/utils/message';
 import { sendMessage } from '@web/services';
+import type { ClientUploadedFileData } from 'uploadthing/types';
 import { z } from 'zod';
 
 const indexSearchSchema = z.object({
@@ -36,7 +37,12 @@ function Index() {
   const { ui, updateUI } = useUI();
 
   // TODO: handle files
-  const handleCreateChat = async (messageContent: string) => {
+  const handleCreateChat = async (
+    message: string,
+    files: ClientUploadedFileData<null>[],
+    webSearchEnabled: boolean,
+    reasoning: 'off' | 'low' | 'medium' | 'high',
+  ) => {
     if (user.isPending || !ui) return;
     const newChatId = id();
     const chatTx = createChat(
@@ -47,10 +53,11 @@ function Index() {
     );
     const userMessage = createMessageObject({
       role: 'user',
-      content: messageContent,
+      content: message,
       model: ui.defaultModel,
-      finished: new Date().toISOString(),
       chatId: newChatId,
+      finished: new Date().toISOString(),
+      files: files.map(file => fileToIFile(file, newChatId)),
     });
     const assistantMessage = createMessageObject({
       role: 'assistant',
@@ -58,18 +65,22 @@ function Index() {
       model: ui.defaultModel,
       chatId: newChatId,
     });
-    const apiMessage = messageToAPIMessage(userMessage);
     const userMessageTx = createUserMessage(userMessage);
     const assistantMessageTx = createAssistantMessage(assistantMessage);
-    await db.transact([chatTx, userMessageTx]);
-    // NOTE: assistant message always beats user message
+    const ifiles = files.map(file => fileToIFile(file, newChatId));
+    await db.transact(ifiles.map(file => db.tx.files[file.id].update(file)));
+    await db.transact([chatTx, userMessageTx.link({ files: ifiles.map(file => file.id) })]);
     await db.transact([assistantMessageTx]);
+
+    const apiMessage = messageToAPIMessage(userMessage);
     await sendMessage({
       messages: [apiMessage],
       userId: user.data.id,
       messageId: assistantMessage.id,
       model: ui.defaultModel,
       chatId: userMessage.chatId,
+      webSearchEnabled,
+      reasoning,
     });
     navigate({
       to: '/$chatId',

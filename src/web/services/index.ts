@@ -7,12 +7,16 @@ export async function sendMessage({
   messageId,
   model,
   chatId,
+  webSearchEnabled,
+  reasoning,
 }: {
   messages: Body['messages'];
   userId: string;
   messageId: string;
   model: ModelId;
   chatId: string;
+  webSearchEnabled: boolean;
+  reasoning: 'off' | 'low' | 'medium' | 'high';
 }) {
   const body = {
     messages,
@@ -21,6 +25,8 @@ export async function sendMessage({
       userId,
       chatId,
       messageId,
+      web: webSearchEnabled,
+      reasoning,
     },
   };
   await fetch('/api/model', {

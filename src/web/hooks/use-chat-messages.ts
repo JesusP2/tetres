@@ -35,7 +35,6 @@ export function useChatMessages() {
       },
     },
   });
-  const [areChatsLoading, setAreChatsLoading] = useState(isLoading);
 
   const [parsedMessages, setParsedMessages] = useState<
     (Message & { highlightedText?: string })[]
@@ -76,7 +75,6 @@ export function useChatMessages() {
         }),
       );
       setParsedMessages(processedMessages);
-      setAreChatsLoading(false);
     };
 
     processMessages();
@@ -85,7 +83,6 @@ export function useChatMessages() {
 
   return {
     isLoading,
-    areChatsLoading,
     parsedMessages,
     setParsedMessages,
     chat,

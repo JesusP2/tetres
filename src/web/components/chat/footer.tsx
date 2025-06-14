@@ -15,15 +15,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@web/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@web/components/ui/dropdown-menu';
 import { Textarea } from '@web/components/ui/textarea';
+import { Toggle } from '@web/components/ui/toggle';
 import { abortGeneration } from '@web/lib/messages';
 import type { Message } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import { deleteFile } from '@web/services';
 import {
   ArrowUp,
+  Brain,
   Check,
   ChevronsUpDown,
+  Globe,
   LoaderCircleIcon,
   Paperclip,
   Square,
@@ -38,6 +47,8 @@ type ChatFooterProps = {
   onSubmit: (
     message: string,
     files: ClientUploadedFileData<null>[],
+    webSearchEnabled: boolean,
+    reasoning: 'off' | 'low' | 'medium' | 'high',
   ) => PromiseLike<void>;
   updateModel: (model: ModelId) => Promise<unknown>;
   selectedModel?: ModelId;
@@ -57,6 +68,10 @@ export function ChatFooter({
     (ClientUploadedFileData<null> | string)[]
   >([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [reasoningLevel, setReasoningLevel] = useState<
+    'off' | 'low' | 'medium' | 'high'
+  >('off');
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
 
   const model = models.find(m => m.id === selectedModel);
   const isGenerating =
@@ -67,6 +82,12 @@ export function ChatFooter({
       await abortGeneration(lastMessage.id);
     }
   };
+
+  const supportsReasoning =
+    (model?.supported_parameters as readonly string[])?.includes('reasoning') &&
+    (model?.supported_parameters as readonly string[])?.includes(
+      'include_reasoning',
+    );
 
   const canAttachImage = (
     model?.architecture.input_modalities as readonly string[]
@@ -94,8 +115,8 @@ export function ChatFooter({
     )
       return;
     setMessageFiles([]);
-    await onSubmit(message, messageFiles as ClientUploadedFileData<null>[]);
     setMessage('');
+    await onSubmit(message, messageFiles as ClientUploadedFileData<null>[], webSearchEnabled, reasoningLevel);
   };
 
   const handleRemoveFile = async (
@@ -200,6 +221,20 @@ export function ChatFooter({
               selectedModel={selectedModel}
               updateModel={updateModel}
             />
+            <Toggle
+              size='sm'
+              pressed={webSearchEnabled}
+              onPressedChange={setWebSearchEnabled}
+              variant='outline'
+            >
+              <Globe className='h-4 w-4' />
+            </Toggle>
+            {supportsReasoning && (
+              <ReasoningDropdown
+                reasoningLevel={reasoningLevel}
+                setReasoningLevel={setReasoningLevel}
+              />
+            )}
             {canAttach && (
               <MyUploadButton
                 disabled={isProcessing}
@@ -294,5 +329,55 @@ export function ModelsButton({
         </Command>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ReasoningDropdown({
+  reasoningLevel,
+  setReasoningLevel,
+}: {
+  reasoningLevel: 'off' | 'low' | 'medium' | 'high';
+  setReasoningLevel: (level: 'off' | 'low' | 'medium' | 'high') => void;
+}) {
+  const reasoningConfig = {
+    off: { icon: Brain, label: 'Off' },
+    low: { icon: Brain, label: 'Low' },
+    medium: { icon: Brain, label: 'Medium' },
+    high: { icon: Brain, label: 'High' },
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant='outline' size='sm' className='flex items-center gap-2'>
+          {reasoningLevel === 'off' ? (
+            <Brain className='h-4 w-4 text-muted-foreground' />
+          ) : (
+            <Brain className='h-4 w-4' />
+          )}
+          <span
+            className={cn(
+              'capitalize',
+              reasoningLevel === 'off' && 'text-muted-foreground',
+            )}
+          >
+            {reasoningLevel}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {Object.entries(reasoningConfig).map(([level, { icon: Icon, label }]) => (
+          <DropdownMenuItem
+            key={level}
+            onSelect={() =>
+              setReasoningLevel(level as 'off' | 'low' | 'medium' | 'high')
+            }
+          >
+            <Icon className='mr-2 h-4 w-4' />
+            <span>{label}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

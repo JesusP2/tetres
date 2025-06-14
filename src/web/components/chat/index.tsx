@@ -1,7 +1,6 @@
-import { id } from '@instantdb/core';
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
-import { useChatScroll } from '@web/hooks/use-chat-scroll';
+import { useChatScroll } from '../../hooks/use-chat-scroll';
 import { useUser } from '@web/hooks/use-user';
 import { updateChatModel } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
@@ -70,6 +69,8 @@ export function Chat({
   const handleNewMessage = async (
     message: string,
     files: ClientUploadedFileData<null>[],
+    webSearchEnabled: boolean,
+    reasoning: 'off' | 'low' | 'medium' | 'high',
   ) => {
     if (user.isPending) return;
     if (onSubmit) {
@@ -109,6 +110,8 @@ export function Chat({
         messageId: newAssistantMessage.id,
         model: chat.model,
         chatId: chat.id,
+        webSearchEnabled,
+        reasoning,
       });
     }
   };
