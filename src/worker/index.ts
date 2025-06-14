@@ -48,11 +48,26 @@ export const sendMessageToModel = async ({
     messages,
   });
   const messageId = config.messageId;
+  let aborted = false;
   let sqId = 0;
   let compoundedTime = 0;
   let last = new Date().getTime();
+  const start = new Date().getTime();
   for await (const text of response.textStream) {
     compoundedTime += new Date().getTime() - last;
+    const message = await db.query({
+      messages: {
+        $: {
+          where: {
+            id: messageId,
+          },
+        },
+      },
+    });
+    if (message.messages[0].aborted) {
+      aborted = true;
+      break;
+    }
     await db
       .transact(
         db.tx.messages[messageId].merge({
@@ -65,14 +80,19 @@ export const sendMessageToModel = async ({
     sqId++;
     last = new Date().getTime();
   }
-  const usage = await response.usage;
-  await db.transact(
-    db.tx.messages[messageId].update({
-      time: compoundedTime,
-      tokens: usage.completionTokens,
-      finished: new Date().toISOString(),
-    }),
-  );
+  const update: {
+    finished: string;
+    time?: number;
+    tokens?: number;
+  } = {
+    finished: new Date().toISOString(),
+  };
+  if (!aborted) {
+    const usage = await response.usage;
+    update.time = compoundedTime;
+    update.tokens = usage.completionTokens;
+  }
+  await db.transact(db.tx.messages[messageId].update(update));
 };
 
 const app = new Hono<AppBindings>({ strict: false })

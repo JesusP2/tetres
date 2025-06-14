@@ -23,7 +23,6 @@ import {
   Check,
   Copy,
   Edit3,
-  FileText,
   Loader2,
   RotateCcw,
   X,
@@ -39,6 +38,7 @@ import { toast } from 'sonner';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
 import { ChatFooter } from './footer';
+import { MessageAttachments } from './message-attachments';
 
 type ChatProps = {
   chat: ChatType;
@@ -337,44 +337,3 @@ export function Chat({
   );
 }
 
-type AttachmentFile = {
-  key: string;
-  name: string;
-  type: string;
-  ufsUrl: string | null;
-};
-
-function MessageAttachments({ files }: { files: AttachmentFile[] }) {
-  return (
-    files.length > 0 && (
-      <div className='mt-2 space-y-2'>
-        {files.map(
-          file =>
-            file.ufsUrl && (
-              <div key={file.key}>
-                {file.type.startsWith('image/') ? (
-                  <img
-                    src={file.ufsUrl}
-                    alt={file.name}
-                    className='max-w-xs rounded-lg'
-                  />
-                ) : file.type === 'application/pdf' ? (
-                  <a
-                    href={file.ufsUrl}
-                    download={file.name}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                  >
-                    <Button variant='outline' className='w-full justify-start'>
-                      <FileText className='h-4 w-4' />
-                      <span className='flex-1 truncate'>{file.name}</span>
-                    </Button>
-                  </a>
-                ) : null}
-              </div>
-            ),
-        )}
-      </div>
-    )
-  );
-}
