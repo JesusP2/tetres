@@ -80,6 +80,7 @@ const _schema = i.schema({
       model: i.string(),
       projectId: i.string().indexed().optional(),
       userId: i.string().indexed(),
+      branchId: i.string().optional(),
       updatedAt: i.date(),
       createdAt: i.date(),
     }),
@@ -182,7 +183,7 @@ const _schema = i.schema({
         has: 'many',
         label: 'files',
       },
-      reverse: { on: 'files', has: 'one', label: 'message' },
+      reverse: { on: 'files', has: 'many', label: 'message' },
     },
     messagesChat: {
       forward: {

@@ -35,6 +35,9 @@ import {
 import { toast } from 'sonner';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
+import { useNavigate } from '@tanstack/react-router';
+import { createChat } from '@web/lib/chats';
+import { id } from '@instantdb/react';
 import { ChatFooter } from './footer';
 import { MessageAttachments } from './message-attachments';
 
@@ -54,6 +57,7 @@ export function Chat({
   setParsedMessages,
 }: ChatProps) {
   const user = useUser();
+  const navigate = useNavigate();
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -167,6 +171,57 @@ export function Chat({
   };
 
   const createNewBranch = async (message: Message) => {
+    if (user.isPending || user.type !== 'user') return;
+
+    const messageIndex = messages.findIndex(m => m.id === message.id);
+    if (messageIndex === -1) {
+      toast.error('Could not find the message to branch from.');
+      return;
+    }
+
+    const messagesToCopy = messages.slice(0, messageIndex + 1);
+
+    const newChatId = id();
+    const newChatTitle = `${chat.title} (branch)`;
+
+    const createChatTx = createChat(
+      user.data,
+      newChatTitle,
+      newChatId,
+      chat.model as ModelId,
+    );
+
+    const newMessageTxs = messagesToCopy.map(msgToCopy => {
+      const newMsgId = id();
+      const {
+        files,
+        id: _oldId,
+        chatId: _oldChatId,
+        highlightedText: _oldHighlightedText,
+        ...restOfMsg
+      } = msgToCopy;
+      const newMessageData = {
+        ...restOfMsg,
+        id: newMsgId,
+        chatId: newChatId,
+      };
+
+      const links: { chat: string; files?: string[] } = { chat: newChatId };
+      const fileIds = files?.map(f => f.id);
+      if (fileIds?.length) {
+        links.files = fileIds;
+      }
+      return db.tx.messages[newMsgId].update(newMessageData).link(links);
+    });
+
+    try {
+      await db.transact([createChatTx, ...newMessageTxs]);
+      navigate({ to: '/$chatId', params: { chatId: newChatId } });
+      toast.success('Successfully created a new branch!');
+    } catch (error) {
+      console.error('Failed to create a new branch:', error);
+      toast.error('Failed to create a new branch.');
+    }
   };
 
   return (
