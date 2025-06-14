@@ -48,16 +48,16 @@ const groupChats = (chats: Chat[]) => {
 
   return pipe(
     chats,
-    sortBy([(c: Chat) => c.createdAt, 'desc']),
+    sortBy([(c: Chat) => c.updatedAt, 'desc']),
     groupBy((chat: Chat) => {
-      const createdAt = new Date(chat.createdAt);
-      if (createdAt >= today) {
+      const updatedAt = new Date(chat.updatedAt);
+      if (updatedAt >= today) {
         return 'Today';
-      } else if (createdAt >= yesterday) {
+      } else if (updatedAt >= yesterday) {
         return 'Yesterday';
-      } else if (createdAt >= sevenDaysAgo) {
+      } else if (updatedAt >= sevenDaysAgo) {
         return 'Last 7 days';
-      } else if (createdAt >= thirtyDaysAgo) {
+      } else if (updatedAt >= thirtyDaysAgo) {
         return 'Last 30 days';
       } else {
         return 'Older';
@@ -76,21 +76,21 @@ export function ChatList({ user }: { user: MyUser }) {
   const { data } = db.useQuery(
     !user.isPending
       ? {
-          chats: {
-            $: {
-              where: {
-                userId: user.data.id,
-              },
+        chats: {
+          $: {
+            where: {
+              userId: user.data.id,
             },
           },
-        }
+        },
+      }
       : {},
   );
   const chats = (data?.chats || []) as Chat[];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
     : chats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -297,8 +297,7 @@ function ChatSearch({
     const apiMessage = messageToAPIMessage(userMessage);
     const userMessageTx = createUserMessage(userMessage);
     const assistantMessageTx = createAssistantMessage(assistantMessage);
-    await db.transact([chatTx, userMessageTx]);
-    await db.transact([assistantMessageTx]);
+    await db.transact([chatTx, userMessageTx, assistantMessageTx]);
     await sendMessage({
       messages: [apiMessage],
       userId: user.data.id,
@@ -414,9 +413,8 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
-                  selectedIndex === i ? 'bg-accent' : ''
-                }`}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
+                  }`}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >

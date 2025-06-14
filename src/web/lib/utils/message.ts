@@ -66,14 +66,24 @@ type Props = {
   model: Message['model'];
 } & Partial<Message>;
 export function createMessageObject(message: Props) {
+  const updatedAt = message.updatedAt
+    ? message.updatedAt
+    : message.role === 'user'
+      ? new Date().toISOString()
+      : new Date(Date.now() + 1).toISOString();
+  const createdAt = message.createdAt
+    ? message.createdAt
+    : message.role === 'user'
+      ? new Date().toISOString()
+      : new Date(Date.now() + 1).toISOString();
   const obj = {
     id: id(),
     chatId: message.chatId,
     role: message.role,
     content: message.content,
     model: message.model,
-    updatedAt: message.updatedAt || new Date().toISOString(),
-    createdAt: message.createdAt || new Date().toISOString(),
+    updatedAt,
+    createdAt,
   } as Message;
   if (message.finished) {
     obj.finished = message.finished;

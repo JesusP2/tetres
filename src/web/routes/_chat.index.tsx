@@ -40,7 +40,6 @@ function Index() {
   const user = useUser();
   const { ui, updateUI } = useUI();
 
-  // TODO: handle files
   const handleCreateChat = async (
     message: string,
     files: ClientUploadedFileData<null>[],
@@ -72,12 +71,7 @@ function Index() {
     const userMessageTx = createUserMessage(userMessage);
     const assistantMessageTx = createAssistantMessage(assistantMessage);
     const ifiles = files.map(file => fileToIFile(file, newChatId));
-    await db.transact(ifiles.map(file => db.tx.files[file.id].update(file)));
-    await db.transact([
-      chatTx,
-      userMessageTx.link({ files: ifiles.map(file => file.id) }),
-    ]);
-    await db.transact([assistantMessageTx]);
+    await db.transact([...ifiles.map(file => db.tx.files[file.id].update(file)), chatTx, userMessageTx.link({ files: ifiles.map(file => file.id) }), assistantMessageTx]);
 
     const apiMessage = messageToAPIMessage(userMessage);
     await sendMessage({

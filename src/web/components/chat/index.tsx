@@ -93,11 +93,9 @@ export function Chat({
       const userMessageTx = createUserMessage(newUserMessage);
       const assistantMessageTx = createAssistantMessage(newAssistantMessage);
       const ifiles = files.map(file => fileToIFile(file, chat.id));
-      await db.transact(ifiles.map(file => db.tx.files[file.id].update(file)));
-      await db.transact([
-        userMessageTx.link({ files: ifiles.map(file => file.id) }),
-      ]);
-      await db.transact([assistantMessageTx]);
+      await db.transact([...ifiles.map(file => db.tx.files[file.id].update(file)), userMessageTx.link({ files: ifiles.map(file => file.id) }), assistantMessageTx, db.tx.chats[chat.id].update({
+        updatedAt: new Date().toISOString()
+      })]);
 
       const messagesForApi = messages.map(m => messageToAPIMessage(m));
       messagesForApi.push(messageToAPIMessage(newUserMessage));

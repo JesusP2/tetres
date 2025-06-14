@@ -74,6 +74,10 @@ export function useChatMessages() {
           };
         }),
       );
+      processedMessages.sort(
+        (a, b) =>
+          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(),
+      );
       setParsedMessages(processedMessages);
     };
 
