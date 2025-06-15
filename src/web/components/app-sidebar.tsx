@@ -6,7 +6,6 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@web/components/ui/sidebar';
-import { useUser } from '@web/hooks/use-user';
 import * as React from 'react';
 import { ChatList } from './chat-list';
 import { NavUser } from './nav-user';

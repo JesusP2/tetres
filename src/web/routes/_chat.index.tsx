@@ -7,6 +7,7 @@ import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
 import { useUI } from '@web/hooks/use-ui';
 import { useUser } from '@web/hooks/use-user';
 import { createChat } from '@web/lib/chats';
+import { handleCreateChat } from '@web/lib/create-chat';
 import { db } from '@web/lib/instant';
 import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
 import {
@@ -40,57 +41,6 @@ function Index() {
   const user = useUser();
   const { ui, updateUI } = useUI();
 
-  const handleCreateChat = async (
-    messageContent: string,
-    files: ClientUploadedFileData<null>[],
-    webSearchEnabled: boolean,
-    reasoning: 'off' | 'low' | 'medium' | 'high',
-  ) => {
-    if (!user.data || !ui) return;
-    const newChatId = id();
-    const chatTx = createChat(
-      user.data,
-      'New Chat',
-      newChatId,
-      ui.defaultModel,
-    );
-    const userMessage = createMessageObject({
-      role: 'user',
-      content: messageContent,
-      model: ui.defaultModel,
-      chatId: newChatId,
-      finished: new Date().toISOString(),
-      files: files.map(file => fileToIFile(file, newChatId)),
-    });
-    const assistantMessage = createMessageObject({
-      role: 'assistant',
-      content: {},
-      model: ui.defaultModel,
-      chatId: newChatId,
-    });
-    const userMessageTx = createUserMessage(userMessage);
-    const assistantMessageTx = createAssistantMessage(assistantMessage);
-    const ifiles = files.map(file => fileToIFile(file, newChatId));
-    await db.transact([...ifiles.map(file => db.tx.files[file.id].update(file)), chatTx, userMessageTx.link({ files: ifiles.map(file => file.id) }), assistantMessageTx]);
-
-    const apiMessage = messageToAPIMessage(userMessage);
-    await Promise.all([
-      renameChat(newChatId, messageContent),
-      sendMessage({
-        messages: [apiMessage],
-        userId: user.data.id,
-        messageId: assistantMessage.id,
-        model: ui.defaultModel,
-        chatId: userMessage.chatId,
-        webSearchEnabled,
-        reasoning,
-      })
-    ])
-    navigate({
-      to: '/$chatId',
-      params: { chatId: newChatId },
-    });
-  };
 
   return (
     <div className='flex h-full flex-col'>
@@ -129,7 +79,21 @@ function Index() {
       </div>
       <ChatFooter
         userId={user.data ? user.data.id : undefined}
-        onSubmit={handleCreateChat}
+        onSubmit={async (search, files, webSearchEnabled, reasoning) => {
+          const newChatId = await handleCreateChat(
+            search,
+            files,
+            webSearchEnabled,
+            reasoning,
+            user,
+            ui,
+          );
+          if (!newChatId) return;
+          await navigate({
+            to: '/$chatId',
+            params: { chatId: newChatId },
+          });
+        }}
         selectedModel={ui?.defaultModel}
         updateModel={model => updateUI({ defaultModel: model })}
       />

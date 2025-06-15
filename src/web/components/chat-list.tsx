@@ -1,4 +1,3 @@
-import { id } from '@instantdb/core';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@web/components/ui/button';
@@ -18,23 +17,17 @@ import {
 import { useUI } from '@web/hooks/use-ui';
 import { useUser, type MyUser } from '@web/hooks/use-user';
 import {
-  createChat,
   deleteChat,
   togglePin,
   updateChatTitle,
 } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
-import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
 import type { Chat } from '@web/lib/types';
-import {
-  createMessageObject,
-  messageToAPIMessage,
-} from '@web/lib/utils/message';
-import { renameChat, sendMessage } from '@web/services';
 import { Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
+import { handleCreateChat } from '@web/lib/create-chat';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -206,7 +199,7 @@ export function ChatList() {
   return (
     <>
       <div className='flex flex-col gap-4 p-4'>
-        <Button onClick={handleNewChat}>
+        <Button onClick={handleNewChat} disabled={!window.navigator.onLine}>
           <Plus className='mr-2' /> New Chat
         </Button>
         <div className='relative'>
@@ -270,57 +263,27 @@ function ChatSearch({
     ? chats.filter(c => c.title.toLowerCase().includes(search.toLowerCase()))
     : chats;
 
-  const handleCreateChat = async () => {
-    if (!user.data || !search.trim() || !ui) return;
-    setIsOpen(false);
-    setSearch('');
-    const newChatId = id();
-    const messageContent = search.trim();
-    const chatTx = createChat(
-      user.data,
-      'New Chat',
-      newChatId,
-      ui.defaultModel,
-    );
-    const userMessage = createMessageObject({
-      chatId: newChatId,
-      role: 'user',
-      content: messageContent,
-      model: ui.defaultModel,
-      finished: new Date().toISOString(),
-    });
-    const assistantMessage = createMessageObject({
-      chatId: newChatId,
-      role: 'assistant',
-      content: {},
-      model: ui.defaultModel,
-    });
-    const apiMessage = messageToAPIMessage(userMessage);
-    const userMessageTx = createUserMessage(userMessage);
-    const assistantMessageTx = createAssistantMessage(assistantMessage);
-    await db.transact([chatTx, userMessageTx, assistantMessageTx]);
-    await Promise.all([
-      renameChat(newChatId, messageContent),
-      sendMessage({
-        messages: [apiMessage],
-        userId: user.data.id,
-        messageId: assistantMessage.id,
-        model: ui.defaultModel,
-        chatId: userMessage.chatId,
-        webSearchEnabled: false,
-        reasoning: 'off',
-      })
-    ])
-    await navigate({ to: '/$chatId', params: { chatId: newChatId } });
-  };
-
-  const handleSelect = (chatId?: string) => {
+  const handleSelect = async (chatId?: string) => {
     if (chatId) {
       navigate({ to: '/$chatId', params: { chatId } });
       setIsOpen(false);
       setSearch('');
-    } else {
-      void handleCreateChat();
+    } else if (user.data && ui && window.navigator.onLine) {
+      setIsOpen(false);
+      setSearch('');
+      const newChatId = await handleCreateChat(
+        search,
+        [],
+        false,
+        'off',
+        user,
+        ui,
+      );
+      if (!newChatId) return;
+      await navigate({
+        to: '/$chatId',
+        params: { chatId: newChatId },
+      });
     }
   };
 

@@ -111,6 +111,7 @@ export function ChatFooter({
     if (
       !message.trim() ||
       messageFiles.find(file => typeof file === 'string') ||
+      !window.navigator.onLine ||
       isProcessing
     )
       return;
@@ -185,6 +186,7 @@ export function ChatFooter({
           <div className='relative'>
             <Textarea
               name='message'
+              disabled={!window.navigator.onLine}
               placeholder='Type your message here...'
               className='field-size-content chat-scrollbar max-h-[175px] w-full resize-none border-none bg-transparent pr-16 shadow-none focus-visible:ring-0'
               value={message}
@@ -213,6 +215,7 @@ export function ChatFooter({
                 disabled={
                   !message.trim() &&
                   (!messageFiles || messageFiles.length === 0)
+                  || !window.navigator.onLine
                 }
               >
                 <ArrowUp className='h-4 w-4' />
