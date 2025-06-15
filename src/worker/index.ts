@@ -49,13 +49,31 @@ export const sendMessageToModel = async ({
   const openrouter = createOpenRouter({
     apiKey,
   });
-  const { textStream } = streamText({
-    model: openrouter(config.model),
+  let model: string = config.model;
+  if (config.web) {
+    model = `${config.model}:online`;
+  }
+  const settings: {
+    reasoning?: {
+      effort: 'low' | 'medium' | 'high';
+    };
+  } = {};
+  if (config.reasoning !== 'off') {
+    settings.reasoning = {
+      effort: config.reasoning,
+    };
+  }
+  const response = streamText({
+    model: openrouter(model, settings),
     messages,
   });
   const messageId = config.messageId;
+  let aborted = false;
   let sqId = 0;
-  for await (const text of textStream) {
+  let compoundedTime = 0;
+  let last = new Date().getTime();
+  for await (const text of response.textStream) {
+    compoundedTime += new Date().getTime() - last;
     const message = await db.query({
       messages: {
         $: {
@@ -65,7 +83,10 @@ export const sendMessageToModel = async ({
         },
       },
     });
-    if (message.messages[0].aborted) break;
+    if (message.messages[0].aborted) {
+      aborted = true;
+      break;
+    }
     await db
       .transact(
         db.tx.messages[messageId].merge({
@@ -76,12 +97,21 @@ export const sendMessageToModel = async ({
       )
       .catch(console.error);
     sqId++;
+    last = new Date().getTime();
   }
-  await db.transact(
-    db.tx.messages[messageId].update({
-      finished: new Date().toISOString(),
-    }),
-  );
+  const update: {
+    finished: string;
+    time?: number;
+    tokens?: number;
+  } = {
+    finished: new Date().toISOString(),
+  };
+  if (!aborted) {
+    const usage = await response.usage;
+    update.time = compoundedTime;
+    update.tokens = usage.completionTokens;
+  }
+  await db.transact(db.tx.messages[messageId].update(update));
 };
 
 const app = new Hono<AppBindings>({ strict: false })
