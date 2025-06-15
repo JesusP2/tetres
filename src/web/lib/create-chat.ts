@@ -1,12 +1,16 @@
 import { id } from '@instantdb/core';
-import type { ClientUploadedFileData } from 'uploadthing/types';
-import { createChat } from './chats';
-import { createMessageObject, fileToIFile, messageToAPIMessage } from './utils/message';
-import { createAssistantMessage, createUserMessage } from './messages';
-import { renameChat, sendMessage } from '@web/services';
 import type { MyUser } from '@web/hooks/use-user';
+import { renameChat, sendMessage } from '@web/services';
+import type { ClientUploadedFileData } from 'uploadthing/types';
 import type { ModelId } from '@server/utils/models';
+import { createChat } from './chats';
 import { db } from './instant';
+import { createAssistantMessage, createUserMessage } from './messages';
+import {
+  createMessageObject,
+  fileToIFile,
+  messageToAPIMessage,
+} from './utils/message';
 
 export const handleCreateChat = async (
   messageContent: string,
@@ -17,7 +21,7 @@ export const handleCreateChat = async (
   ui: {
     id: string;
     defaultModel: ModelId;
-  } | null
+  } | null,
 ) => {
   if (!user.data || !ui || !window.navigator.onLine) return;
   const newChatId = id();

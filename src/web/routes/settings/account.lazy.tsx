@@ -1,4 +1,13 @@
-import { createLazyFileRoute, Navigate, useNavigate } from '@tanstack/react-router';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  createLazyFileRoute,
+  Navigate,
+  useNavigate,
+} from '@tanstack/react-router';
+import { DeleteAccountDialog } from '@web/components/delete-account-dialog';
+import { useConfirmDialog } from '@web/components/providers/confirm-dialog-provider';
+import { Avatar, AvatarFallback, AvatarImage } from '@web/components/ui/avatar';
+import { Button } from '@web/components/ui/button';
 import {
   Card,
   CardContent,
@@ -6,12 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@web/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@web/components/ui/avatar';
-import { UploadButton } from '@web/lib/uploadthing';
-import { toast } from 'sonner';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
   Form,
   FormControl,
@@ -22,13 +25,14 @@ import {
   FormMessage,
 } from '@web/components/ui/form';
 import { Input } from '@web/components/ui/input';
-import { Button } from '@web/components/ui/button';
 import { Separator } from '@web/components/ui/separator';
-import { useConfirmDialog } from '@web/components/providers/confirm-dialog-provider';
-import { DeleteAccountDialog } from '@web/components/delete-account-dialog';
 import { authClient } from '@web/lib/auth-client';
 import { db } from '@web/lib/instant';
+import { UploadButton } from '@web/lib/uploadthing';
 import type { User } from 'better-auth';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 export const Route = createLazyFileRoute('/settings/account')({
   component: AccountSettings,
@@ -74,7 +78,7 @@ function ChangeUsernameForm({ currentName }: { currentName: string }) {
     try {
       authClient.updateUser({
         name: values.name,
-      })
+      });
       toast.success('Username updated successfully');
     } catch (error) {
       if (error instanceof Error) {
@@ -93,7 +97,11 @@ function ChangeUsernameForm({ currentName }: { currentName: string }) {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input className="max-w-xs" placeholder='Your new username' {...field} />
+                <Input
+                  className='max-w-xs'
+                  placeholder='Your new username'
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 This is your public display name.
@@ -149,7 +157,7 @@ function ChangePasswordForm() {
             <FormItem>
               <FormLabel>Current Password</FormLabel>
               <FormControl>
-                <Input className="max-w-xs" type='password' {...field} />
+                <Input className='max-w-xs' type='password' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -162,7 +170,7 @@ function ChangePasswordForm() {
             <FormItem>
               <FormLabel>New Password</FormLabel>
               <FormControl>
-                <Input className="max-w-xs" type='password' {...field} />
+                <Input className='max-w-xs' type='password' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -175,7 +183,7 @@ function ChangePasswordForm() {
             <FormItem>
               <FormLabel>Confirm New Password</FormLabel>
               <FormControl>
-                <Input className="max-w-xs" type='password' {...field} />
+                <Input className='max-w-xs' type='password' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -190,7 +198,7 @@ function ChangePasswordForm() {
 }
 
 function RevokeSessions() {
-  const { confirmDelete } = useConfirmDialog()
+  const { confirmDelete } = useConfirmDialog();
   const navigate = useNavigate();
 
   const handleExpire = async () => {
@@ -215,7 +223,7 @@ function RevokeSessions() {
   return (
     <div>
       <h3 className='text-lg font-medium'>Expire Sessions</h3>
-      <p className='text-sm text-muted-foreground'>
+      <p className='text-muted-foreground text-sm'>
         Log out of all other devices.
       </p>
       <Button onClick={handleExpire} className='mt-4'>
@@ -227,8 +235,8 @@ function RevokeSessions() {
 
 function AccountSettings() {
   const userQuery = db.useQuery({
-    users: {}
-  })
+    users: {},
+  });
 
   if (userQuery.isLoading) {
     return <div>Loading...</div>;
@@ -236,16 +244,14 @@ function AccountSettings() {
 
   const user = userQuery.data?.users[0];
   if (!userQuery.data || !user) {
-    return <Navigate to="/auth/$id" params={{ id: 'sign-in' }} />;
+    return <Navigate to='/auth/$id' params={{ id: 'sign-in' }} />;
   }
 
   return (
-    <Card className="max-w-3xl mx-auto">
+    <Card className='mx-auto max-w-3xl'>
       <CardHeader>
         <CardTitle>Account</CardTitle>
-        <CardDescription>
-          Manage your account settings.
-        </CardDescription>
+        <CardDescription>Manage your account settings.</CardDescription>
       </CardHeader>
       <CardContent className='space-y-6'>
         <div className='flex items-center gap-4'>
@@ -255,15 +261,17 @@ function AccountSettings() {
           </Avatar>
           <UploadButton
             endpoint='uploader'
-            onClientUploadComplete={async (files) => {
+            onClientUploadComplete={async files => {
               const file = files[0];
               if (!file) {
                 toast.error('Error uploading avatar: no file selected');
                 return;
               }
-              await db.transact(db.tx.users[user.id].update({
-                image: file.ufsUrl
-              }))
+              await db.transact(
+                db.tx.users[user.id].update({
+                  image: file.ufsUrl,
+                }),
+              );
               toast.success('Avatar updated successfully');
             }}
             onUploadError={(error: Error) => {
@@ -282,4 +290,4 @@ function AccountSettings() {
       </CardContent>
     </Card>
   );
-} 
+}

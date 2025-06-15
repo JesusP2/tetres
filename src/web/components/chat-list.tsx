@@ -15,19 +15,15 @@ import {
   SidebarMenuItem,
 } from '@web/components/ui/sidebar';
 import { useUI } from '@web/hooks/use-ui';
-import { useUser, type MyUser } from '@web/hooks/use-user';
-import {
-  deleteChat,
-  togglePin,
-  updateChatTitle,
-} from '@web/lib/chats';
+import { type MyUser, useUser } from '@web/hooks/use-user';
+import { deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
+import { handleCreateChat } from '@web/lib/create-chat';
 import { db } from '@web/lib/instant';
 import type { Chat } from '@web/lib/types';
 import { Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import { handleCreateChat } from '@web/lib/create-chat';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -70,21 +66,21 @@ export function ChatList() {
   const { data } = db.useQuery(
     !user.isPending
       ? {
-        chats: {
-          $: {
-            where: {
-              userId: user.data?.id || '',
+          chats: {
+            $: {
+              where: {
+                userId: user.data?.id || '',
+              },
             },
           },
-        },
-      }
+        }
       : {},
   );
   const chats = (data?.chats || []) as Chat[];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : chats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -380,8 +376,9 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
-                  }`}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
+                  selectedIndex === i ? 'bg-accent' : ''
+                }`}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >

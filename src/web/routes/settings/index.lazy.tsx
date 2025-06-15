@@ -18,7 +18,7 @@ function CustomizationSettings() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <Card className="max-w-3xl mx-auto">
+    <Card className='mx-auto max-w-3xl'>
       <CardHeader>
         <CardTitle>Customization</CardTitle>
         <CardDescription>
@@ -33,15 +33,15 @@ function CustomizationSettings() {
             onValueChange={setTheme}
             className='grid max-w-md grid-cols-3 gap-8 pt-2'
           >
-            <Label className='flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary'>
+            <Label className='border-muted bg-popover hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary flex flex-col items-center justify-between rounded-md border-2 p-4'>
               <RadioGroupItem value='light' className='sr-only' />
               <span className='mb-2 text-sm'>Light</span>
             </Label>
-            <Label className='flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary'>
+            <Label className='border-muted bg-popover hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary flex flex-col items-center justify-between rounded-md border-2 p-4'>
               <RadioGroupItem value='dark' className='sr-only' />
               <span className='mb-2 text-sm'>Dark</span>
             </Label>
-            <Label className='flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary'>
+            <Label className='border-muted bg-popover hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary flex flex-col items-center justify-between rounded-md border-2 p-4'>
               <RadioGroupItem value='system' className='sr-only' />
               <span className='mb-2 text-sm'>System</span>
             </Label>
@@ -50,4 +50,4 @@ function CustomizationSettings() {
       </CardContent>
     </Card>
   );
-} 
+}

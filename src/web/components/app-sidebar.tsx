@@ -11,7 +11,6 @@ import { ChatList } from './chat-list';
 import { NavUser } from './nav-user';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
-
   return (
     <>
       <Sidebar collapsible='offcanvas'>

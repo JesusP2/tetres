@@ -1,6 +1,12 @@
-import { createFileRoute, Outlet, useNavigate, Link } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+} from '@tanstack/react-router';
 import { useUser } from '@web/hooks/use-user';
 import { useEffect } from 'react';
+
 export const Route = createFileRoute('/settings')({
   component: SettingsLayout,
 });
@@ -26,4 +32,4 @@ function SettingsLayout() {
       </main>
     </div>
   );
-} 
+}

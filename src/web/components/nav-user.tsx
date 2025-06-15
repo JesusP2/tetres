@@ -26,7 +26,11 @@ export function NavUser() {
     return <div>Loading...</div>;
   } else if (!user.data) {
     return (
-      <Link className={buttonVariants()} to='/auth/$id' params={{ id: 'sign-in' }}>
+      <Link
+        className={buttonVariants()}
+        to='/auth/$id'
+        params={{ id: 'sign-in' }}
+      >
         Login
       </Link>
     );
@@ -80,20 +84,14 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link to='/settings'>
-                  Settings
-                </Link>
+                <Link to='/settings'>Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link to='/settings/account'>
-                  Account
-                </Link>
+                <Link to='/settings/account'>Account</Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              Log out
-            </DropdownMenuItem>
+            <DropdownMenuItem>Log out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

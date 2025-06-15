@@ -7,12 +7,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@web/components/ui/dialog';
+import { authClient } from '@web/lib/auth-client';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { useState } from 'react';
-import { authClient } from '@web/lib/auth-client';
-import { toast } from 'sonner';
 
 export function DeleteAccountDialog() {
   const [isOpen, setIsOpen] = useState(false);
@@ -78,4 +78,4 @@ export function DeleteAccountDialog() {
       </DialogContent>
     </Dialog>
   );
-} 
+}

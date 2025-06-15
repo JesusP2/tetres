@@ -41,7 +41,6 @@ function Index() {
   const user = useUser();
   const { ui, updateUI } = useUI();
 
-
   return (
     <div className='flex h-full flex-col'>
       <div className='mx-auto flex-1 items-center justify-center'>

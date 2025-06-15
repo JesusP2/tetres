@@ -213,9 +213,9 @@ export function ChatFooter({
                 className='absolute right-2 bottom-2'
                 type='submit'
                 disabled={
-                  !message.trim() &&
-                  (!messageFiles || messageFiles.length === 0)
-                  || !window.navigator.onLine
+                  (!message.trim() &&
+                    (!messageFiles || messageFiles.length === 0)) ||
+                  !window.navigator.onLine
                 }
               >
                 <ArrowUp className='h-4 w-4' />

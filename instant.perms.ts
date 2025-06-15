@@ -99,7 +99,7 @@ const rules = {
       delete: 'isOwner',
       update: 'isOwner',
     },
-  }
+  },
 } satisfies InstantRules;
 
 export default rules;

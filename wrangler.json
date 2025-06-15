@@ -35,7 +35,10 @@
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
-  "vars": { "VITE_INSTANT_APP_ID": "407d46a5-8ca5-4888-a1fa-f0abf80fc945", "VITE_CLIENT_APP_URL": "https://tetres.jesusprzprz-e.workers.dev" }
+  "vars": {
+    "VITE_INSTANT_APP_ID": "407d46a5-8ca5-4888-a1fa-f0abf80fc945",
+    "VITE_CLIENT_APP_URL": "https://tetres.jesusprzprz-e.workers.dev"
+  }
   /**
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/

@@ -1,5 +1,4 @@
 import type { ErrorComponentProps } from '@tanstack/react-router';
-import { Toaster } from "@web/components/ui/sonner"
 import {
   createRootRouteWithContext,
   ErrorComponent,
@@ -7,6 +6,7 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { Providers } from '@web/components/providers';
+import { Toaster } from '@web/components/ui/sonner';
 import type { RootRouterContext } from '@web/router';
 
 export const Route = createRootRouteWithContext<RootRouterContext>()({
