@@ -23,7 +23,6 @@ const _schema = i.schema({
       email: i.string().unique(),
       emailVerified: i.boolean().optional(),
       image: i.string().optional(),
-      type: i.string().optional(),
       createdAt: i.date(),
       updatedAt: i.date(),
     }),

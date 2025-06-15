@@ -12,7 +12,6 @@ import { ChatList } from './chat-list';
 import { NavUser } from './nav-user';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
-  const user = useUser();
 
   return (
     <>
@@ -23,7 +22,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
           </div>
         </SidebarHeader>
         <SidebarContent className='overflow-hidden'>
-          <ChatList user={user} />
+          <ChatList />
         </SidebarContent>
         <SidebarFooter className='mb-2'>
           <NavUser />

@@ -29,7 +29,7 @@ export const renameChat = async ({
 
   const response = await generateText({
     model: openrouter('google/gemma-2-9b-it'),
-    prompt: `Using this message as context, I need you to generate a title for a chat. The title should be a short. The title should not be longer than 10 words. Please generate the title only, without any additional explanation or context. Do not include any other text or information in your response. The title should be in the format of a sentence, starting with a capital letter, should only include letters in the alphabet and spaces, do not add special characters. Here is the message: ${message}`,
+    prompt: `Using this message as context, I need you to generate a title for a chat. The title should be a short. The title should not be longer than 10 words. Please generate the title only, without any additional explanation or context. Do not include any other text or information in your response. The title should be in the format of a sentence, starting with a capital letter, should only include letters in the alphabet and spaces, do not add special characters. Use the same language the message was written in. Here is the message: ${message}`,
   });
   const text = response.text;
   return text;
@@ -161,11 +161,13 @@ const app = new Hono<AppBindings>({ strict: false })
     );
     return c.json({ success: true });
   })
-  .on(['POST', 'GET'], '/api/auth/*', c => {
+  .on(['POST', 'GET'], '/api/auth/*', async c => {
     const auth = c.get('auth');
-    return auth.handler(c.req.raw);
+    const yo = await auth.handler(c.req.raw).catch(console.error);
+    return yo;
   })
   .onError((err, c) => {
+    console.error(err);
     if (err instanceof HttpError) {
       return c.json({ error: err.message }, err.status);
     }

@@ -24,7 +24,7 @@ export function NavUser() {
 
   if (user.isPending) {
     return <div>Loading...</div>;
-  } else if (!user.data || user.type === 'guest') {
+  } else if (!user.data) {
     return (
       <Link className={buttonVariants()} to='/auth/$id' params={{ id: 'sign-in' }}>
         Login
