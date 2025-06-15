@@ -15,7 +15,7 @@ export const Route = createLazyFileRoute('/settings/')({
 });
 
 function CustomizationSettings() {
-  const { theme, setTheme } = useTheme();
+  const { mode, setMode } = useTheme();
 
   return (
     <Card className='mx-auto max-w-3xl'>
@@ -29,8 +29,8 @@ function CustomizationSettings() {
         <div className='space-y-2'>
           <Label>Theme</Label>
           <RadioGroup
-            value={theme}
-            onValueChange={setTheme}
+            value={mode}
+            onValueChange={setMode}
             className='grid max-w-md grid-cols-3 gap-8 pt-2'
           >
             <Label className='border-muted bg-popover hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary flex flex-col items-center justify-between rounded-md border-2 p-4'>

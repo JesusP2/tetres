@@ -92,12 +92,11 @@ const rules = {
     },
   },
   ui: {
-    bind: ['isOwner', 'auth.id != null && auth.id == data.userId'],
     allow: {
-      view: 'isOwner',
-      create: 'isOwner',
-      delete: 'isOwner',
-      update: 'isOwner',
+      view: 'true',
+      create: 'true',
+      delete: 'true',
+      update: 'true',
     },
   },
 } satisfies InstantRules;
