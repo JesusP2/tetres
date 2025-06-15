@@ -24,10 +24,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 const presetKey = 'preset';
 const themeKey = 'theme';
-export function ThemeProvider({
-  children,
-  ...props
-}: ThemeProviderProps) {
+export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   const [preset, setPreset] = useState<Preset>(setPresetInDocument);
   const [theme, setTheme] = useState<Theme>(setThemeInDocument);
 
@@ -62,7 +59,10 @@ export const useTheme = () => {
   return context;
 };
 
-function setBodyProperties(presetName: Preset, theme: Exclude<Theme, 'system'>) {
+function setBodyProperties(
+  presetName: Preset,
+  theme: Exclude<Theme, 'system'>,
+) {
   const preset = defaultPresets[presetName];
   const styles = preset.styles[theme];
   Object.entries(styles).forEach(([key, value]) => {
@@ -92,7 +92,7 @@ function setPresetInDocument() {
     localStorage.setItem(presetKey, presetName);
   }
 
-  const theme = localStorage.getItem(themeKey) as Theme ?? initialState.theme;
+  const theme = (localStorage.getItem(themeKey) as Theme) ?? initialState.theme;
   setBodyProperties(presetName, theme);
   return presetName;
 }

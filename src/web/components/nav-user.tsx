@@ -16,8 +16,8 @@ import {
   useSidebar,
 } from '@web/components/ui/sidebar';
 import { useUser } from '@web/hooks/use-user';
-import { buttonVariants } from './ui/button';
 import { authClient } from '@web/lib/auth-client';
+import { buttonVariants } from './ui/button';
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -92,10 +92,14 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={async () => {
-              await authClient.signOut();
-              window.location.href = '/';
-            }}>Log out</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                await authClient.signOut();
+                window.location.href = '/';
+              }}
+            >
+              Log out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

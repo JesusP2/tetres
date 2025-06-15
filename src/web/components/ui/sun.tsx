@@ -1,8 +1,8 @@
-import type { Variants } from "motion/react";
-import { motion, useAnimation } from "motion/react";
-import type { HTMLAttributes } from "react";
-import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
-import { cn } from "@web/lib/utils";
+import { cn } from '@web/lib/utils';
+import type { Variants } from 'motion/react';
+import { motion, useAnimation } from 'motion/react';
+import type { HTMLAttributes } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 
 export interface SunIconHandle {
   startAnimation: () => void;
@@ -30,15 +30,15 @@ const SunIcon = forwardRef<SunIconHandle, SunIconProps>(
       isControlledRef.current = true;
 
       return {
-        startAnimation: () => controls.start("animate"),
-        stopAnimation: () => controls.start("normal"),
+        startAnimation: () => controls.start('animate'),
+        stopAnimation: () => controls.start('normal'),
       };
     });
 
     const handleMouseEnter = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isControlledRef.current) {
-          controls.start("animate");
+          controls.start('animate');
         } else {
           onMouseEnter?.(e);
         }
@@ -49,7 +49,7 @@ const SunIcon = forwardRef<SunIconHandle, SunIconProps>(
     const handleMouseLeave = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isControlledRef.current) {
-          controls.start("normal");
+          controls.start('normal');
         } else {
           onMouseLeave?.(e);
         }
@@ -59,7 +59,7 @@ const SunIcon = forwardRef<SunIconHandle, SunIconProps>(
     return (
       <div
         className={cn(
-          `cursor-pointer select-none hover:bg-accent rounded-md transition-colors duration-200 flex items-center justify-center`,
+          `hover:bg-accent flex cursor-pointer items-center justify-center rounded-md transition-colors duration-200 select-none`,
           className,
         )}
         onMouseEnter={handleMouseEnter}
@@ -67,26 +67,26 @@ const SunIcon = forwardRef<SunIconHandle, SunIconProps>(
         {...props}
       >
         <svg
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns='http://www.w3.org/2000/svg'
           width={size}
           height={size}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+          strokeLinejoin='round'
         >
-          <circle cx="12" cy="12" r="4" />
+          <circle cx='12' cy='12' r='4' />
           {[
-            "M12 2v2",
-            "m19.07 4.93-1.41 1.41",
-            "M20 12h2",
-            "m17.66 17.66 1.41 1.41",
-            "M12 20v2",
-            "m6.34 17.66-1.41 1.41",
-            "M2 12h2",
-            "m4.93 4.93 1.41 1.41",
+            'M12 2v2',
+            'm19.07 4.93-1.41 1.41',
+            'M20 12h2',
+            'm17.66 17.66 1.41 1.41',
+            'M12 20v2',
+            'm6.34 17.66-1.41 1.41',
+            'M2 12h2',
+            'm4.93 4.93 1.41 1.41',
           ].map((d, index) => (
             <motion.path
               key={d}
@@ -102,6 +102,6 @@ const SunIcon = forwardRef<SunIconHandle, SunIconProps>(
   },
 );
 
-SunIcon.displayName = "SunIcon";
+SunIcon.displayName = 'SunIcon';
 
 export { SunIcon };

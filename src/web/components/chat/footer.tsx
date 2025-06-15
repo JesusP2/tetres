@@ -142,7 +142,7 @@ export function ChatFooter({
   };
 
   return (
-    <div className='mx-auto w-full max-w-3xl rounded-sm bg-primary shadow-md'>
+    <div className='bg-primary mx-auto w-full max-w-3xl rounded-sm shadow-md'>
       <form className='p-4' ref={formRef} onSubmit={handleSubmit}>
         <div className='border-input focus-within:ring-ring relative flex w-full flex-col rounded-md border bg-transparent p-3 text-sm shadow-sm focus-within:ring-1 focus-within:outline-none'>
           {messageFiles && messageFiles.length > 0 && (

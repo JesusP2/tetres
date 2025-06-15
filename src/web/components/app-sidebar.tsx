@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import {
   Sidebar,
   SidebarContent,
@@ -10,9 +11,8 @@ import * as React from 'react';
 import { ChatList } from './chat-list';
 import { NavUser } from './nav-user';
 import { ThemeButton } from './theme-button';
-import { Link } from '@tanstack/react-router';
-import { SettingsIcon } from './ui/settings';
 import { buttonVariants } from './ui/button';
+import { SettingsIcon } from './ui/settings';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
   return (
@@ -31,11 +31,18 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
-      <SidebarTrigger className="sticky" />
+      <SidebarTrigger className='sticky' />
       {children}
-      <div className="absolute right-8 top-1 flex items-center">
+      <div className='absolute top-1 right-8 flex items-center'>
         <ThemeButton />
-        <Link to='/settings' className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'size-8' })}>
+        <Link
+          to='/settings'
+          className={buttonVariants({
+            variant: 'ghost',
+            size: 'sm',
+            className: 'size-8',
+          })}
+        >
           <SettingsIcon size={16} />
         </Link>
       </div>

@@ -2,6 +2,13 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@web/components/ui/button';
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@web/components/ui/context-menu';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -20,17 +27,18 @@ import { deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
 import { handleCreateChat } from '@web/lib/create-chat';
 import { db } from '@web/lib/instant';
 import type { Chat } from '@web/lib/types';
-import { Download, FileEdit, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
+import {
+  Download,
+  FileEdit,
+  Pin,
+  PinOff,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from '@web/components/ui/context-menu';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();

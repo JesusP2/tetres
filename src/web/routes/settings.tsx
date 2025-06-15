@@ -1,8 +1,4 @@
-import {
-  createFileRoute,
-  Outlet,
-  useNavigate,
-} from '@tanstack/react-router';
+import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
 import { useUser } from '@web/hooks/use-user';
 import { useEffect } from 'react';
 

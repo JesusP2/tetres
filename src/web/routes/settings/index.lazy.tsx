@@ -25,9 +25,11 @@ function CustomizationSettings() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Label htmlFor='theme-preset-select' className='mb-2 text-sm'>Theme Presets</Label>
-        <ThemePresetSelect className="max-w-xs" />
+        <Label htmlFor='theme-preset-select' className='mb-2 text-sm'>
+          Theme Presets
+        </Label>
+        <ThemePresetSelect className='max-w-xs' />
       </CardContent>
-    </Card >
+    </Card>
   );
 }
