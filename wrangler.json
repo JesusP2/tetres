@@ -35,7 +35,7 @@
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
-  "vars": { "VITE_INSTANT_APP_ID": "407d46a5-8ca5-4888-a1fa-f0abf80fc945" },
+  "vars": { "VITE_INSTANT_APP_ID": "407d46a5-8ca5-4888-a1fa-f0abf80fc945" }
   /**
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/
