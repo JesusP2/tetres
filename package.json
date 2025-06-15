@@ -14,7 +14,7 @@
     "generate-pwa-assets": "pwa-assets-generator",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "preview": "pnpm build && vite preview",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

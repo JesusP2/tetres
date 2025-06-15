@@ -60,5 +60,20 @@ export function useUser(): MyUser {
     }
   }, [session.isPending]);
 
+  const dummyUser = {
+    isPending: false as const,
+    type: 'user' as const,
+    data: {
+      name: 'Lotus',
+      email: 'jesus_perez99@hotmail.com',
+      emailVerified: false,
+      image:
+        'https://h0rziolxhf.ufs.sh/f/ioU2sXfpGCc9AjSQPPGoLXsWhN2pMEzlx9OniDPdwRaFBY45',
+      createdAt: new Date('2025-06-09T06:43:16.576Z'),
+      updatedAt: new Date('2025-06-09T06:43:16.576Z'),
+      id: '5b21b5b2-638f-4519-96fd-7e94c3a0aa22',
+    },
+  };
   return user;
+  // return dummyUser;
 }
