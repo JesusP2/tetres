@@ -1,6 +1,6 @@
 import { zValidator } from '@hono/zod-validator';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { generateText, streamText } from 'ai';
+import { streamText } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createRouteHandler, UTApi } from 'uploadthing/server';
@@ -8,33 +8,13 @@ import { z } from 'zod/v4';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
 import { envMiddleware } from './middleware/env-middleware';
-import { bodySchema, renameChatSchema } from './schemas';
+import { bodySchema } from './schemas';
 import { AppBindings } from './types';
 import { uploadRouter } from './uploadrouter';
 import { HttpError } from './utils/http-error';
 import { models } from './utils/models';
 
 type Body = z.infer<typeof bodySchema>;
-
-export const renameChat = async ({
-  message,
-  apiKey,
-}: {
-  message: string;
-  apiKey: string;
-}) => {
-  const openrouter = createOpenRouter({
-    apiKey,
-  });
-
-  const response = await generateText({
-    model: openrouter('google/gemma-2-9b-it'),
-    prompt: `Using this message as context, I need you to generate a title for a chat. The title should be a short. The title should not be longer than 10 words. Please generate the title only, without any additional explanation or context. Do not include any other text or information in your response. The title should be in the format of a sentence, starting with a capital letter, should only include letters in the alphabet and spaces, do not add special characters. Here is the message: ${message}`,
-  });
-  const text = response.text;
-  return text;
-};
-
 export const sendMessageToModel = async ({
   messages,
   config,
@@ -49,31 +29,13 @@ export const sendMessageToModel = async ({
   const openrouter = createOpenRouter({
     apiKey,
   });
-  let model: string = config.model;
-  if (config.web) {
-    model = `${config.model}:online`;
-  }
-  const settings: {
-    reasoning?: {
-      effort: 'low' | 'medium' | 'high';
-    };
-  } = {};
-  if (config.reasoning !== 'off') {
-    settings.reasoning = {
-      effort: config.reasoning,
-    };
-  }
-  const response = streamText({
-    model: openrouter(model, settings),
+  const { textStream } = streamText({
+    model: openrouter(config.model),
     messages,
   });
   const messageId = config.messageId;
-  let aborted = false;
   let sqId = 0;
-  let compoundedTime = 0;
-  let last = new Date().getTime();
-  for await (const text of response.textStream) {
-    compoundedTime += new Date().getTime() - last;
+  for await (const text of textStream) {
     const message = await db.query({
       messages: {
         $: {
@@ -83,10 +45,7 @@ export const sendMessageToModel = async ({
         },
       },
     });
-    if (message.messages[0].aborted) {
-      aborted = true;
-      break;
-    }
+    if (message.messages[0].aborted) break;
     await db
       .transact(
         db.tx.messages[messageId].merge({
@@ -97,21 +56,12 @@ export const sendMessageToModel = async ({
       )
       .catch(console.error);
     sqId++;
-    last = new Date().getTime();
   }
-  const update: {
-    finished: string;
-    time?: number;
-    tokens?: number;
-  } = {
-    finished: new Date().toISOString(),
-  };
-  if (!aborted) {
-    const usage = await response.usage;
-    update.time = compoundedTime;
-    update.tokens = usage.completionTokens;
-  }
-  await db.transact(db.tx.messages[messageId].update(update));
+  await db.transact(
+    db.tx.messages[messageId].update({
+      finished: new Date().toISOString(),
+    }),
+  );
 };
 
 const app = new Hono<AppBindings>({ strict: false })
@@ -140,21 +90,6 @@ const app = new Hono<AppBindings>({ strict: false })
       token: c.env.UPLOADTHING_TOKEN,
     });
     await utapi.deleteFiles(fileKey);
-    return c.json({ success: true });
-  })
-  .post('/api/rename-chat', zValidator('json', renameChatSchema), async c => {
-    const body = c.req.valid('json');
-    const newTitle = await renameChat({
-      message: body.message,
-      apiKey: c.env.OPENROUTER_KEY,
-    });
-    const db = c.get('db');
-    await db.transact(
-      db.tx.chats[body.chatId].update({
-        title: newTitle,
-        updatedAt: new Date().toISOString(),
-      }),
-    );
     return c.json({ success: true });
   })
   .post('/api/model', zValidator('json', bodySchema), async c => {

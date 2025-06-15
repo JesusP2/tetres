@@ -54,4 +54,4 @@ export const createAuth = (env: typeof cloudflareEnv) => {
 };
 export type Auth = ReturnType<typeof createAuth>;
 export type Session = Auth['$Infer']['Session']['session'];
-export type User = Omit<Auth['$Infer']['Session']['user'], 'id'>;
+export type User = Auth['$Infer']['Session']['user'];

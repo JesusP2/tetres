@@ -1,12 +1,3 @@
-'use client';
-
-// import {
-//   IconCreditCard,
-//   IconDotsVertical,
-//   IconLogout,
-//   IconNotification,
-//   IconUserCircle,
-// } from "@tabler/icons-react"
 import { Link } from '@tanstack/react-router';
 import { Avatar, AvatarFallback, AvatarImage } from '@web/components/ui/avatar';
 import {
@@ -35,7 +26,7 @@ export function NavUser() {
     return <div>Loading...</div>;
   } else if (!user.data || user.type === 'guest') {
     return (
-      <Link className={buttonVariants()} to='/auth/sign-in'>
+      <Link className={buttonVariants()} to='/auth/$id' params={{ id: 'sign-in' }}>
         Login
       </Link>
     );
@@ -88,22 +79,19 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                {/*<IconUserCircle />*/}
-                Account
+              <DropdownMenuItem asChild>
+                <Link to='/settings'>
+                  Settings
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                {/*<IconCreditCard />*/}
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                {/*<IconNotification />*/}
-                Notifications
+                <Link to='/settings/account'>
+                  Account
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              {/*<IconLogout />*/}
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

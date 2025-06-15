@@ -8,27 +8,57 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as SettingsImport } from './routes/settings'
 import { Route as ChatImport } from './routes/_chat'
 import { Route as ChatIndexImport } from './routes/_chat.index'
 import { Route as AuthIdImport } from './routes/auth.$id'
 import { Route as ChatChatIdImport } from './routes/_chat.$chatId'
 import { Route as ApiAuthCallbackGoogleImport } from './routes/api.auth.callback.google'
 
+// Create Virtual Routes
+
+const SettingsIndexLazyImport = createFileRoute('/settings/')()
+const SettingsAccountLazyImport = createFileRoute('/settings/account')()
+
 // Create/Update Routes
+
+const SettingsRoute = SettingsImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const ChatRoute = ChatImport.update({
   id: '/_chat',
   getParentRoute: () => rootRoute,
 } as any)
 
+const SettingsIndexLazyRoute = SettingsIndexLazyImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any).lazy(() =>
+  import('./routes/settings/index.lazy').then((d) => d.Route),
+)
+
 const ChatIndexRoute = ChatIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ChatRoute,
 } as any)
+
+const SettingsAccountLazyRoute = SettingsAccountLazyImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => SettingsRoute,
+} as any).lazy(() =>
+  import('./routes/settings/account.lazy').then((d) => d.Route),
+)
 
 const AuthIdRoute = AuthIdImport.update({
   id: '/auth/$id',
@@ -59,6 +89,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatImport
       parentRoute: typeof rootRoute
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsImport
+      parentRoute: typeof rootRoute
+    }
     '/_chat/$chatId': {
       id: '/_chat/$chatId'
       path: '/$chatId'
@@ -73,12 +110,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIdImport
       parentRoute: typeof rootRoute
     }
+    '/settings/account': {
+      id: '/settings/account'
+      path: '/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof SettingsAccountLazyImport
+      parentRoute: typeof SettingsImport
+    }
     '/_chat/': {
       id: '/_chat/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof ChatIndexImport
       parentRoute: typeof ChatImport
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexLazyImport
+      parentRoute: typeof SettingsImport
     }
     '/api/auth/callback/google': {
       id: '/api/auth/callback/google'
@@ -104,53 +155,94 @@ const ChatRouteChildren: ChatRouteChildren = {
 
 const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
 
+interface SettingsRouteChildren {
+  SettingsAccountLazyRoute: typeof SettingsAccountLazyRoute
+  SettingsIndexLazyRoute: typeof SettingsIndexLazyRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAccountLazyRoute: SettingsAccountLazyRoute,
+  SettingsIndexLazyRoute: SettingsIndexLazyRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '': typeof ChatRouteWithChildren
+  '/settings': typeof SettingsRouteWithChildren
   '/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
+  '/settings/account': typeof SettingsAccountLazyRoute
   '/': typeof ChatIndexRoute
+  '/settings/': typeof SettingsIndexLazyRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
 export interface FileRoutesByTo {
   '/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
+  '/settings/account': typeof SettingsAccountLazyRoute
   '/': typeof ChatIndexRoute
+  '/settings': typeof SettingsIndexLazyRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_chat': typeof ChatRouteWithChildren
+  '/settings': typeof SettingsRouteWithChildren
   '/_chat/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
+  '/settings/account': typeof SettingsAccountLazyRoute
   '/_chat/': typeof ChatIndexRoute
+  '/settings/': typeof SettingsIndexLazyRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/$chatId' | '/auth/$id' | '/' | '/api/auth/callback/google'
+  fullPaths:
+    | ''
+    | '/settings'
+    | '/$chatId'
+    | '/auth/$id'
+    | '/settings/account'
+    | '/'
+    | '/settings/'
+    | '/api/auth/callback/google'
   fileRoutesByTo: FileRoutesByTo
-  to: '/$chatId' | '/auth/$id' | '/' | '/api/auth/callback/google'
+  to:
+    | '/$chatId'
+    | '/auth/$id'
+    | '/settings/account'
+    | '/'
+    | '/settings'
+    | '/api/auth/callback/google'
   id:
     | '__root__'
     | '/_chat'
+    | '/settings'
     | '/_chat/$chatId'
     | '/auth/$id'
+    | '/settings/account'
     | '/_chat/'
+    | '/settings/'
     | '/api/auth/callback/google'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   ChatRoute: typeof ChatRouteWithChildren
+  SettingsRoute: typeof SettingsRouteWithChildren
   AuthIdRoute: typeof AuthIdRoute
   ApiAuthCallbackGoogleRoute: typeof ApiAuthCallbackGoogleRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRouteWithChildren,
+  SettingsRoute: SettingsRouteWithChildren,
   AuthIdRoute: AuthIdRoute,
   ApiAuthCallbackGoogleRoute: ApiAuthCallbackGoogleRoute,
 }
@@ -166,6 +258,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_chat",
+        "/settings",
         "/auth/$id",
         "/api/auth/callback/google"
       ]
@@ -177,6 +270,13 @@ export const routeTree = rootRoute
         "/_chat/"
       ]
     },
+    "/settings": {
+      "filePath": "settings.tsx",
+      "children": [
+        "/settings/account",
+        "/settings/"
+      ]
+    },
     "/_chat/$chatId": {
       "filePath": "_chat.$chatId.tsx",
       "parent": "/_chat"
@@ -184,9 +284,17 @@ export const routeTree = rootRoute
     "/auth/$id": {
       "filePath": "auth.$id.tsx"
     },
+    "/settings/account": {
+      "filePath": "settings/account.lazy.tsx",
+      "parent": "/settings"
+    },
     "/_chat/": {
       "filePath": "_chat.index.tsx",
       "parent": "/_chat"
+    },
+    "/settings/": {
+      "filePath": "settings/index.lazy.tsx",
+      "parent": "/settings"
     },
     "/api/auth/callback/google": {
       "filePath": "api.auth.callback.google.tsx"
