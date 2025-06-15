@@ -31,3 +31,4 @@ dist-ssr
 .env.production
 db.sqlite
 dev-dist
+.cursor

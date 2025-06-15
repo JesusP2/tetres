@@ -24,7 +24,6 @@ export function updateChatTitle(chat: Chat, title: string) {
   return db.transact(
     db.tx.chats[chat.id].update({
       title,
-      updatedAt: new Date().toISOString(),
     }),
   );
 }

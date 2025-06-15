@@ -18,8 +18,8 @@ import { Input } from '@web/components/ui/input';
 import { ScrollArea } from '@web/components/ui/scroll-area';
 import {
   SidebarMenu,
-  sidebarMenuButtonVariants,
   SidebarMenuItem,
+  useSidebar,
 } from '@web/components/ui/sidebar';
 import { useUI } from '@web/hooks/use-ui';
 import { type MyUser, useUser } from '@web/hooks/use-user';
@@ -40,6 +40,7 @@ import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
 import { objectToString } from '@web/hooks/use-chat-messages';
+import { handleExportChat } from '@web/lib/export-chat';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -73,10 +74,7 @@ const groupChats = (chats: Chat[]) => {
 export function ChatList() {
   const user = useUser();
   const navigate = useNavigate();
-  const { confirmDelete } = useConfirmDialog();
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingChatId, setEditingChatId] = useState<string | null>(null);
-  const [editingTitle, setEditingTitle] = useState('');
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const { data } = db.useQuery(
     !user.isPending
@@ -103,90 +101,6 @@ export function ChatList() {
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
 
-  const handleUpdateTitle = async () => {
-    if (!editingChatId) return;
-    const chat = chats.find(c => c.id === editingChatId);
-    if (chat && editingTitle.trim() && editingTitle.trim() !== chat.title) {
-      await updateChatTitle(chat, editingTitle.trim());
-    }
-    setEditingChatId(null);
-    setEditingTitle('');
-  };
-
-  const handleDeleteChat = (chat: Chat) => {
-    confirmDelete({
-      title: 'Delete Chat',
-      description: `Are you sure you want to delete "${chat.title}"?`,
-      handleConfirm: () => deleteChat(chat),
-      handleCancel: () => setEditingChatId(null),
-    });
-  };
-
-  const handleExportChat = async (chat: Chat) => {
-    const chatAndMessages = await db.queryOnce({
-      messages: {
-        $: {
-          where: {
-            chatId: chat.id,
-          },
-          order: {
-            updatedAt: 'asc',
-          }
-        },
-        files: {},
-      },
-    });
-    const messages = chatAndMessages.data?.messages;
-    if (!messages) return;
-
-    let markdown = `# ${chat.title}\n`;
-    markdown += `Created: ${new Date(chat.createdAt).toLocaleString()}\n`;
-    markdown += `Last Updated: ${new Date(chat.updatedAt).toLocaleString()}\n`;
-    markdown += '---\n\n';
-
-    for (const message of messages) {
-      if (message.role !== 'user' && message.role !== 'assistant') {
-        continue;
-      }
-
-      let roleHeader =
-        message.role.charAt(0).toUpperCase() + message.role.slice(1);
-      if (message.role === 'assistant' && message.model) {
-        roleHeader += ` (${message.model})`;
-      }
-      markdown += `### ${roleHeader}\n\n`;
-
-      const content = objectToString(message.content);
-      markdown += `${content}\n\n`;
-
-      if (message.files && message.files.length > 0) {
-        for (const file of message.files) {
-          markdown += `![${file.name}](${file.ufsUrl})\n\n`;
-        }
-      }
-      markdown += '---\n\n';
-    }
-
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${chat.title.replace(/[\\/:"*?<>|]/g, '_')}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleUpdateTitle();
-    } else if (e.key === 'Escape') {
-      setEditingChatId(null);
-      setEditingTitle('');
-    }
-  };
-
   const handleNewChat = () => {
     if (!user.isPending) {
       navigate({ to: '/', search: { new: true } });
@@ -204,89 +118,6 @@ export function ChatList() {
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
   }, []);
-
-  const renderChat = (chat: Chat) => (
-    <ContextMenu key={chat.id}>
-      <ContextMenuTrigger asChild>
-        <SidebarMenuItem
-          key={chat.id}
-          onDoubleClick={() => {
-            setEditingChatId(chat.id);
-            setEditingTitle(chat.title);
-          }}
-          className='group'
-        >
-          {editingChatId === chat.id ? (
-            <Input
-              value={editingTitle}
-              onChange={e => setEditingTitle(e.target.value)}
-              onBlur={handleUpdateTitle}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              onFocus={e => e.target.select()}
-            />
-          ) : (
-            <Link
-              to='/$chatId'
-              params={{ chatId: chat.id }}
-              className='w-full'
-              activeProps={{
-                className: 'bg-accent text-accent-foreground',
-              }}
-            >
-              <div
-                className={sidebarMenuButtonVariants({
-                  className: 'relative w-full justify-start',
-                })}
-              >
-                <span className='truncate'>{chat.title}</span>
-              </div>
-            </Link>
-          )}
-        </SidebarMenuItem>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem
-          onClick={() => {
-            togglePin(chat);
-          }}
-        >
-          {chat.pinned ? (
-            <>
-              <PinOff className='mr-2 size-4' />
-              Unpin
-            </>
-          ) : (
-            <>
-              <Pin className='mr-2 size-4' />
-              Pin
-            </>
-          )}
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() => {
-            setEditingChatId(chat.id);
-            setEditingTitle(chat.title);
-          }}
-        >
-          <FileEdit className='mr-2 size-4' />
-          Rename
-        </ContextMenuItem>
-        <ContextMenuItem onClick={() => handleExportChat(chat)}>
-          <Download className='mr-2 size-4' />
-          Export
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem
-          variant='destructive'
-          onClick={() => handleDeleteChat(chat)}
-        >
-          <Trash2 className='mr-2 size-4' />
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
-  );
 
   return (
     <>
@@ -314,10 +145,11 @@ export function ChatList() {
         <SidebarMenu>
           {pinned.length > 0 && (
             <div className='p-4'>
-              <div className='text-muted-foreground mb-2 text-sm font-semibold capitalize'>
+              <div className='flex items-center text-muted-foreground mb-2 text-sm font-semibold capitalize'>
+                <Pin className='size-4' />
                 Pinned
               </div>
-              {pinned.map(renderChat)}
+              {pinned.map(chat => <RenderChat chat={chat} key={chat.id} />)}
             </div>
           )}
           {Object.entries(groupedChats).map(([period, chats]) => (
@@ -325,7 +157,7 @@ export function ChatList() {
               <div className='text-muted-foreground mb-2 text-sm font-semibold capitalize'>
                 {period}
               </div>
-              {chats.map(renderChat)}
+              <div className='flex flex-col gap-1'>{chats.map(chat => <RenderChat key={chat.id} chat={chat} />)}</div>
             </div>
           ))}
         </SidebarMenu>
@@ -485,4 +317,113 @@ function ChatSearch({
       </DialogContent>
     </Dialog>
   );
+}
+
+export function RenderChat({ chat }: { chat: Chat }) {
+  const { width } = useSidebar();
+  const { confirmDelete } = useConfirmDialog();
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const handleUpdateTitle = async () => {
+    if (!editingChatId) return;
+    if (chat && editingTitle.trim() && editingTitle.trim() !== chat.title) {
+      await updateChatTitle(chat, editingTitle.trim());
+    }
+    setEditingChatId(null);
+    setEditingTitle('');
+  };
+
+  const handleDeleteChat = (chat: Chat) => {
+    confirmDelete({
+      title: 'Delete Chat',
+      description: `Are you sure you want to delete "${chat.title}"?`,
+      handleConfirm: () => deleteChat(chat),
+      handleCancel: () => setEditingChatId(null),
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleUpdateTitle();
+    } else if (e.key === 'Escape') {
+      setEditingChatId(null);
+      setEditingTitle('');
+    }
+  };
+
+  return (
+    <ContextMenu key={chat.id}>
+      <ContextMenuTrigger asChild>
+        <SidebarMenuItem
+          key={chat.id}
+          onDoubleClick={() => {
+            setEditingChatId(chat.id);
+            setEditingTitle(chat.title);
+          }}
+          className='group w-auto'
+          style={{
+            width: `calc(${width} - 2rem)`,
+          }}
+        >
+          {editingChatId === chat.id ? (
+            <Input
+              value={editingTitle}
+              onChange={e => setEditingTitle(e.target.value)}
+              onBlur={handleUpdateTitle}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              onFocus={e => e.target.select()}
+            />
+          ) : (
+            <Link
+              to='/$chatId'
+              params={{ chatId: chat.id }}
+            >
+              <p className="truncate">{chat.title}</p>
+            </Link>
+          )}
+        </SidebarMenuItem>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem
+          onClick={() => {
+            togglePin(chat);
+          }}
+        >
+          {chat.pinned ? (
+            <>
+              <PinOff className='mr-2 size-4' />
+              Unpin
+            </>
+          ) : (
+            <>
+              <Pin className='mr-2 size-4' />
+              Pin
+            </>
+          )}
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            setEditingChatId(chat.id);
+            setEditingTitle(chat.title);
+          }}
+        >
+          <FileEdit className='mr-2 size-4' />
+          Rename
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => handleExportChat(chat)}>
+          <Download className='mr-2 size-4' />
+          Export
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          variant='destructive'
+          onClick={() => handleDeleteChat(chat)}
+        >
+          <Trash2 className='mr-2 size-4' />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  )
 }
