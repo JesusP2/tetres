@@ -20,8 +20,11 @@ export default tseslint.config(
       'eslint-plugin-react-compiler': pluginCompiler,
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
   },
 );

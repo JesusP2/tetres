@@ -16,11 +16,10 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Sidebar collapsible='icon'>
+      <Sidebar collapsible='offcanvas'>
         <SidebarHeader className='mt-2'>
           <div className='flex items-center gap-2'>
-            <SidebarTrigger className='sticky' />
-            <h2 className='text-lg font-semibold'>T3.chat</h2>
+            <h2 className='text-lg font-semibold'>Name.chat</h2>
           </div>
         </SidebarHeader>
         <SidebarContent className='overflow-hidden'>
@@ -31,6 +30,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
+      <SidebarTrigger className='sticky' />
       {children}
     </>
   );

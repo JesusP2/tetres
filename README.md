@@ -1,7 +1,7 @@
 - pin/delete buttons should slide in from the right when chat is hovered
 - [x] Add more models
 - [-] reasoning
-- [-] branching
+- [x] branching
 - [x] attachments
 - [-] tools
 - [x] pdfs

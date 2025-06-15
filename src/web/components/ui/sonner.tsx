@@ -1,4 +1,4 @@
-import { Toaster as Sonner, ToasterProps } from '@web/components/ui/sonner';
+import { Toaster as Sonner, type ToasterProps } from 'sonner';
 import { useTheme } from 'next-themes';
 
 const Toaster = ({ ...props }: ToasterProps) => {

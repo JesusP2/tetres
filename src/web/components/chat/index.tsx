@@ -193,7 +193,7 @@ export function Chat({
       const newMsgId = id();
       const {
         files,
-        id: _oldId,
+        id: _id,
         chatId: _oldChatId,
         highlightedText: _oldHighlightedText,
         ...restOfMsg
@@ -248,12 +248,13 @@ export function Chat({
                           autoFocus
                           disabled={isProcessing}
                           onKeyDown={e => {
-                            e.preventDefault();
                             if (isProcessing) return;
                             if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
                               handleSaveRetry(m);
                             }
                             if (e.key === 'Escape') {
+                              e.preventDefault();
                               handleCancelEdit();
                             }
                           }}

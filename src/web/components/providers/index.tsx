@@ -25,7 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <ThemeProvider defaultTheme='light' storageKey='theme'>
+    <ThemeProvider defaultTheme='dark' storageKey='theme'>
       <AuthUIProvider
         authClient={authClient}
         hooks={hooks}
