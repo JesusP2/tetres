@@ -10,7 +10,8 @@ export const betterAuthMiddleware = createMiddleware<AppBindings>(
     c.set('auth', auth);
 
     const session = await auth.api.getSession({ headers: c.req.raw.headers });
-    if (!session && !c.req.url.startsWith('/api/auth')) {
+    const url = new URL(c.req.url);
+    if (!session && !url.pathname.startsWith('/api/auth')) {
       throw new HttpError('Unauthorized', 401);
     }
 
