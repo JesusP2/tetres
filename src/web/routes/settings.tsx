@@ -1,6 +1,5 @@
 import {
   createFileRoute,
-  Link,
   Outlet,
   useNavigate,
 } from '@tanstack/react-router';
@@ -16,13 +15,13 @@ function SettingsLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user.isPending && user.type === 'guest') {
+    if (!user.isPending && !user.data) {
       navigate({ to: '/auth/$id', params: { id: 'sign-in' } });
     }
   }, [user, navigate]);
 
-  if (user.isPending || user.type === 'guest') {
-    return <div>Loading...</div>; // Or a spinner component
+  if (user.isPending) {
+    return <div>Loading...</div>;
   }
 
   return (

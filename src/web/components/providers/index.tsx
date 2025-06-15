@@ -6,6 +6,7 @@ import { authClient, useSession } from '@web/lib/auth-client';
 import { db } from '@web/lib/instant';
 import { ConfirmDialogProvider } from './confirm-dialog-provider';
 import { ThemeProvider } from './theme-provider';
+import { ThemeButton } from '../theme-button';
 
 function NavLink({ href, children }: any) {
   return <Link to={href}>{children}</Link>;
