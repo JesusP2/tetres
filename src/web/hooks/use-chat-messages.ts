@@ -32,6 +32,11 @@ export function useChatMessages() {
       $: { where: { id: chatId } },
       messages: {
         files: {},
+        $: {
+          order: {
+            updatedAt: 'asc',
+          },
+        },
       },
     },
   });
@@ -73,10 +78,6 @@ export function useChatMessages() {
             highlightedText: highlightedText,
           };
         }),
-      );
-      processedMessages.sort(
-        (a, b) =>
-          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(),
       );
       setParsedMessages(processedMessages);
     };
