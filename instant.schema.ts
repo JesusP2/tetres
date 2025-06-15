@@ -81,7 +81,7 @@ const _schema = i.schema({
       projectId: i.string().indexed().optional(),
       userId: i.string().indexed(),
       branchId: i.string().optional(),
-      updatedAt: i.date(),
+      updatedAt: i.date().indexed(),
       createdAt: i.date(),
     }),
     messages: i.entity({
@@ -93,7 +93,7 @@ const _schema = i.schema({
       time: i.number().optional(),
       model: i.string(),
       chatId: i.string().indexed(),
-      updatedAt: i.date(),
+      updatedAt: i.date().indexed(),
       createdAt: i.date(),
     }),
     ui: i.entity({
