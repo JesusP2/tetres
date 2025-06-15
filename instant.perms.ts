@@ -92,10 +92,11 @@ const rules = {
     },
   },
   ui: {
+    bind: ['isOwner', 'auth.id != null && auth.id == data.userId'],
     allow: {
       view: 'true',
       create: 'true',
-      delete: 'true',
+      delete: 'isOwner',
       update: 'true',
     },
   },

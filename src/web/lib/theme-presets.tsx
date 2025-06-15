@@ -2138,4 +2138,6 @@ export const defaultPresets = {
     },
   },
 } as const;
-export type Theme = keyof typeof defaultPresets;
+
+export const presetsArray = Object.values(defaultPresets);
+export type Preset = keyof typeof defaultPresets;

@@ -12,7 +12,7 @@ export interface IconRef {
 
 const themeButtonId = "theme-button";
 export function ThemeButton() {
-  const { mode, setTheme, setMode } = useTheme();
+  const { theme: mode, setPreset: setTheme, setTheme: setMode } = useTheme();
   const moonRef = useRef<IconRef>(null);
   const sunRef = useRef<IconRef>(null);
 
