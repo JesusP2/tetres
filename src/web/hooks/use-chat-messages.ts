@@ -4,7 +4,7 @@ import { renderMarkdown } from '@web/lib/syntax-highlighting';
 import type { Chat, Message } from '@web/lib/types';
 import { useEffect, useState } from 'react';
 
-const objectToString = (obj: any): string => {
+export const objectToString = (obj: any): string => {
   if (typeof obj === 'string') return obj;
   if (typeof obj === 'object') {
     return Object.values(obj).join('');

@@ -39,6 +39,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
+import { objectToString } from '@web/hooks/use-chat-messages';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -81,21 +82,21 @@ export function ChatList() {
   const { data } = db.useQuery(
     !user.isPending
       ? {
-          chats: {
-            $: {
-              where: {
-                userId: user.data?.id || '',
-              },
+        chats: {
+          $: {
+            where: {
+              userId: user.data?.id || '',
             },
           },
-        }
+        },
+      }
       : {},
   );
   const chats = (data?.chats || []) as Chat[];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
     : chats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -119,8 +120,19 @@ export function ChatList() {
     });
   };
 
-  const handleExportChat = (chat: Chat) => {
-    console.log('Exporting chat:', chat.title);
+  const handleExportChat = async (chat: Chat) => {
+    const chatAndMessages = await db.queryOnce({
+      messages: {
+        $: {
+          where: {
+            chatId: chat.id,
+          }
+        },
+        files: {},
+      }
+    })
+    const messages = chatAndMessages.data?.messages.map(m => ({ ...m, content: objectToString(m.content) }));
+    if (!chatAndMessages.data) return;
     // TODO: Implement export functionality
   };
 
@@ -418,9 +430,8 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${
-                  selectedIndex === i ? 'bg-accent' : ''
-                }`}
+                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
+                  }`}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >

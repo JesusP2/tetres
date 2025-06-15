@@ -132,7 +132,7 @@ export const defaultPresets = {
         'muted-foreground': '#c2b6cf',
         accent: '#463753',
         'accent-foreground': '#f8f1f5',
-        destructive: '#301015',
+        destructive: '#ff0000',
         'destructive-foreground': '#ffffff',
         border: '#3b3237',
         input: '#3e343c',

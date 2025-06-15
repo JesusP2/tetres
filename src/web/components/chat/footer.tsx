@@ -142,7 +142,7 @@ export function ChatFooter({
   };
 
   return (
-    <div className='bg-primary mx-auto w-full max-w-3xl rounded-sm shadow-md'>
+    <div className='bg-sidebar mx-auto w-full max-w-3xl rounded-sm shadow-md'>
       <form className='p-4' ref={formRef} onSubmit={handleSubmit}>
         <div className='border-input focus-within:ring-ring relative flex w-full flex-col rounded-md border bg-transparent p-3 text-sm shadow-sm focus-within:ring-1 focus-within:outline-none'>
           {messageFiles && messageFiles.length > 0 && (
@@ -188,7 +188,7 @@ export function ChatFooter({
               name='message'
               disabled={!window.navigator.onLine}
               placeholder='Type your message here...'
-              className='field-size-content chat-scrollbar max-h-[175px] w-full resize-none border-none bg-transparent pr-16 shadow-none focus-visible:ring-0'
+              className='field-size-content chat-scrollbar max-h-[175px] w-full resize-none border-none bg-transparent pr-16 shadow-none focus-visible:ring-0 dark:placeholder:text-white'
               value={message}
               onChange={e => setMessage(e.target.value)}
               onKeyDown={event => {
@@ -236,6 +236,7 @@ export function ChatFooter({
               variant='outline'
             >
               <Globe className='h-4 w-4' />
+              Web
             </Toggle>
             {supportsReasoning && (
               <ReasoningDropdown
@@ -288,6 +289,7 @@ export function ModelsButton({
       <DialogTrigger asChild>
         <Button
           type='button'
+          size='sm'
           variant='outline'
           role='combobox'
           aria-expanded={open}

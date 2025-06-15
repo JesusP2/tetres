@@ -15,7 +15,7 @@ export function MyUploadButton(
         <TooltipTrigger asChild>
           <label
             data-ut-element='button'
-            className={buttonVariants({ variant: 'outline' })}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
           >
             <input
               className='hidden'
