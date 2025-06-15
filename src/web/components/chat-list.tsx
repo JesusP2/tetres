@@ -35,7 +35,6 @@ import { Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import type { Session, User } from 'better-auth';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -81,7 +80,7 @@ export function ChatList() {
         chats: {
           $: {
             where: {
-              userId: user.data.id,
+              userId: user.data?.id || '',
             },
           },
         },
@@ -272,7 +271,7 @@ function ChatSearch({
     : chats;
 
   const handleCreateChat = async () => {
-    if (user.isPending || !search.trim() || !ui) return;
+    if (!user.data || !search.trim() || !ui) return;
     setIsOpen(false);
     setSearch('');
     const newChatId = id();

@@ -7,7 +7,6 @@ import { getDb } from './db';
 
 export const createAuth = (env: typeof cloudflareEnv) => {
   const adminDb = getDb(env);
-  console.log('ENVS PLEASE DO NOT READ THESE LOGS:', env)
   return betterAuth({
     secret: env.BETTER_AUTH_SECRET,
     plugins: [

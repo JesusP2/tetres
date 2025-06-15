@@ -1,14 +1,14 @@
 import { authClient } from '@web/lib/auth-client';
 import type { User } from 'better-auth';
 
-type MyUser =
+export type MyUser =
   | {
       isPending: true;
       data: null;
     }
   | {
       isPending: false;
-      data: User;
+      data: User | null;
     };
 export function useUser(): MyUser {
   const session = authClient.useSession();

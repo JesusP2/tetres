@@ -46,7 +46,7 @@ function Index() {
     webSearchEnabled: boolean,
     reasoning: 'off' | 'low' | 'medium' | 'high',
   ) => {
-    if (user.isPending || !ui) return;
+    if (!user.data || !ui) return;
     const newChatId = id();
     const chatTx = createChat(
       user.data,
@@ -128,7 +128,7 @@ function Index() {
         )}
       </div>
       <ChatFooter
-        userId={!user.isPending ? user.data.id : undefined}
+        userId={user.data ? user.data.id : undefined}
         onSubmit={handleCreateChat}
         selectedModel={ui?.defaultModel}
         updateModel={model => updateUI({ defaultModel: model })}

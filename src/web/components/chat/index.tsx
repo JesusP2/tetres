@@ -69,7 +69,7 @@ export function Chat({
     webSearchEnabled: boolean,
     reasoning: 'off' | 'low' | 'medium' | 'high',
   ) => {
-    if (user.isPending) return;
+    if (!user.data) return;
     if (onSubmit) {
       onSubmit(message);
       return;
@@ -122,7 +122,7 @@ export function Chat({
   };
 
   const handleSaveRetry = async (message: Message) => {
-    if (isProcessing || user.isPending) return;
+    if (isProcessing || !user.data) return;
     if (!editingContent.trim()) {
       toast.error('Message cannot be empty');
       setEditingMessageId(null);
@@ -169,7 +169,7 @@ export function Chat({
   };
 
   const createNewBranch = async (message: Message) => {
-    if (user.isPending || user.type !== 'user') return;
+    if (!user.data) return;
 
     const messageIndex = messages.findIndex(m => m.id === message.id);
     if (messageIndex === -1) {
@@ -311,7 +311,7 @@ export function Chat({
                                 messages,
                                 m,
                                 m.content,
-                                user.data.id,
+                                user.data?.id ?? '',
                                 chat.model as ModelId,
                                 false,
                                 'off',
@@ -417,7 +417,7 @@ export function Chat({
                           messages,
                           m,
                           m.content,
-                          user.data.id,
+                          user.data?.id ?? '',
                           chat.model as ModelId,
                           false,
                           'off',

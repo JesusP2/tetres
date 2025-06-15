@@ -12,7 +12,7 @@ export function useUI() {
           ui: {
             $: {
               where: {
-                userId: user.data.id,
+                userId: user.data?.id || '',
               },
             },
           },
@@ -24,7 +24,7 @@ export function useUI() {
     defaultModel: ModelId;
   } | null>(null);
   useEffect(() => {
-    if (user.isPending) return;
+    if (!user.data) return;
     const ui = data?.ui?.[0];
     if (Array.isArray(data?.ui) && data?.ui.length === 0) {
       console.log('no ui found');
