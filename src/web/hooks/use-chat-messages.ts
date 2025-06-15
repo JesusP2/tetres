@@ -27,7 +27,7 @@ function createCacheKey(messageId: string, content: string) {
 
 export function useChatMessages() {
   const { chatId } = useParams({ from: '/_chat/$chatId' });
-  const { isLoading, data, ...rest } = db.useQuery({
+  const { isLoading, data } = db.useQuery({
     chats: {
       $: { where: { id: chatId } },
       messages: {
@@ -35,7 +35,6 @@ export function useChatMessages() {
       },
     },
   });
-  console.log(isLoading, data, rest)
 
   const [parsedMessages, setParsedMessages] = useState<
     (Message & { highlightedText?: string })[]

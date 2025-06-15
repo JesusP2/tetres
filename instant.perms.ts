@@ -91,6 +91,15 @@ const rules = {
       update: 'isOwner && data.aborted == null',
     },
   },
+  ui: {
+    bind: ['isOwner', 'auth.id != null && auth.id == data.userId'],
+    allow: {
+      view: 'isOwner',
+      create: 'isOwner',
+      delete: 'isOwner',
+      update: 'isOwner',
+    },
+  }
 } satisfies InstantRules;
 
 export default rules;
