@@ -9,31 +9,8 @@ export const betterAuthMiddleware = createMiddleware<AppBindings>(
     const auth = createAuth(c.env);
     c.set('auth', auth);
 
-    let session = await auth.api.getSession({ headers: c.req.raw.headers });
-    if (import.meta.env.DEV && !session) {
-      session = {
-        session: {
-          id: 'dev',
-          userId: 'dev',
-          token: 'dev',
-          expiresAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          ipAddress: '127.0.0.1',
-          userAgent: 'dev',
-        },
-        user: {
-          id: 'dev',
-          name: 'dev',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          image: null,
-          email: 'dev@dev.dev',
-          emailVerified: false,
-        },
-      };
-    }
-    if (!session && !import.meta.env.DEV) {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session && !c.req.url.startsWith('/api/auth')) {
       throw new HttpError('Unauthorized', 401);
     }
 
