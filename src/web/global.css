@@ -197,3 +197,36 @@ textarea::-webkit-resizer {
   border-width: 0;
   outline: none;
 }
+
+/* Language labels for code blocks */
+pre[data-lang] {
+  position: relative;
+}
+
+pre[data-lang]::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  font-size: 0.75rem;  /* text-xs */
+  font-weight: 500;    /* font-medium */
+  color: rgb(156 163 175); /* gray-400 */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.dark pre[data-lang]::before {
+  color: rgb(107 114 128); /* gray-500 */
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure code block has enough padding to avoid overlap with label */
+pre[data-lang] code {
+  padding-top: 2.5rem !important;
+}
