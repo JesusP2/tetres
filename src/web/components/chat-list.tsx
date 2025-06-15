@@ -37,7 +37,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { groupBy, partition, pipe, sortBy } from 'remeda';
+import { groupBy, partition, pipe } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
 import { objectToString } from '@web/hooks/use-chat-messages';
 
@@ -53,7 +53,6 @@ const groupChats = (chats: Chat[]) => {
 
   return pipe(
     chats,
-    sortBy([(c: Chat) => c.updatedAt, 'desc']),
     groupBy((chat: Chat) => {
       const updatedAt = new Date(chat.updatedAt);
       if (updatedAt >= today) {
@@ -87,6 +86,9 @@ export function ChatList() {
             where: {
               userId: user.data?.id || '',
             },
+            order: {
+              updatedAt: 'desc',
+            }
           },
         },
       }
@@ -126,14 +128,54 @@ export function ChatList() {
         $: {
           where: {
             chatId: chat.id,
+          },
+          order: {
+            updatedAt: 'asc',
           }
         },
         files: {},
+      },
+    });
+    const messages = chatAndMessages.data?.messages;
+    if (!messages) return;
+
+    let markdown = `# ${chat.title}\n`;
+    markdown += `Created: ${new Date(chat.createdAt).toLocaleString()}\n`;
+    markdown += `Last Updated: ${new Date(chat.updatedAt).toLocaleString()}\n`;
+    markdown += '---\n\n';
+
+    for (const message of messages) {
+      if (message.role !== 'user' && message.role !== 'assistant') {
+        continue;
       }
-    })
-    const messages = chatAndMessages.data?.messages.map(m => ({ ...m, content: objectToString(m.content) }));
-    if (!chatAndMessages.data) return;
-    // TODO: Implement export functionality
+
+      let roleHeader =
+        message.role.charAt(0).toUpperCase() + message.role.slice(1);
+      if (message.role === 'assistant' && message.model) {
+        roleHeader += ` (${message.model})`;
+      }
+      markdown += `### ${roleHeader}\n\n`;
+
+      const content = objectToString(message.content);
+      markdown += `${content}\n\n`;
+
+      if (message.files && message.files.length > 0) {
+        for (const file of message.files) {
+          markdown += `![${file.name}](${file.ufsUrl})\n\n`;
+        }
+      }
+      markdown += '---\n\n';
+    }
+
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${chat.title.replace(/[\\/:"*?<>|]/g, '_')}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
