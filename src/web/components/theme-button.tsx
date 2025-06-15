@@ -64,12 +64,6 @@ export function ThemeButton() {
           />
         </label>
       </div>
-      <button onClick={() => setTheme("t3-chat")}>
-        t3-chat
-      </button>
-      <button onClick={() => setTheme("modern-minimal")}>
-        modern-minimal
-      </button>
     </>
   );
 }

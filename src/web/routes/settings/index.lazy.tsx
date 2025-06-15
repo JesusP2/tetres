@@ -1,4 +1,5 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
+import { SettingsHeader } from '@web/components/settings-header';
 import ThemePresetSelect from '@web/components/theme-preset-select';
 import {
   Card,
@@ -14,10 +15,10 @@ export const Route = createLazyFileRoute('/settings/')({
 });
 
 function CustomizationSettings() {
-
   return (
     <Card className='mx-auto max-w-3xl'>
       <CardHeader>
+        <SettingsHeader />
         <CardTitle>Customization</CardTitle>
         <CardDescription>
           Customize the look and feel of the application.
@@ -27,6 +28,6 @@ function CustomizationSettings() {
         <Label htmlFor='theme-preset-select' className='mb-2 text-sm'>Theme Presets</Label>
         <ThemePresetSelect className="max-w-xs" />
       </CardContent>
-    </Card>
+    </Card >
   );
 }

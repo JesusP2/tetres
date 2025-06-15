@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-router';
 import { DeleteAccountDialog } from '@web/components/delete-account-dialog';
 import { useConfirmDialog } from '@web/components/providers/confirm-dialog-provider';
+import { SettingsHeader } from '@web/components/settings-header';
 import { Avatar, AvatarFallback, AvatarImage } from '@web/components/ui/avatar';
 import { Button } from '@web/components/ui/button';
 import {
@@ -29,7 +30,6 @@ import { Separator } from '@web/components/ui/separator';
 import { authClient } from '@web/lib/auth-client';
 import { db } from '@web/lib/instant';
 import { UploadButton } from '@web/lib/uploadthing';
-import type { User } from 'better-auth';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -250,6 +250,7 @@ function AccountSettings() {
   return (
     <Card className='mx-auto max-w-3xl'>
       <CardHeader>
+        <SettingsHeader />
         <CardTitle>Account</CardTitle>
         <CardDescription>Manage your account settings.</CardDescription>
       </CardHeader>

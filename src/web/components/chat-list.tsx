@@ -20,10 +20,17 @@ import { deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
 import { handleCreateChat } from '@web/lib/create-chat';
 import { db } from '@web/lib/instant';
 import type { Chat } from '@web/lib/types';
-import { Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
+import { Download, FileEdit, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@web/components/ui/context-menu';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -104,6 +111,11 @@ export function ChatList() {
     });
   };
 
+  const handleExportChat = (chat: Chat) => {
+    console.log('Exporting chat:', chat.title);
+    // TODO: Implement export functionality
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleUpdateTitle();
@@ -132,64 +144,86 @@ export function ChatList() {
   }, []);
 
   const renderChat = (chat: Chat) => (
-    <SidebarMenuItem
-      key={chat.id}
-      onDoubleClick={() => {
-        setEditingChatId(chat.id);
-        setEditingTitle(chat.title);
-      }}
-      className='group'
-    >
-      {editingChatId === chat.id ? (
-        <Input
-          value={editingTitle}
-          onChange={e => setEditingTitle(e.target.value)}
-          onBlur={handleUpdateTitle}
-          onKeyDown={handleKeyDown}
-          autoFocus
-          onFocus={e => e.target.select()}
-        />
-      ) : (
-        <Link
-          to='/$chatId'
-          params={{ chatId: chat.id }}
-          className='w-full'
-          activeProps={{
-            className: 'bg-accent text-accent-foreground',
+    <ContextMenu key={chat.id}>
+      <ContextMenuTrigger asChild>
+        <SidebarMenuItem
+          key={chat.id}
+          onDoubleClick={() => {
+            setEditingChatId(chat.id);
+            setEditingTitle(chat.title);
+          }}
+          className='group'
+        >
+          {editingChatId === chat.id ? (
+            <Input
+              value={editingTitle}
+              onChange={e => setEditingTitle(e.target.value)}
+              onBlur={handleUpdateTitle}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              onFocus={e => e.target.select()}
+            />
+          ) : (
+            <Link
+              to='/$chatId'
+              params={{ chatId: chat.id }}
+              className='w-full'
+              activeProps={{
+                className: 'bg-accent text-accent-foreground',
+              }}
+            >
+              <div
+                className={sidebarMenuButtonVariants({
+                  className: 'relative w-full justify-start',
+                })}
+              >
+                <span className='truncate'>{chat.title}</span>
+              </div>
+            </Link>
+          )}
+        </SidebarMenuItem>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem
+          onClick={() => {
+            togglePin(chat);
           }}
         >
-          <div
-            className={sidebarMenuButtonVariants({
-              className: 'relative w-full justify-start',
-            })}
-          >
-            <span className='truncate'>{chat.title}</span>
-            <div className='absolute top-0 right-0 flex h-full items-center gap-2'>
-              <button
-                onClick={e => {
-                  e.preventDefault();
-                  togglePin(chat);
-                }}
-              >
-                {chat.pinned ? (
-                  <PinOff className='h-4 w-4' />
-                ) : (
-                  <Pin className='h-4 w-4' />
-                )}
-              </button>
-              <button
-                onClick={e => {
-                  e.preventDefault();
-                  handleDeleteChat(chat);
-                }}
-              >
-                <Trash2 className='h-4 w-4' />
-              </button>
-            </div>
-          </div>
-        </Link>
-      )}
-    </SidebarMenuItem>
+          {chat.pinned ? (
+            <>
+              <PinOff className='mr-2 size-4' />
+              Unpin
+            </>
+          ) : (
+            <>
+              <Pin className='mr-2 size-4' />
+              Pin
+            </>
+          )}
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            setEditingChatId(chat.id);
+            setEditingTitle(chat.title);
+          }}
+        >
+          <FileEdit className='mr-2 size-4' />
+          Rename
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => handleExportChat(chat)}>
+          <Download className='mr-2 size-4' />
+          Export
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          variant='destructive'
+          onClick={() => handleDeleteChat(chat)}
+        >
+          <Trash2 className='mr-2 size-4' />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 
   return (
