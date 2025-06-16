@@ -394,23 +394,30 @@ function ReasoningDropdown({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant='outline' size='sm' className='flex items-center gap-2'>
-          {reasoningLevel === 'off' ? (
-            <Brain className='text-muted-foreground h-4 w-4' />
-          ) : (
-            <Brain className='h-4 w-4' />
-          )}
-          <span
-            className={cn(
-              'capitalize',
-              reasoningLevel === 'off' && 'text-muted-foreground',
-            )}
-          >
-            {reasoningLevel}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant='outline' size='sm' className='flex items-center gap-2'>
+              {reasoningLevel === 'off' ? (
+                <Brain className='text-muted-foreground h-4 w-4' />
+              ) : (
+                <Brain className='h-4 w-4' />
+              )}
+              <span
+                className={cn(
+                  'capitalize',
+                  reasoningLevel === 'off' && 'text-muted-foreground',
+                )}
+              >
+                {reasoningLevel}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          Reasoning Effort
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent>
         {Object.entries(reasoningConfig).map(
           ([level, { icon: Icon, label }]) => (

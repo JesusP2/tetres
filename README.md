@@ -1,9 +1,9 @@
 - pin/delete buttons should slide in from the right when chat is hovered
 - [x] Add more models
-- [-] reasoning
+- [x] reasoning
 - [x] branching
 - [x] attachments
-- [-] tools
+- [x] tools
 - [x] pdfs
-- [-] add file on attach
+- [x] add file on attach
 - [x] update updateAt of chat on new message
