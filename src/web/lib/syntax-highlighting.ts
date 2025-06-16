@@ -16,12 +16,13 @@ md.use(
       },
       transformers: [
         {
-          pre(node: any) {
-            // console.log(node, node.parentElement, node.parentNode)
+          pre(node) {
             const codeTag = node.children
               .filter(assumeIsAnElement)
-              .find(element => element.tagName === 'code');
-            if (codeTag == null) {
+              .find(
+                element => 'tagName' in element && element.tagName === 'code',
+              );
+            if (codeTag == null || !('properties' in codeTag)) {
               console.warn('could not find code tag inside the pre element');
               return node;
             }
@@ -81,6 +82,7 @@ md.use(
                 copyButton,
               ],
             };
+            console.log(JSON.stringify(node));
             return {
               type: 'element',
               tagName: 'div',

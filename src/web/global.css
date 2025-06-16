@@ -130,9 +130,9 @@ pre::-webkit-scrollbar-thumb {
 
 .language-badge {
   background-color: red;
-  padding: 0.25rem 0.5rem !important;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem !important;
   background-color: var(--card);
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   font-weight: 500;
   height: 2.5rem !important;
   display: flex;
