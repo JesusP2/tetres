@@ -71,7 +71,7 @@ const _schema = i.schema({
       name: i.string(),
       pinned: i.boolean(),
       userId: i.string().indexed(),
-      updatedAt: i.date(),
+      updatedAt: i.date().indexed(),
       createdAt: i.date(),
     }),
     chats: i.entity({
