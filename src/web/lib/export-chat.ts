@@ -36,6 +36,13 @@ export async function handleExportChat(chat: Chat) {
     }
     markdown += `### ${roleHeader}\n\n`;
 
+    if (message.role === 'assistant' && message.reasoning) {
+      const reasoningContent = objectToString(message.reasoning);
+      if (reasoningContent.trim()) {
+        markdown += `<details>\n<summary>Reasoning</summary>\n\n${reasoningContent}\n\n</details>\n\n`;
+      }
+    }
+
     const content = objectToString(message.content);
     markdown += `${content}\n\n`;
 
