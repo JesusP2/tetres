@@ -42,6 +42,7 @@ import { useRef, useState } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { MyUploadButton } from '../upload-button';
+import { Create, Explore, Learn, Code } from '@web/components/ui/icons';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -280,6 +281,9 @@ export function ModelsButton({
   updateModel: (model: ModelId) => Promise<unknown>;
 }) {
   const [open, setOpen] = useState(false);
+  const selectedModelData = models.find(m => m.id === selectedModel);
+  const SelectedIcon = selectedModel ? getModelIcon(selectedModel) : null;
+  
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -290,9 +294,10 @@ export function ModelsButton({
           aria-expanded={open}
           className='w-[250px] justify-between'
         >
-          <span className='truncate'>
+          <span className='flex items-center truncate'>
+            {SelectedIcon && <SelectedIcon className='mr-2 h-4 w-4' />}
             {selectedModel
-              ? models.find(m => m.id === selectedModel)?.name
+              ? selectedModelData?.name
               : 'Select model...'}
           </span>
           <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
@@ -311,24 +316,28 @@ export function ModelsButton({
           <CommandList className='chat-scrollbar'>
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
-              {models.map(m => (
-                <CommandItem
-                  key={m.id}
-                  value={m.id}
-                  onSelect={currentValue => {
-                    updateModel(currentValue as ModelId);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedModel === m.id ? 'opacity-100' : 'opacity-0',
-                    )}
-                  />
-                  {m.name}
-                </CommandItem>
-              ))}
+              {models.map(m => {
+                const IconComponent = getModelIcon(m.id);
+                return (
+                  <CommandItem
+                    key={m.id}
+                    value={m.id}
+                    onSelect={currentValue => {
+                      updateModel(currentValue as ModelId);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        selectedModel === m.id ? 'opacity-100' : 'opacity-0',
+                      )}
+                    />
+                    <IconComponent className='mr-2 h-4 w-4' />
+                    {m.name}
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
@@ -388,3 +397,11 @@ function ReasoningDropdown({
     </DropdownMenu>
   );
 }
+
+// Map model providers to icons
+const getModelIcon = (modelId: ModelId) => {
+  if (modelId.startsWith('google/')) return Explore;
+  if (modelId.startsWith('anthropic/')) return Create;
+  if (modelId.startsWith('openai/')) return Code;
+  return Learn; // fallback icon
+};
