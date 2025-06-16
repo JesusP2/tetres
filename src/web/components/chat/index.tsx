@@ -283,8 +283,8 @@ export function Chat({
                       </div>
                     ) : (
                       <div className='group'>
-                        <div className='bg-primary rounded-lg p-2'>
-                          <span className='text-primary-foreground'>
+                        <div className='bg-secondary rounded-lg p-2'>
+                          <span className='text-secondary-foreground'>
                             {m.content}
                           </span>
                           <MessageAttachments files={m.files || []} />

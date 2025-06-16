@@ -47,6 +47,11 @@ md.use(
             }
 
             const language = languageProperty.replace(languagePrefix, '');
+            // const text = extractTextFromNodes(node);
+
+            // function copy() {
+            //   navigator.clipboard.writeText(text);
+            // }
             const copyButton = {
               type: 'element',
               tagName: 'button',
@@ -82,13 +87,11 @@ md.use(
                 copyButton,
               ],
             };
-            console.log(JSON.stringify(node));
             return {
               type: 'element',
               tagName: 'div',
               properties: {
                 class: 'pre-container',
-                onclick: '',
               },
               children: [
                 codeBadge,
@@ -121,6 +124,39 @@ export async function renderMarkdown(input: string) {
 const assumeIsAnElement = (element: ElementContent): element is Element => {
   return element != null && element.type === 'element';
 };
+
+// Type definitions for the node structure
+interface TextNode {
+  type: 'text';
+  value: string;
+}
+
+interface ElementNode {
+  type: 'element';
+  tagName: string;
+  properties?: Record<string, any>;
+  children?: (TextNode | ElementNode)[];
+}
+
+type Node = TextNode | ElementNode;
+
+/**
+ * Recursively extracts all text values from a node structure
+ * @param node - The root node to extract text from
+ * @returns Concatenated string of all text values
+ */
+export function extractTextFromNodes(node: Node): string {
+  if (node.type === 'text') {
+    return node.value;
+  }
+
+  if (node.type === 'element' && node.children) {
+    return node.children.map(child => extractTextFromNodes(child)).join('');
+  }
+
+  return '';
+}
+
 // ('shiki not-prose relative bg-chat-accent text-sm font-[450] text-secondary-foreground [&_pre]:overflow-auto [&_pre]:!bg-transparent [&_pre]:px-[1em] [&_pre]:py-[1em] [&_pre]:whitespace-pre-wrap');
 
 // ('shiki not-prose relative bg-chat-accent text-sm font-[450] text-secondary-foreground [&_pre]:overflow-auto [&_pre]:!bg-transparent [&_pre]:px-[1em] [&_pre]:py-[1em]');

@@ -18,9 +18,6 @@ function RootComponent() {
   return (
     <Providers>
       <Outlet />
-      {import.meta.env.DEV && (
-        <TanStackRouterDevtools position='bottom-right' />
-      )}
       <Toaster />
     </Providers>
   );

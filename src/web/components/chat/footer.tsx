@@ -42,6 +42,8 @@ import { useRef, useState } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { MyUploadButton } from '../upload-button';
+import { Tooltip, TooltipContent } from '../ui/tooltip';
+import { TooltipTrigger } from '@radix-ui/react-tooltip';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -188,7 +190,7 @@ export function ChatFooter({
               name='message'
               disabled={!window.navigator.onLine}
               placeholder='Type your message here...'
-              className='field-size-content chat-scrollbar max-h-[175px] w-full resize-none border-none bg-transparent pr-16 shadow-none focus-visible:ring-0 dark:placeholder:text-white'
+              className='field-size-content chat-scrollbar max-h-[175px] w-full resize-none border-none pr-16 shadow-none focus-visible:ring-0 dark:placeholder:text-white'
               value={message}
               onChange={e => setMessage(e.target.value)}
               onKeyDown={event => {
@@ -198,77 +200,90 @@ export function ChatFooter({
                 }
               }}
             />
-            {isGenerating ? (
-              <Button
-                size='icon'
-                variant='destructive'
-                className='absolute right-2 bottom-2'
-                onClick={handleStop}
-              >
-                <Square className='h-4 w-4' />
-              </Button>
-            ) : (
-              <Button
-                size='icon'
-                className='absolute right-2 bottom-2'
-                type='submit'
-                disabled={
-                  (!message.trim() &&
-                    (!messageFiles || messageFiles.length === 0)) ||
-                  !window.navigator.onLine
-                }
-              >
-                <ArrowUp className='h-4 w-4' />
-              </Button>
-            )}
           </div>
-        </div>
-        <div className='mt-2 flex items-center justify-between'>
-          <div className='flex items-center gap-2'>
-            <ModelsButton
-              selectedModel={selectedModel}
-              updateModel={updateModel}
-            />
-            <Toggle
-              size='sm'
-              pressed={webSearchEnabled}
-              onPressedChange={setWebSearchEnabled}
-              variant='outline'
-            >
-              <Globe className='h-4 w-4' />
-              Web
-            </Toggle>
-            {supportsReasoning && (
-              <ReasoningDropdown
-                reasoningLevel={reasoningLevel}
-                setReasoningLevel={setReasoningLevel}
+          <div className='mt-2 flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <ModelsButton
+                selectedModel={selectedModel}
+                updateModel={updateModel}
               />
-            )}
-            {canAttach && (
-              <MyUploadButton
-                disabled={isProcessing}
-                onClientUploadComplete={files => {
-                  const file = files[0];
-                  if (!file) return;
-                  setIsProcessing(false);
-                  setMessageFiles(prev => {
-                    const files = prev.slice(0, prev.length - 1);
-                    return [...files, file];
-                  });
-                }}
-                onUploadBegin={() => setIsProcessing(true)}
-                onBeforeUploadBegin={files => {
-                  return files.map(file => {
+              <Toggle
+                size='sm'
+                pressed={webSearchEnabled}
+                onPressedChange={setWebSearchEnabled}
+                variant='outline'
+              >
+                <Globe className='h-4 w-4' />
+                Web
+              </Toggle>
+              {supportsReasoning && (
+                <ReasoningDropdown
+                  reasoningLevel={reasoningLevel}
+                  setReasoningLevel={setReasoningLevel}
+                />
+              )}
+              {canAttach && (
+                <MyUploadButton
+                  disabled={isProcessing}
+                  onClientUploadComplete={files => {
+                    const file = files[0];
+                    if (!file) return;
+                    setIsProcessing(false);
                     setMessageFiles(prev => {
-                      return [...prev, file.name];
+                      const files = prev.slice(0, prev.length - 1);
+                      return [...files, file];
                     });
-                    return file;
-                  });
-                }}
-                endpoint='uploader'
-                acceptTypes={acceptTypes}
-              />
-            )}
+                  }}
+                  onUploadBegin={() => setIsProcessing(true)}
+                  onBeforeUploadBegin={files => {
+                    return files.map(file => {
+                      setMessageFiles(prev => {
+                        return [...prev, file.name];
+                      });
+                      return file;
+                    });
+                  }}
+                  endpoint='uploader'
+                  acceptTypes={acceptTypes}
+                />
+              )}
+            </div>
+            <div className='flex items-center gap-2'>
+              {isGenerating ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className="size-8"
+                      variant='destructive'
+                      onClick={handleStop}
+                    >
+                      <Square className='h-4 w-4' />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Cancel response generation
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className={cn('size-8', message.trim() ? '' : 'opacity-50')}
+                      type='submit'
+                    >
+                      <ArrowUp className='h-4 w-4' />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {message.trim() ? (
+                      <div>Send</div>
+                    ) : (
+                      <div>Message requires text</div>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
           </div>
         </div>
       </form>
