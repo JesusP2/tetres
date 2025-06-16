@@ -69,9 +69,9 @@ const rules = {
     },
   },
   chats: {
-    bind: ['isOwner', 'auth.id != null && (auth.id == data.userId || !data.userId)'],
+    bind: ['isOwner', 'auth.id != null && auth.id == data.userId', 'isShared', 'data.userId == null'],
     allow: {
-      view: 'isOwner',
+      view: 'isOwner || isShared',
       create: 'isOwner',
       delete: 'isOwner',
       update: 'isOwner',
@@ -80,15 +80,17 @@ const rules = {
   messages: {
     bind: [
       'isOwner',
-      "auth.id != null && (auth.id == data.userId || !data.userId)",
+      "auth.id != null && auth.id == data.userId",
       'isLoggedIn',
       'auth.id != null',
+      'isShared',
+      'data.userId == null',
     ],
     allow: {
-      view: 'isOwner',
+      view: 'isOwner || isShared',
       create: 'isLoggedIn',
-      delete: 'isOwner',
-      update: 'isOwner && data.aborted == null',
+      delete: 'isOwner || isShared',
+      update: 'isOwner || isShared',
     },
   },
   ui: {
