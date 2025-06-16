@@ -16,16 +16,15 @@ import {
 } from '@web/components/ui/dialog';
 import { Input } from '@web/components/ui/input';
 import { ScrollArea } from '@web/components/ui/scroll-area';
-import {
-  SidebarMenu,
-  useSidebar,
-} from '@web/components/ui/sidebar';
+import { SidebarMenu, useSidebar } from '@web/components/ui/sidebar';
 import { useUI } from '@web/hooks/use-ui';
 import { type MyUser, useUser } from '@web/hooks/use-user';
 import { deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
 import { handleCreateChat } from '@web/lib/create-chat';
+import { handleExportChat } from '@web/lib/export-chat';
 import { db } from '@web/lib/instant';
 import type { Chat } from '@web/lib/types';
+import { cn } from '@web/lib/utils';
 import {
   Download,
   FileEdit,
@@ -39,8 +38,6 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import { handleExportChat } from '@web/lib/export-chat';
-import { cn } from '@web/lib/utils';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -79,24 +76,24 @@ export function ChatList() {
   const { data } = db.useQuery(
     !user.isPending
       ? {
-        chats: {
-          $: {
-            where: {
-              userId: user.data?.id || '',
+          chats: {
+            $: {
+              where: {
+                userId: user.data?.id || '',
+              },
+              order: {
+                updatedAt: 'desc',
+              },
             },
-            order: {
-              updatedAt: 'desc',
-            }
           },
-        },
-      }
+        }
       : {},
   );
   const chats = (data?.chats || []) as Chat[];
   const filteredChats = searchQuery
     ? chats.filter(chat =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : chats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -142,25 +139,29 @@ export function ChatList() {
         user={user}
       />
       <ScrollArea className='masked-scroll-area mr-2 h-full overflow-y-auto'>
-        <SidebarMenu className="mt-2">
+        <SidebarMenu className='mt-2'>
           {pinned.length > 0 && (
             <div className='px-4 pt-2 pb-4'>
-              <div className='flex items-center gap-2 text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-wide'>
+              <div className='text-muted-foreground mb-3 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase'>
                 <Pin className='size-3' />
                 Pinned
               </div>
               <div className='space-y-1'>
-                {pinned.map(chat => <RenderChat chat={chat} key={chat.id} />)}
+                {pinned.map(chat => (
+                  <RenderChat chat={chat} key={chat.id} />
+                ))}
               </div>
             </div>
           )}
           {Object.entries(groupedChats).map(([period, chats]) => (
             <div key={period} className='px-4 pb-4'>
-              <div className='text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-wide'>
+              <div className='text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase'>
                 {period}
               </div>
               <div className='space-y-1'>
-                {chats.map(chat => <RenderChat chat={chat} key={chat.id} />)}
+                {chats.map(chat => (
+                  <RenderChat chat={chat} key={chat.id} />
+                ))}
               </div>
             </div>
           ))}
@@ -266,7 +267,7 @@ function ChatSearch({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className='p-0 gap-0'
+        className='gap-0 p-0'
         showCloseButton={false}
         onOpenAutoFocus={e => {
           e.preventDefault();
@@ -283,7 +284,7 @@ function ChatSearch({
         </VisuallyHidden>
         <div className='flex items-center gap-2 border-b p-3'>
           <Search className='text-muted-foreground size-4' />
-          <span className="text-muted-foreground">/</span>
+          <span className='text-muted-foreground'>/</span>
           <PlusIcon className='text-muted-foreground size-4' />
           <input
             ref={inputRef}
@@ -313,13 +314,13 @@ function ChatSearch({
                 className={cn(
                   'flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors',
                   'hover:bg-accent/50',
-                  selectedIndex === i && 'bg-accent'
+                  selectedIndex === i && 'bg-accent',
                 )}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{chat.title}</p>
+                <div className='min-w-0 flex-1'>
+                  <p className='truncate text-sm font-medium'>{chat.title}</p>
                 </div>
               </div>
             ))}
@@ -368,17 +369,14 @@ export function RenderChat({ chat }: { chat: Chat }) {
   return (
     <ContextMenu key={chat.id}>
       <ContextMenuTrigger asChild>
-        <Link
-          to='/$chatId'
-          params={{ chatId: chat.id }}
-        >
+        <Link to='/$chatId' params={{ chatId: chat.id }}>
           <div
             className={cn(
               'relative mb-1 rounded-lg transition-all duration-200 ease-in-out',
               'hover:bg-accent/50 hover:shadow-sm',
               'group cursor-pointer',
               isActive && 'bg-accent shadow-sm',
-              'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2'
+              'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
             )}
             style={{
               width: `calc(${width} - 2rem)`,
@@ -388,10 +386,8 @@ export function RenderChat({ chat }: { chat: Chat }) {
               setEditingTitle(chat.title);
             }}
           >
-            <div className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg',
-            )}>
-              <div className="flex-1 min-w-0">
+            <div className={cn('flex items-center gap-3 rounded-lg px-3 py-2')}>
+              <div className='min-w-0 flex-1'>
                 {editingChatId === chat.id ? (
                   <input
                     value={editingTitle}
@@ -400,17 +396,19 @@ export function RenderChat({ chat }: { chat: Chat }) {
                     onKeyDown={handleKeyDown}
                     autoFocus
                     onFocus={e => e.target.select()}
-                    className="border-none outline-none p-0 text-sm font-medium"
+                    className='border-none p-0 text-sm font-medium outline-none'
                   />
                 ) : (
-                    <span className={cn(
-                      "text-sm font-medium truncate transition-colors",
+                  <span
+                    className={cn(
+                      'truncate text-sm font-medium transition-colors',
                       isActive
                         ? 'text-foreground'
-                        : 'text-foreground/80 group-hover:text-foreground'
-                    )}>
-                      {chat.title}
-                    </span>
+                        : 'text-foreground/80 group-hover:text-foreground',
+                    )}
+                  >
+                    {chat.title}
+                  </span>
                 )}
               </div>
             </div>
@@ -458,5 +456,5 @@ export function RenderChat({ chat }: { chat: Chat }) {
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
-  )
+  );
 }

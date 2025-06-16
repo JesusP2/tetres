@@ -1,4 +1,8 @@
+import { TooltipTrigger } from '@radix-ui/react-tooltip';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { AnthropicLogo } from '@web/components/icons/anthropic';
+import { GeminiLogo } from '@web/components/icons/gemini';
+import { OpenAILogo } from '@web/components/icons/openai';
 import { Button } from '@web/components/ui/button';
 import {
   Command,
@@ -29,6 +33,7 @@ import { cn } from '@web/lib/utils';
 import { deleteFile } from '@web/services';
 import {
   ArrowUp,
+  Bot,
   Brain,
   ChevronsUpDown,
   Globe,
@@ -36,17 +41,12 @@ import {
   Paperclip,
   Square,
   X,
-  Bot,
 } from 'lucide-react';
-import { useRef, useState, type SVGProps } from 'react';
+import { type SVGProps, useRef, useState } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
-import { MyUploadButton } from '../upload-button';
 import { Tooltip, TooltipContent } from '../ui/tooltip';
-import { TooltipTrigger } from '@radix-ui/react-tooltip';
-import { OpenAILogo } from '@web/components/icons/openai';
-import { GeminiLogo } from '@web/components/icons/gemini';
-import { AnthropicLogo } from '@web/components/icons/anthropic';
+import { MyUploadButton } from '../upload-button';
 
 function ModelIcon({ modelId }: { modelId: ModelId }) {
   let Icon: React.FC<SVGProps<SVGSVGElement>>;
@@ -59,7 +59,9 @@ function ModelIcon({ modelId }: { modelId: ModelId }) {
   } else {
     Icon = Bot;
   }
-  return <Icon className="text-accent-foreground mr-2 h-4 w-4" fill="#56453F" />;
+  return (
+    <Icon className='text-accent-foreground mr-2 h-4 w-4' fill='#56453F' />
+  );
 }
 
 type ChatFooterProps = {
@@ -270,22 +272,23 @@ export function ChatFooter({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      className="size-8"
+                      className='size-8'
                       variant='destructive'
                       onClick={handleStop}
                     >
                       <Square className='h-4 w-4' />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    Cancel response generation
-                  </TooltipContent>
+                  <TooltipContent>Cancel response generation</TooltipContent>
                 </Tooltip>
               ) : (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      className={cn('size-8', message.trim() ? '' : 'opacity-50')}
+                      className={cn(
+                        'size-8',
+                        message.trim() ? '' : 'opacity-50',
+                      )}
                       type='submit'
                     >
                       <ArrowUp className='h-4 w-4' />
@@ -361,7 +364,7 @@ export function ModelsButton({
                     <ModelIcon modelId={m.id} />
                     {m.name}
                   </CommandItem>
-                )
+                );
               })}
             </CommandGroup>
           </CommandList>
