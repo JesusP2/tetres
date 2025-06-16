@@ -31,7 +31,7 @@ import {
   Edit3,
   Loader2,
   RotateCcw,
-  Split,
+  GitBranchIcon,
   X,
 } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useRef, useState } from 'react';
@@ -186,13 +186,14 @@ export function Chat({
     const messagesToCopy = messages.slice(0, messageIndex + 1);
 
     const newChatId = id();
-    const newChatTitle = `${chat.title} (branch)`;
+    const newChatTitle = chat.title
 
     const createChatTx = createChat(
       user.data,
       newChatTitle,
       newChatId,
       chat.model as ModelId,
+      chat.id,
     );
 
     const newMessageTxs = messagesToCopy.map(msgToCopy => {
@@ -202,6 +203,7 @@ export function Chat({
         id: _id,
         chatId: _oldChatId,
         highlightedText: _oldHighlightedText,
+        highlightedReasoning: _oldHighlightedReasoning,
         ...restOfMsg
       } = msgToCopy;
       const newMessageData = {
@@ -420,7 +422,7 @@ export function Chat({
                       title='Branch off'
                       disabled={isProcessing}
                     >
-                      <Split className='h-3 w-3' />
+                      <GitBranchIcon className='size-4' />
                     </Button>
                     <Button
                       size='sm'
