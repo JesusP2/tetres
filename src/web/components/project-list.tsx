@@ -1,0 +1,214 @@
+import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@web/components/ui/context-menu';
+import { SidebarMenu } from '@web/components/ui/sidebar';
+import { useUser } from '@web/hooks/use-user';
+import { db } from '@web/lib/instant';
+import type { Project } from '@web/lib/projects';
+import { deleteProject, toggleProjectPin, updateProjectName } from '@web/lib/projects';
+import type { Chat } from '@web/lib/types';
+import { cn } from '@web/lib/utils';
+import {
+  ChevronDown,
+  ChevronRight,
+  FileEdit,
+  Folder,
+  FolderOpen,
+  Pin,
+  PinOff,
+  Trash2,
+} from 'lucide-react';
+import { Input } from '@web/components/ui/input';
+import { RenderChat } from './chat-list';
+import { useConfirmDialog } from './providers/confirm-dialog-provider';
+
+export function ProjectList() {
+  const user = useUser();
+  const { confirmDelete } = useConfirmDialog();
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+
+  const { data } = db.useQuery(
+    !user.isPending
+      ? {
+          projects: {
+            $: {
+              where: {
+                userId: user.data?.id || '',
+              },
+              order: {
+                updatedAt: 'desc',
+              },
+            },
+            chats: {
+              $: {
+                order: {
+                  updatedAt: 'desc',
+                },
+              },
+            },
+          },
+        }
+      : {},
+  );
+
+  const projects = (data?.projects || []) as (Project & { chats?: Chat[] })[];
+
+  const toggleExpanded = (projectId: string) => {
+    const newExpanded = new Set(expandedProjects);
+    if (newExpanded.has(projectId)) {
+      newExpanded.delete(projectId);
+    } else {
+      newExpanded.add(projectId);
+    }
+    setExpandedProjects(newExpanded);
+  };
+
+  const handleUpdateName = async () => {
+    if (!editingProjectId) return;
+    const project = projects.find(p => p.id === editingProjectId);
+    if (project && editingName.trim() && editingName.trim() !== project.name) {
+      await updateProjectName(project, editingName.trim());
+    }
+    setEditingProjectId(null);
+    setEditingName('');
+  };
+
+  const handleDeleteProject = (project: Project) => {
+    confirmDelete({
+      title: 'Delete Project',
+      description: `Are you sure you want to delete "${project.name}"? Chats in this project will not be deleted.`,
+      handleConfirm: () => deleteProject(project),
+      handleCancel: () => setEditingProjectId(null),
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleUpdateName();
+    } else if (e.key === 'Escape') {
+      setEditingProjectId(null);
+      setEditingName('');
+    }
+  };
+
+  if (projects.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="px-4 pb-4">
+      <div className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
+        Projects
+      </div>
+      <SidebarMenu>
+        {projects.map(project => {
+          const isExpanded = expandedProjects.has(project.id);
+          const projectChats = project.chats || [];
+          
+          return (
+            <div key={project.id} className="space-y-1">
+              <ContextMenu>
+                <ContextMenuTrigger asChild>
+                  <div
+                    className={cn(
+                      'flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer transition-colors',
+                      'hover:bg-accent/50',
+                      'group',
+                    )}
+                    onClick={() => toggleExpanded(project.id)}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {projectChats.length > 0 ? (
+                        isExpanded ? (
+                          <ChevronDown className="size-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="size-4 text-muted-foreground" />
+                        )
+                      ) : (
+                        <div className="size-4" />
+                      )}
+                      {isExpanded ? (
+                        <FolderOpen className="size-4 text-muted-foreground" />
+                      ) : (
+                        <Folder className="size-4 text-muted-foreground" />
+                      )}
+                      {project.pinned && <Pin className="size-3 text-muted-foreground" />}
+                      {editingProjectId === project.id ? (
+                        <Input
+                          value={editingName}
+                          onChange={e => setEditingName(e.target.value)}
+                          onBlur={handleUpdateName}
+                          onKeyDown={handleKeyDown}
+                          autoFocus
+                          onFocus={e => e.target.select()}
+                          className="h-6 px-1 text-sm border-none p-0 outline-none bg-transparent"
+                        />
+                      ) : (
+                        <span className="text-sm font-medium truncate">
+                          {project.name}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {projectChats.length}
+                    </span>
+                  </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem
+                    onClick={() => toggleProjectPin(project)}
+                  >
+                    {project.pinned ? (
+                      <>
+                        <PinOff className="mr-2 size-4" />
+                        Unpin
+                      </>
+                    ) : (
+                      <>
+                        <Pin className="mr-2 size-4" />
+                        Pin
+                      </>
+                    )}
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => {
+                      setEditingProjectId(project.id);
+                      setEditingName(project.name);
+                    }}
+                  >
+                    <FileEdit className="mr-2 size-4" />
+                    Rename
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem
+                    variant="destructive"
+                    onClick={() => handleDeleteProject(project)}
+                  >
+                    <Trash2 className="mr-2 size-4" />
+                    Delete
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+              
+              {isExpanded && projectChats.length > 0 && (
+                <div className="ml-6 space-y-1">
+                  {projectChats.map(chat => (
+                    <RenderChat key={chat.id} chat={chat} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </SidebarMenu>
+    </div>
+  );
+}

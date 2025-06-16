@@ -11,6 +11,8 @@ import { ShellIcon } from 'lucide-react';
 import * as React from 'react';
 import { ChatList } from './chat-list';
 import { NavUser } from './nav-user';
+import { ProjectButton } from './project-button';
+import { ProjectList } from './project-list';
 import { ThemeButton } from './theme-button';
 import { buttonVariants } from './ui/button';
 import { SettingsIcon } from './ui/settings';
@@ -28,6 +30,10 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
           </div>
         </SidebarHeader>
         <SidebarContent className='overflow-hidden'>
+          <div className='flex flex-col gap-4 p-4 py-0'>
+            <ProjectButton />
+          </div>
+          <ProjectList />
           <ChatList />
         </SidebarContent>
         <SidebarFooter className='mb-2'>

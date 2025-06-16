@@ -193,7 +193,8 @@ export function Chat({
       newChatTitle,
       newChatId,
       chat.model as ModelId,
-      chat.id,
+      chat.id, // branchId (parent chat ID)
+      chat.projectId, // inherit project from parent chat
     );
 
     const newMessageTxs = messagesToCopy.map(msgToCopy => {

@@ -6,6 +6,9 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@web/components/ui/context-menu';
 import {
@@ -28,6 +31,7 @@ import { cn } from '@web/lib/utils';
 import {
   Download,
   FileEdit,
+  FolderPlus,
   GitBranchIcon,
   Pin,
   PinOff,
@@ -39,6 +43,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
+import { assignChatToProject, removeChatFromProject, createProject, type Project } from '@web/lib/projects';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -87,15 +92,30 @@ export function ChatList() {
               },
             },
           },
+          projects: {
+            $: {
+              where: {
+                userId: user.data?.id || '',
+              },
+              order: {
+                name: 'asc',
+              },
+            },
+          },
         }
       : {},
   );
   const chats = (data?.chats || []) as Chat[];
+  const projects = (data?.projects || []) as Project[];
+  
+  // Filter out chats that belong to projects - they'll be shown under projects
+  const unorganizedChats = chats.filter(chat => !chat.projectId);
+  
   const filteredChats = searchQuery
-    ? chats.filter(chat =>
+    ? unorganizedChats.filter(chat =>
         chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
       )
-    : chats;
+    : unorganizedChats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
 
@@ -338,7 +358,28 @@ export function RenderChat({ chat }: { chat: Chat }) {
   const { confirmDelete } = useConfirmDialog();
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [newProjectName, setNewProjectName] = useState('');
   const isActive = value.chatId === chat.id;
+  const user = useUser();
+
+  // Get projects for the project assignment menu
+  const { data } = db.useQuery(
+    !user.isPending
+      ? {
+          projects: {
+            $: {
+              where: {
+                userId: user.data?.id || '',
+              },
+              order: {
+                name: 'asc',
+              },
+            },
+          },
+        }
+      : {},
+  );
+  const projects = (data?.projects || []) as Project[];
 
   const handleUpdateTitle = async () => {
     if (!editingChatId) return;
@@ -356,6 +397,26 @@ export function RenderChat({ chat }: { chat: Chat }) {
       handleConfirm: () => deleteChat(chat),
       handleCancel: () => setEditingChatId(null),
     });
+  };
+
+  const handleAssignToProject = async (projectId: string) => {
+    await assignChatToProject(chat, projectId);
+  };
+
+  const handleRemoveFromProject = async () => {
+    await removeChatFromProject(chat);
+  };
+
+  const handleCreateNewProject = async () => {
+    if (!user.data || !newProjectName.trim()) return;
+    try {
+      await createProject(user.data, newProjectName.trim());
+      // After creating the project, we'll need to get its ID and assign the chat
+      // For now, we'll let the user manually assign it
+      setNewProjectName('');
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -444,6 +505,37 @@ export function RenderChat({ chat }: { chat: Chat }) {
           <FileEdit className='mr-2 size-4' />
           Rename
         </ContextMenuItem>
+        
+        {/* Project Assignment Menu */}
+        {chat.projectId ? (
+          <ContextMenuItem onClick={handleRemoveFromProject}>
+            <FolderPlus className='mr-2 size-4' />
+            Remove from Project
+          </ContextMenuItem>
+        ) : (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <FolderPlus className='mr-2 size-4' />
+              Add to Project
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {projects.map(project => (
+                <ContextMenuItem
+                  key={project.id}
+                  onClick={() => handleAssignToProject(project.id)}
+                >
+                  {project.name}
+                </ContextMenuItem>
+              ))}
+              {projects.length > 0 && <ContextMenuSeparator />}
+              <ContextMenuItem onClick={handleCreateNewProject}>
+                <Plus className='mr-2 size-4' />
+                Create New Project
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        )}
+        
         <ContextMenuItem onClick={() => handleExportChat(chat)}>
           <Download className='mr-2 size-4' />
           Export
