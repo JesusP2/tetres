@@ -3,6 +3,16 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@web/components/ui/button';
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from '@web/components/ui/context-menu';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -22,16 +32,18 @@ import {
   deleteChat,
   togglePin,
   updateChatTitle,
+  updateChatProject,
 } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
-import type { Chat } from '@web/lib/types';
+import { createProject } from '@web/lib/projects';
+import type { Chat, Project } from '@web/lib/types';
 import {
   createMessageObject,
   messageToAPIMessage,
 } from '@web/lib/utils/message';
 import { renameChat, sendMessage } from '@web/services';
-import { Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
+import { FolderPlus, Pin, PinOff, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe, sortBy } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
@@ -74,6 +86,7 @@ export function ChatList() {
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  
   const { data } = db.useQuery(
     !user.isPending
       ? {
@@ -84,21 +97,34 @@ export function ChatList() {
             },
           },
         },
+        projects: {
+          $: {
+            where: {
+              userId: user.data?.id || '',
+            },
+          },
+        },
       }
       : {},
   );
-  const chats = (data?.chats || []) as Chat[];
+  
+  const allChats = (data?.chats || []) as Chat[];
+  const projects = (data?.projects || []) as Project[];
+  
+  // Filter out chats that belong to projects
+  const orphanedChats = allChats.filter(chat => !chat.projectId);
+  
   const filteredChats = searchQuery
-    ? chats.filter(chat =>
+    ? orphanedChats.filter(chat =>
       chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
     )
-    : chats;
+    : orphanedChats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
 
   const handleUpdateTitle = async () => {
     if (!editingChatId) return;
-    const chat = chats.find(c => c.id === editingChatId);
+    const chat = allChats.find(c => c.id === editingChatId);
     if (chat && editingTitle.trim() && editingTitle.trim() !== chat.title) {
       await updateChatTitle(chat, editingTitle.trim());
     }
@@ -142,6 +168,23 @@ export function ChatList() {
     return () => document.removeEventListener('keydown', down);
   }, []);
 
+  const handleAddChatToProject = async (chat: Chat, projectId: string) => {
+    await updateChatProject(chat, projectId);
+  };
+
+  const handleAddChatToNewProject = async (chat: Chat, projectName: string) => {
+    if (!user.data) return;
+    
+    try {
+      const newProjectId = crypto.randomUUID();
+      const projectTx = createProject(user.data, projectName, newProjectId);
+      await db.transact(projectTx);
+      await updateChatProject(chat, newProjectId);
+    } catch (error) {
+      console.error('Failed to create project and move chat:', error);
+    }
+  };
+
   const renderChat = (chat: Chat) => (
     <SidebarMenuItem
       key={chat.id}
@@ -161,47 +204,115 @@ export function ChatList() {
           onFocus={e => e.target.select()}
         />
       ) : (
-        <Link
-          to='/$chatId'
-          params={{ chatId: chat.id }}
-          className='w-full'
-          activeProps={{
-            className: 'bg-accent text-accent-foreground',
-          }}
-        >
-          <div
-            className={sidebarMenuButtonVariants({
-              className: 'relative w-full justify-start',
-            })}
-          >
-            <span className='truncate'>{chat.title}</span>
-            <div className='absolute top-0 right-0 flex h-full items-center gap-2'>
-              <button
-                onClick={e => {
-                  e.preventDefault();
-                  togglePin(chat);
-                }}
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <Link
+              to='/$chatId'
+              params={{ chatId: chat.id }}
+              className='w-full'
+              activeProps={{
+                className: 'bg-accent text-accent-foreground',
+              }}
+            >
+              <div
+                className={sidebarMenuButtonVariants({
+                  className: 'relative w-full justify-start',
+                })}
               >
-                {chat.pinned ? (
-                  <PinOff className='h-4 w-4' />
-                ) : (
-                  <Pin className='h-4 w-4' />
-                )}
-              </button>
-              <button
-                onClick={e => {
-                  e.preventDefault();
-                  handleDeleteChat(chat);
-                }}
-              >
-                <Trash2 className='h-4 w-4' />
-              </button>
-            </div>
-          </div>
-        </Link>
+                <span className='truncate'>{chat.title}</span>
+                <div className='absolute top-0 right-0 flex h-full items-center gap-2'>
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      togglePin(chat);
+                    }}
+                  >
+                    {chat.pinned ? (
+                      <PinOff className='h-4 w-4' />
+                    ) : (
+                      <Pin className='h-4 w-4' />
+                    )}
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      handleDeleteChat(chat);
+                    }}
+                  >
+                    <Trash2 className='h-4 w-4' />
+                  </button>
+                </div>
+              </div>
+            </Link>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem
+              onClick={() => {
+                setEditingChatId(chat.id);
+                setEditingTitle(chat.title);
+              }}
+            >
+              Rename
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => togglePin(chat)}>
+              {chat.pinned ? (
+                <>
+                  <PinOff className="mr-2 h-4 w-4" />
+                  Unpin
+                </>
+              ) : (
+                <>
+                  <Pin className="mr-2 h-4 w-4" />
+                  Pin
+                </>
+              )}
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuSub>
+              <ContextMenuSubTrigger>
+                <FolderPlus className="mr-2 h-4 w-4" />
+                Add to Project
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent>
+                {projects.map(project => (
+                  <ContextMenuItem
+                    key={project.id}
+                    onClick={() => handleAddChatToProject(chat, project.id)}
+                  >
+                    {project.name}
+                  </ContextMenuItem>
+                ))}
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                  onClick={() => {
+                    const projectName = prompt('Enter project name:');
+                    if (projectName?.trim()) {
+                      handleAddChatToNewProject(chat, projectName.trim());
+                    }
+                  }}
+                >
+                  <FolderPlus className="mr-2 h-4 w-4" />
+                  New Project
+                </ContextMenuItem>
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              onClick={() => handleDeleteChat(chat)}
+              variant="destructive"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
       )}
     </SidebarMenuItem>
   );
+
+  if (orphanedChats.length === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -222,7 +333,7 @@ export function ChatList() {
       <ChatSearch
         isOpen={searchDialogOpen}
         setIsOpen={setSearchDialogOpen}
-        chats={chats}
+        chats={allChats}
         user={user}
       />
       <ScrollArea className='masked-scroll-area mr-2 h-full overflow-y-auto'>

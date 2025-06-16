@@ -5,6 +5,7 @@ import type schema from '../../../instant.schema';
 export type Chat = Omit<InstaQLEntity<typeof schema, 'chats'>, 'model'> & {
   model: ModelId;
 };
+export type Project = InstaQLEntity<typeof schema, 'projects'>;
 export type IFile = InstaQLEntity<typeof schema, 'files'>;
 export type Message = Omit<InstaQLEntity<typeof schema, 'messages'>, 'role'> & {
   files?: IFile[];

@@ -187,6 +187,7 @@ export function Chat({
       newChatTitle,
       newChatId,
       chat.model as ModelId,
+      chat.projectId,
     );
 
     const newMessageTxs = messagesToCopy.map(msgToCopy => {

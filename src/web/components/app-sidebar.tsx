@@ -10,6 +10,8 @@ import { useUser } from '@web/hooks/use-user';
 import * as React from 'react';
 import { ChatList } from './chat-list';
 import { NavUser } from './nav-user';
+import { ProjectButton } from './project-button';
+import { ProjectList } from './project-list';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
 
@@ -22,7 +24,13 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
           </div>
         </SidebarHeader>
         <SidebarContent className='overflow-hidden'>
-          <ChatList />
+          <div className='flex flex-col h-full'>
+            <div className='p-4 space-y-4'>
+              <ProjectButton />
+            </div>
+            <ProjectList />
+            <ChatList />
+          </div>
         </SidebarContent>
         <SidebarFooter className='mb-2'>
           <NavUser />

@@ -7,16 +7,23 @@ export function createChat(
   name: string,
   chatId: string,
   model: ModelId,
+  projectId?: string,
 ) {
+  const chatData = {
+    title: name,
+    model,
+    pinned: false,
+    userId: user.id,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  } as any;
+
+  if (projectId) {
+    chatData.projectId = projectId;
+  }
+
   return db.tx.chats[chatId]
-    .update({
-      title: name,
-      model,
-      pinned: false,
-      userId: user.id,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
+    .update(chatData)
     .link({ user: user.id });
 }
 
@@ -35,6 +42,22 @@ export function updateChatModel(chat: Chat, model: ModelId) {
       model,
       updatedAt: new Date().toISOString(),
     }),
+  );
+}
+
+export function updateChatProject(chat: Chat, projectId: string | null) {
+  const updateData = {
+    updatedAt: new Date().toISOString(),
+  } as any;
+
+  if (projectId) {
+    updateData.projectId = projectId;
+  } else {
+    updateData.projectId = null;
+  }
+
+  return db.transact(
+    db.tx.chats[chat.id].update(updateData),
   );
 }
 
