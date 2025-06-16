@@ -119,7 +119,7 @@ export function ChatList() {
 
   return (
     <>
-      <div className='flex flex-col gap-4 p-4 pb-0'>
+      <div className='flex flex-col gap-4 p-4 py-0'>
         <Button onClick={handleNewChat} disabled={!window.navigator.onLine}>
           <Plus className='mr-2' /> New Chat
         </Button>
@@ -139,8 +139,8 @@ export function ChatList() {
         chats={chats}
         user={user}
       />
-      <ScrollArea className='masked-scroll-area mr-2 h-full overflow-y-auto'>
-        <SidebarMenu className='mt-2'>
+      <ScrollArea className='masked-scroll-area mr-1 h-full overflow-y-auto'>
+        <SidebarMenu className='mt-3'>
           {pinned.length > 0 && (
             <div className='px-4 pt-2 pb-4'>
               <div className='text-muted-foreground mb-3 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase'>
