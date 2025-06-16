@@ -30,20 +30,37 @@ import { deleteFile } from '@web/services';
 import {
   ArrowUp,
   Brain,
-  Check,
   ChevronsUpDown,
   Globe,
   LoaderCircleIcon,
   Paperclip,
   Square,
   X,
+  Bot,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type SVGProps } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { MyUploadButton } from '../upload-button';
 import { Tooltip, TooltipContent } from '../ui/tooltip';
 import { TooltipTrigger } from '@radix-ui/react-tooltip';
+import { OpenAILogo } from '@web/components/icons/openai';
+import { GeminiLogo } from '@web/components/icons/gemini';
+import { AnthropicLogo } from '@web/components/icons/anthropic';
+
+function ModelIcon({ modelId }: { modelId: ModelId }) {
+  let Icon: React.FC<SVGProps<SVGSVGElement>>;
+  if (modelId.startsWith('openai/')) {
+    Icon = OpenAILogo;
+  } else if (modelId.startsWith('google/')) {
+    Icon = GeminiLogo;
+  } else if (modelId.startsWith('anthropic/')) {
+    Icon = AnthropicLogo;
+  } else {
+    Icon = Bot;
+  }
+  return <Icon className="text-accent-foreground mr-2 h-4 w-4" fill="#56453F" />;
+}
 
 type ChatFooterProps = {
   onSubmit: (
@@ -331,24 +348,21 @@ export function ModelsButton({
           <CommandList className='chat-scrollbar'>
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
-              {models.map(m => (
-                <CommandItem
-                  key={m.id}
-                  value={m.id}
-                  onSelect={currentValue => {
-                    updateModel(currentValue as ModelId);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedModel === m.id ? 'opacity-100' : 'opacity-0',
-                    )}
-                  />
-                  {m.name}
-                </CommandItem>
-              ))}
+              {models.map(m => {
+                return (
+                  <CommandItem
+                    key={m.id}
+                    value={m.id}
+                    onSelect={currentValue => {
+                      updateModel(currentValue as ModelId);
+                      setOpen(false);
+                    }}
+                  >
+                    <ModelIcon modelId={m.id} />
+                    {m.name}
+                  </CommandItem>
+                )
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
