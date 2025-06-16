@@ -87,6 +87,7 @@ const _schema = i.schema({
     messages: i.entity({
       role: i.string(),
       content: i.json(),
+      reasoning: i.json().optional(),
       aborted: i.date().optional(),
       finished: i.date().optional(),
       tokens: i.number().optional(),

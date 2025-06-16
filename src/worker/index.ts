@@ -63,54 +63,70 @@ export const sendMessageToModel = async ({
       effort: config.reasoning,
     };
   }
-  const response = streamText({
-    model: openrouter(model, settings),
-    messages,
-  });
+
   const messageId = config.messageId;
-  let aborted = false;
   let sqId = 0;
   let compoundedTime = 0;
   let last = new Date().getTime();
-  for await (const text of response.textStream) {
-    compoundedTime += new Date().getTime() - last;
-    const message = await db.query({
-      messages: {
-        $: {
-          where: {
-            id: messageId,
+  const response = streamText({
+    model: openrouter(model, settings),
+    messages,
+    onChunk: async ({ chunk }) => {
+      compoundedTime += new Date().getTime() - last;
+      const message = await db.query({
+        messages: {
+          $: {
+            where: {
+              id: messageId,
+            },
           },
         },
-      },
-    });
-    if (message.messages[0].aborted) {
-      aborted = true;
-      break;
-    }
-    await db
-      .transact(
-        db.tx.messages[messageId].merge({
-          content: {
-            [sqId]: text,
-          },
-        }),
-      )
-      .catch(console.error);
-    sqId++;
-    last = new Date().getTime();
-  }
-  const update: {
-    finished: string;
-    time?: number;
-    tokens?: number;
-  } = {
+      });
+      if (message.messages[0].aborted) {
+        await db.transact(
+          db.tx.messages[messageId].update({
+            finished: new Date().toISOString(),
+          }),
+        );
+        throw new Error('aborted');
+      }
+      if (chunk.type === 'reasoning') {
+        const text = chunk.textDelta;
+        await db
+          .transact(
+            db.tx.messages[messageId].merge({
+              reasoning: {
+                [sqId]: text,
+              },
+            }),
+          )
+          .catch(console.error);
+      } else if (chunk.type === 'text-delta') {
+        const text = chunk.textDelta;
+        await db
+          .transact(
+            db.tx.messages[messageId].merge({
+              content: {
+                [sqId]: text,
+              },
+            }),
+          )
+          .catch(console.error);
+      }
+      sqId++;
+      last = new Date().getTime();
+    },
+  });
+  await response.consumeStream()
+  // for await (const _ of response.consumeStream {
+  //   continue;
+  // }
+  const usage = await response.usage;
+  const update = {
     finished: new Date().toISOString(),
+    time: compoundedTime,
+    tokens: usage.completionTokens,
   };
-  if (!aborted) {
-    const usage = await response.usage;
-    update.time = compoundedTime;
-    update.tokens = usage.completionTokens;
-  }
   await db.transact(db.tx.messages[messageId].update(update));
 };
 
