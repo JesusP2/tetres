@@ -375,12 +375,12 @@ export function Chat({
                     <div className='mb-3'>
                       <Accordion type='single' collapsible>
                         <AccordionItem value='reasoning'>
-                          <AccordionTrigger className='text-sm text-muted-foreground hover:text-foreground'>
+                          <AccordionTrigger className='text-sm text-muted-foreground hover:text-foreground cursor-pointer'>
                             <span>Reasoning</span>
                           </AccordionTrigger>
                           <AccordionContent>
                             <div
-                              className='text-sm text-muted-foreground prose prose-sm max-w-none'
+                              className='text-sm text-muted-foreground prose prose-sm max-w-none ml-6 reasoning'
                               dangerouslySetInnerHTML={{
                                 __html: m.highlightedReasoning,
                               }}
@@ -391,6 +391,7 @@ export function Chat({
                     </div>
                   )}
                   <div
+                    className="content"
                     dangerouslySetInnerHTML={{
                       __html: m.highlightedText || '',
                     }}

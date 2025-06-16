@@ -18,6 +18,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.content h3,
+.reasoning h3 {
+  @apply scroll-m-20 text-lg font-semibold tracking-tight [&:not(:first-child)]:mt-4;
+}
+
+.content p,
+.reasoning p {
+  @apply leading-7 [&:not(:first-child)]:mt-4;
+}
+
+.content ul,
+.reasoning ul {
+  @apply my-6 ml-6 list-disc [&>li]:mt-2;
+}
+
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
