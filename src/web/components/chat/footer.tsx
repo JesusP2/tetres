@@ -47,8 +47,12 @@ import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { Tooltip, TooltipContent } from '../ui/tooltip';
 import { MyUploadButton } from '../upload-button';
+import { useTheme } from '../providers/theme-provider';
+import { defaultPresets } from '@web/lib/theme-presets';
 
 function ModelIcon({ modelId }: { modelId: ModelId }) {
+  const { theme, preset } = useTheme();
+  const primaryColor = defaultPresets[preset].styles[theme].primary;
   let Icon: React.FC<SVGProps<SVGSVGElement>>;
   if (modelId.startsWith('openai/')) {
     Icon = OpenAILogo;
@@ -60,7 +64,7 @@ function ModelIcon({ modelId }: { modelId: ModelId }) {
     Icon = Bot;
   }
   return (
-    <Icon className='text-accent-foreground mr-2 h-4 w-4' fill='#56453F' />
+    <Icon className='text-primary mr-2 h-4 w-4' fill={primaryColor} />
   );
 }
 
