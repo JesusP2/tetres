@@ -175,28 +175,78 @@ pre {
   background-color: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.375rem;
   border-radius: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--muted-foreground);
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 .copy-button:hover {
   background-color: var(--accent);
   color: var(--accent-foreground);
+  transform: scale(1.05);
+}
+
+.copy-button:active {
+  transform: scale(0.95);
 }
 
 .copy-button:focus {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+  outline: none;
 }
 
-.copy-button svg {
+/* Icon container styling */
+.copy-button .copy-icon,
+.copy-button .check-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.copy-button .copy-icon svg,
+.copy-button .check-icon svg {
   width: 1rem;
   height: 1rem;
+  flex-shrink: 0;
+}
+
+/* Default state - show copy icon */
+.copy-button .copy-icon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.copy-button .check-icon {
+  opacity: 0;
+  transform: scale(0.5) rotate(-45deg);
+}
+
+/* Copied state - show check icon with animations */
+.copy-button.copied {
+  transform: scale(1.05);
+}
+
+.copy-button.copied .copy-icon {
+  opacity: 0;
+  transform: scale(0.5) rotate(45deg);
+}
+
+.copy-button.copied .check-icon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
 }
 
 /* Ensure code blocks work seamlessly with headers */
