@@ -120,10 +120,30 @@ pre::-webkit-scrollbar-thumb {
   border-radius: 10px;
 }
 
-pre {
+.actual-code {
   padding: 0.5rem !important;
-  border-radius: 0.3rem !important;
   overflow-x: auto;
+}
+
+.pre-container {
+}
+
+.language-badge {
+  background-color: red;
+  padding: 0.25rem 0.5rem !important;
+  background-color: var(--card);
+  font-size: 0.75rem;
+  font-weight: 500;
+  height: 2.5rem !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--card-foreground);
+}
+.copy-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 textarea::-webkit-resizer {
