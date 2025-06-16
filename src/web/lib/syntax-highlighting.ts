@@ -1,13 +1,23 @@
 import { fromAsyncCodeToHtml } from '@shikijs/markdown-it/async';
 import MarkdownItAsync from 'markdown-it-async';
 import { codeToHtml } from 'shiki';
+// import everforestLight from 'tm-themes/themes/everforest-light.json';
+// import everforestDark from 'tm-themes/themes/everforest-dark.json';
+// import kanagawaLotus from 'tm-themes/themes/kanagawa-lotus.json';
+// import kanagawaWave from 'tm-themes/themes/kanagawa-wave.json';
+import minLight from 'tm-themes/themes/min-light.json';
+import minDark from 'tm-themes/themes/min-dark.json';
 
 const md = MarkdownItAsync();
 md.use(
   fromAsyncCodeToHtml(codeToHtml, {
     themes: {
-      light: 'catppuccin-frappe',
-      dark: 'catppuccin-mocha',
+      light: minLight,
+      dark: minDark,
+      // kanagawaLotus,
+      // kanagawaWave,
+      // everforestLight,
+      // everforestDark,
     },
     transformers: [
       {

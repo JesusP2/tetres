@@ -227,6 +227,9 @@ importers:
       tailwindcss:
         specifier: ^4.0.6
         version: 4.1.8
+      tm-themes:
+        specifier: ^1.10.6
+        version: 1.10.6
       ulidx:
         specifier: ^2.4.1
         version: 2.4.1
@@ -5913,6 +5916,9 @@ packages:
   tinyglobby@0.2.14:
     resolution: {integrity: sha512-tX5e7OM1HnYr2+a2C/4V0htOcSQcoSTH9KgJnVvNm5zm/cyEWKJ7j7YutsH9CxMdtOkkLFy2AHrMci9IM8IPZQ==}
     engines: {node: '>=12.0.0'}
+
+  tm-themes@1.10.6:
+    resolution: {integrity: sha512-wq2Zd2AB+SWwZYzpr2PcXeVQfFSd6IxMKUm87kjeHBBycimVL+0mMQi+mYHPms9hr54bga4U0qd0o2aQMpYV6Q==}
 
   to-data-view@1.1.0:
     resolution: {integrity: sha512-1eAdufMg6mwgmlojAx3QeMnzB/BTVp7Tbndi3U7ftcT2zCZadjxkkmLmd97zmaxWi+sgGcgWrokmpEoy0Dn0vQ==}
@@ -12326,6 +12332,8 @@ snapshots:
     dependencies:
       fdir: 6.4.5(picomatch@4.0.2)
       picomatch: 4.0.2
+
+  tm-themes@1.10.6: {}
 
   to-data-view@1.1.0: {}
 

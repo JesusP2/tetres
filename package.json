@@ -91,6 +91,7 @@
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.0.6",
+    "tm-themes": "^1.10.6",
     "ulidx": "^2.4.1",
     "uploadthing": "^7.7.2",
     "vaul": "^1.1.2",
