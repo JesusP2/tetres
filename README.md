@@ -5,6 +5,5 @@
 - [x] attachments
 - [-] tools
 - [x] pdfs
-- [-] delete localStorage userId key on login
 - [-] add file on attach
-- [-] update updateAt of chat on new message
+- [x] update updateAt of chat on new message

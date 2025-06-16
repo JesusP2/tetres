@@ -118,9 +118,6 @@ export const sendMessageToModel = async ({
     },
   });
   await response.consumeStream()
-  // for await (const _ of response.consumeStream {
-  //   continue;
-  // }
   const usage = await response.usage;
   const update = {
     finished: new Date().toISOString(),

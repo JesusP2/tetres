@@ -16,6 +16,7 @@ async function parseMessage(message: string) {
 }
 
 const parsedMessageCache = new Map<string, string>();
+const parsedReasoningCache = new Map<string, string>();
 
 function createCacheKey(messageId: string, content: string) {
   const contentHash = content.split('').reduce((a, b) => {
@@ -23,6 +24,14 @@ function createCacheKey(messageId: string, content: string) {
     return a & a;
   }, 0);
   return `${messageId}-${contentHash}`;
+}
+
+function createReasoningCacheKey(messageId: string, reasoning: string) {
+  const reasoningHash = reasoning.split('').reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return `${messageId}-reasoning-${reasoningHash}`;
 }
 
 export function useChatMessages() {
@@ -41,9 +50,7 @@ export function useChatMessages() {
     },
   });
 
-  const [parsedMessages, setParsedMessages] = useState<
-    ParsedMessage[]
-  >([]);
+  const [parsedMessages, setParsedMessages] = useState<ParsedMessage[]>([]);
 
   useEffect(() => {
     if (isLoading || !data?.chats[0]?.messages) {
@@ -58,32 +65,61 @@ export function useChatMessages() {
           if (message.role === 'user') {
             return message;
           }
+
+          // Parse content
           const cacheKey = createCacheKey(
             message.id,
             objectToString(message.content),
           );
+          let highlightedText = '';
           if (parsedMessageCache.has(cacheKey)) {
-            return {
-              ...message,
-              content: objectToString(message.content),
-              highlightedText: parsedMessageCache.get(cacheKey)!,
-            };
+            highlightedText = parsedMessageCache.get(cacheKey)!;
+          } else {
+            // Parse and cache
+            highlightedText = await parseMessage(message.content);
+            parsedMessageCache.set(cacheKey, highlightedText);
           }
-          // Parse and cache
-          const highlightedText = await parseMessage(message.content);
-          parsedMessageCache.set(cacheKey, highlightedText);
-          return {
+
+          // Parse reasoning if it exists
+          let highlightedReasoning = '';
+          if (message.reasoning) {
+            const reasoningString = objectToString(message.reasoning);
+            if (reasoningString.trim()) {
+              const reasoningCacheKey = createReasoningCacheKey(
+                message.id,
+                reasoningString,
+              );
+              if (parsedReasoningCache.has(reasoningCacheKey)) {
+                highlightedReasoning =
+                  parsedReasoningCache.get(reasoningCacheKey)!;
+              } else {
+                // Parse and cache reasoning
+                highlightedReasoning = await parseMessage(reasoningString);
+                parsedReasoningCache.set(
+                  reasoningCacheKey,
+                  highlightedReasoning,
+                );
+              }
+            }
+          }
+          const newMessage = {
             ...message,
             content: objectToString(message.content),
             highlightedText: highlightedText,
+            highlightedReasoning: highlightedReasoning,
           };
+          if (message.reasoning) {
+            newMessage.reasoning = objectToString(message.reasoning);
+          }
+
+          return newMessage;
         }),
       );
       setParsedMessages(processedMessages);
     };
 
     processMessages();
-  }, [data?.chats[0]?.messages, isLoading, parseMessage, createCacheKey]);
+  }, [data?.chats[0]?.messages, isLoading]);
   const chat = data?.chats[0] as Chat;
 
   return {

@@ -2,6 +2,12 @@ import { id } from '@instantdb/react';
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@web/components/ui/accordion';
 import { useUser } from '@web/hooks/use-user';
 import { updateChatModel } from '@web/lib/chats';
 import { createChat } from '@web/lib/chats';
@@ -234,7 +240,7 @@ export function Chat({
               const isEditing = editingMessageId === m.id;
               const isLoading =
                 m.role === 'assistant' &&
-                (!m.content || Object.keys(m.content).length === 0);
+                (!m.content && !m.reasoning);
               const isAborted = m.aborted !== undefined;
               return m.role === 'user' ? (
                 <div data-role='user' key={m.id} className='flex justify-end'>
@@ -290,16 +296,6 @@ export function Chat({
                           <MessageAttachments files={m.files || []} />
                         </div>
                         <div className='mt-1 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100'>
-                          {m.time && (
-                            <span className='text-muted-foreground text-xs'>
-                              {(m.time / 1000).toFixed(2)}s
-                            </span>
-                          )}
-                          {m.tokens && (
-                            <span className='text-muted-foreground text-xs'>
-                              {m.tokens} tokens
-                            </span>
-                          )}
                           <Button
                             size='sm'
                             variant='ghost'
@@ -341,6 +337,16 @@ export function Chat({
                           >
                             <Copy className='h-3 w-3' />
                           </Button>
+                          {m.time && (
+                            <span className='text-muted-foreground text-xs'>
+                              {(m.time / 1000).toFixed(2)}s
+                            </span>
+                          )}
+                          {m.tokens && (
+                            <span className='text-muted-foreground text-xs'>
+                              {m.tokens} tokens
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}
@@ -362,6 +368,26 @@ export function Chat({
                 </div>
               ) : (
                 <div data-role='assistant' key={m.id} className='group'>
+                  {/* Show reasoning accordion if available */}
+                  {m.highlightedReasoning && m.highlightedReasoning.trim() && (
+                    <div className='mb-3'>
+                      <Accordion type='single' collapsible>
+                        <AccordionItem value='reasoning'>
+                          <AccordionTrigger className='text-sm text-muted-foreground hover:text-foreground'>
+                            <span>Reasoning</span>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div
+                              className='text-sm text-muted-foreground prose prose-sm max-w-none'
+                              dangerouslySetInnerHTML={{
+                                __html: m.highlightedReasoning,
+                              }}
+                            />
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </div>
+                  )}
                   <div
                     dangerouslySetInnerHTML={{
                       __html: m.highlightedText || '',
@@ -377,16 +403,6 @@ export function Chat({
                     </div>
                   )}
                   <div className='mt-1 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100'>
-                    {m.time && (
-                      <span className='text-muted-foreground text-xs'>
-                        {(m.time / 1000).toFixed(2)}s
-                      </span>
-                    )}
-                    {m.tokens && (
-                      <span className='text-muted-foreground text-xs'>
-                        {m.tokens} tokens
-                      </span>
-                    )}
                     <Button
                       size='sm'
                       variant='ghost'
@@ -428,6 +444,16 @@ export function Chat({
                     >
                       <RotateCcw className='h-3 w-3' />
                     </Button>
+                    {m.time && (
+                      <span className='text-muted-foreground text-xs'>
+                        {(m.time / 1000).toFixed(2)}s
+                      </span>
+                    )}
+                    {m.tokens && (
+                      <span className='text-muted-foreground text-xs'>
+                        {m.tokens} tokens
+                      </span>
+                    )}
                   </div>
                 </div>
               );
