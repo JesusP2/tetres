@@ -3,6 +3,7 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { generateText, streamText } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { csrf } from 'hono/csrf';
 import { createRouteHandler, UTApi } from 'uploadthing/server';
 import { z } from 'zod/v4';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
@@ -117,7 +118,7 @@ export const sendMessageToModel = async ({
       last = new Date().getTime();
     },
   });
-  await response.consumeStream()
+  await response.consumeStream();
   const usage = await response.usage;
   const update = {
     finished: new Date().toISOString(),
@@ -129,6 +130,7 @@ export const sendMessageToModel = async ({
 
 const app = new Hono<AppBindings>({ strict: false })
   .use(cors())
+  .use(csrf())
   .use(envMiddleware)
   .use(dbMiddleware)
   .use(betterAuthMiddleware)

@@ -62,9 +62,9 @@ export function useChatMessages() {
     const processMessages = async () => {
       const processedMessages = await Promise.all(
         rawMessages.map(async message => {
-          if (message.role === 'user') {
-            return message;
-          }
+          // if (message.role === 'user') {
+          //   return message;
+          // }
 
           // Parse content
           const cacheKey = createCacheKey(

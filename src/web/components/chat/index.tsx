@@ -246,7 +246,7 @@ export function Chat({
               const isAborted = m.aborted !== undefined;
               return m.role === 'user' ? (
                 <div data-role='user' key={m.id} className='flex justify-end'>
-                  <div className='max-w-xs md:max-w-md'>
+                  <div className='max-w-xs md:max-w-xl'>
                     {isEditing ? (
                       <div className='space-y-2'>
                         <Textarea
@@ -292,9 +292,10 @@ export function Chat({
                     ) : (
                       <div className='group'>
                         <div className='bg-secondary rounded-lg p-2'>
-                          <span className='text-secondary-foreground'>
-                            {m.content}
-                          </span>
+                          <span dangerouslySetInnerHTML={{
+                            __html: m.highlightedText || '',
+                          }}
+                            className='text-secondary-foreground' />
                           <MessageAttachments files={m.files || []} />
                         </div>
                         <div className='mt-1 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100'>
@@ -370,7 +371,6 @@ export function Chat({
                 </div>
               ) : (
                 <div data-role='assistant' key={m.id} className='group'>
-                  {/* Show reasoning accordion if available */}
                   {m.highlightedReasoning && m.highlightedReasoning.trim() && (
                     <div className='mb-3'>
                       <Accordion type='single' collapsible>

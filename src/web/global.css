@@ -133,7 +133,7 @@ pre::-webkit-scrollbar-thumb {
   border-radius: 10px;
 }
 
-.actual-code {
+pre {
   padding: 0.5rem !important;
   overflow-x: auto;
 }
@@ -143,14 +143,14 @@ pre::-webkit-scrollbar-thumb {
 
 .language-badge {
   padding: 0.25rem 0.5rem 0.25rem 0.75rem !important;
-  background-color: var(--secondary);
+  background-color: var(--primary);
   font-size: 0.9rem;
   font-weight: 500;
   height: 2.5rem !important;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--card-foreground);
+  color: var(--primary-foreground);
 }
 .copy-button {
   background-color: transparent;

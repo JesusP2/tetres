@@ -7,3 +7,9 @@
 - [x] pdfs
 - [x] add file on attach
 - [x] update updateAt of chat on new message
+- [-] copy code blocks
+- [-] image gen
+- [-] emails
+- [-] test google auth
+- [-] BYOK
+- [-] login dialog
