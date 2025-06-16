@@ -136,26 +136,88 @@ pre::-webkit-scrollbar-thumb {
 pre {
   padding: 0.5rem !important;
   overflow-x: auto;
+  margin: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
 }
 
 .pre-container {
+  position: relative;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background-color: var(--card);
 }
 
 .language-badge {
-  padding: 0.25rem 0.5rem 0.25rem 0.75rem !important;
-  background-color: var(--primary);
-  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
   font-weight: 500;
-  height: 2.5rem !important;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--primary-foreground);
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  min-height: 2.5rem;
 }
+
+.language-name {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
 .copy-button {
   background-color: transparent;
   border: none;
   cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  transition: all 0.2s ease;
+}
+
+.copy-button:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.copy-button:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.copy-button svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Ensure code blocks work seamlessly with headers */
+.actual-code {
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+/* Dark/light theme support */
+@media (prefers-color-scheme: dark) {
+  .shiki,
+  .shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+}
+
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
 }
 
 textarea::-webkit-resizer {
