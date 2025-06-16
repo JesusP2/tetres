@@ -1,5 +1,5 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { Button } from '@web/components/ui/button';
 import {
   ContextMenu,
@@ -18,7 +18,6 @@ import { Input } from '@web/components/ui/input';
 import { ScrollArea } from '@web/components/ui/scroll-area';
 import {
   SidebarMenu,
-  SidebarMenuItem,
   useSidebar,
 } from '@web/components/ui/sidebar';
 import { useUI } from '@web/hooks/use-ui';
@@ -33,14 +32,15 @@ import {
   Pin,
   PinOff,
   Plus,
+  PlusIcon,
   Search,
   Trash2,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { groupBy, partition, pipe } from 'remeda';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
-import { objectToString } from '@web/hooks/use-chat-messages';
 import { handleExportChat } from '@web/lib/export-chat';
+import { cn } from '@web/lib/utils';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -121,7 +121,7 @@ export function ChatList() {
 
   return (
     <>
-      <div className='flex flex-col gap-4 p-4'>
+      <div className='flex flex-col gap-4 p-4 pb-0'>
         <Button onClick={handleNewChat} disabled={!window.navigator.onLine}>
           <Plus className='mr-2' /> New Chat
         </Button>
@@ -142,22 +142,26 @@ export function ChatList() {
         user={user}
       />
       <ScrollArea className='masked-scroll-area mr-2 h-full overflow-y-auto'>
-        <SidebarMenu>
+        <SidebarMenu className="mt-2">
           {pinned.length > 0 && (
-            <div className='p-4'>
-              <div className='flex items-center text-muted-foreground mb-2 text-sm font-semibold capitalize'>
-                <Pin className='size-4' />
+            <div className='px-4 pt-2 pb-4'>
+              <div className='flex items-center gap-2 text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-wide'>
+                <Pin className='size-3' />
                 Pinned
               </div>
-              {pinned.map(chat => <RenderChat chat={chat} key={chat.id} />)}
+              <div className='space-y-1'>
+                {pinned.map(chat => <RenderChat chat={chat} key={chat.id} />)}
+              </div>
             </div>
           )}
           {Object.entries(groupedChats).map(([period, chats]) => (
-            <div key={period} className='p-4'>
-              <div className='text-muted-foreground mb-2 text-sm font-semibold capitalize'>
+            <div key={period} className='px-4 pb-4'>
+              <div className='text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-wide'>
                 {period}
               </div>
-              <div className='flex flex-col gap-1'>{chats.map(chat => <RenderChat key={chat.id} chat={chat} />)}</div>
+              <div className='space-y-1'>
+                {chats.map(chat => <RenderChat chat={chat} key={chat.id} />)}
+              </div>
             </div>
           ))}
         </SidebarMenu>
@@ -262,7 +266,7 @@ function ChatSearch({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className='p-0'
+        className='p-0 gap-0'
         showCloseButton={false}
         onOpenAutoFocus={e => {
           e.preventDefault();
@@ -278,11 +282,13 @@ function ChatSearch({
           </DialogDescription>
         </VisuallyHidden>
         <div className='flex items-center gap-2 border-b p-3'>
-          <Search className='text-muted-foreground h-5 w-5' />
+          <Search className='text-muted-foreground size-4' />
+          <span className="text-muted-foreground">/</span>
+          <PlusIcon className='text-muted-foreground size-4' />
           <input
             ref={inputRef}
             type='text'
-            placeholder='Search chats...'
+            placeholder='Search or press enter to create a new chat...'
             className='flex-1 bg-transparent text-sm focus:outline-none'
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -304,12 +310,17 @@ function ChatSearch({
             {filtered.map((chat, i) => (
               <div
                 key={chat.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md p-2 ${selectedIndex === i ? 'bg-accent' : ''
-                  }`}
+                className={cn(
+                  'flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors',
+                  'hover:bg-accent/50',
+                  selectedIndex === i && 'bg-accent'
+                )}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
               >
-                <span className='truncate'>{chat.title}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{chat.title}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -320,10 +331,13 @@ function ChatSearch({
 }
 
 export function RenderChat({ chat }: { chat: Chat }) {
+  const value = useParams({ from: '/_chat' }) as { chatId: string };
   const { width } = useSidebar();
   const { confirmDelete } = useConfirmDialog();
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const isActive = value.chatId === chat.id;
+
   const handleUpdateTitle = async () => {
     if (!editingChatId) return;
     if (chat && editingTitle.trim() && editingTitle.trim() !== chat.title) {
@@ -354,35 +368,54 @@ export function RenderChat({ chat }: { chat: Chat }) {
   return (
     <ContextMenu key={chat.id}>
       <ContextMenuTrigger asChild>
-        <SidebarMenuItem
-          key={chat.id}
-          onDoubleClick={() => {
-            setEditingChatId(chat.id);
-            setEditingTitle(chat.title);
-          }}
-          className='group w-auto'
-          style={{
-            width: `calc(${width} - 2rem)`,
-          }}
+        <Link
+          to='/$chatId'
+          params={{ chatId: chat.id }}
         >
-          {editingChatId === chat.id ? (
-            <Input
-              value={editingTitle}
-              onChange={e => setEditingTitle(e.target.value)}
-              onBlur={handleUpdateTitle}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              onFocus={e => e.target.select()}
-            />
-          ) : (
-            <Link
-              to='/$chatId'
-              params={{ chatId: chat.id }}
-            >
-              <p className="truncate">{chat.title}</p>
-            </Link>
-          )}
-        </SidebarMenuItem>
+          <div
+            className={cn(
+              'relative mb-1 rounded-lg transition-all duration-200 ease-in-out',
+              'hover:bg-accent/50 hover:shadow-sm',
+              'group cursor-pointer',
+              isActive && 'bg-accent shadow-sm',
+              'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2'
+            )}
+            style={{
+              width: `calc(${width} - 2rem)`,
+            }}
+            onDoubleClick={() => {
+              setEditingChatId(chat.id);
+              setEditingTitle(chat.title);
+            }}
+          >
+            <div className={cn(
+              'flex items-center gap-3 px-3 py-2 rounded-lg',
+            )}>
+              <div className="flex-1 min-w-0">
+                {editingChatId === chat.id ? (
+                  <input
+                    value={editingTitle}
+                    onChange={e => setEditingTitle(e.target.value)}
+                    onBlur={handleUpdateTitle}
+                    onKeyDown={handleKeyDown}
+                    autoFocus
+                    onFocus={e => e.target.select()}
+                    className="border-none outline-none p-0 text-sm font-medium"
+                  />
+                ) : (
+                    <span className={cn(
+                      "text-sm font-medium truncate transition-colors",
+                      isActive
+                        ? 'text-foreground'
+                        : 'text-foreground/80 group-hover:text-foreground'
+                    )}>
+                      {chat.title}
+                    </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Link>
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem
