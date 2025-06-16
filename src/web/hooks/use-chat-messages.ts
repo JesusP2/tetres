@@ -1,7 +1,7 @@
 import { useParams } from '@tanstack/react-router';
 import { db } from '@web/lib/instant';
 import { renderMarkdown } from '@web/lib/syntax-highlighting';
-import type { Chat, Message } from '@web/lib/types';
+import type { Chat, Message, ParsedMessage } from '@web/lib/types';
 import { useEffect, useState } from 'react';
 
 export const objectToString = (obj: any): string => {
@@ -42,7 +42,7 @@ export function useChatMessages() {
   });
 
   const [parsedMessages, setParsedMessages] = useState<
-    (Message & { highlightedText?: string })[]
+    ParsedMessage[]
   >([]);
 
   useEffect(() => {

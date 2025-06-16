@@ -11,7 +11,7 @@ import {
   createUserMessage,
   retryMessage,
 } from '@web/lib/messages';
-import type { Chat as ChatType, Message } from '@web/lib/types';
+import type { Chat as ChatType, Message, ParsedMessage } from '@web/lib/types';
 import {
   createMessageObject,
   fileToIFile,
@@ -38,10 +38,10 @@ import { MessageAttachments } from './message-attachments';
 
 type ChatProps = {
   chat: ChatType;
-  messages?: (Message & { highlightedText?: string })[];
+  messages?: ParsedMessage[];
   onSubmit?: (message: string) => void;
   setParsedMessages: Dispatch<
-    SetStateAction<(Message & { highlightedText?: string })[]>
+    SetStateAction<ParsedMessage[]>
   >;
 };
 

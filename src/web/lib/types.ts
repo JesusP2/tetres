@@ -10,3 +10,7 @@ export type Message = Omit<InstaQLEntity<typeof schema, 'messages'>, 'role'> & {
   files?: IFile[];
   role: 'user' | 'assistant' | 'system' | 'tool';
 };
+export type ParsedMessage = Message & {
+  highlightedText?: string;
+  highlightedReasoning?: string;
+};
