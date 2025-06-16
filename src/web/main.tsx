@@ -4,6 +4,7 @@ import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import './global.css';
 import { createRouter } from './router';
+import '@fontsource-variable/geist';
 
 if (import.meta.env.DEV) {
   scan({

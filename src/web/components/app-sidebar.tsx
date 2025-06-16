@@ -13,6 +13,7 @@ import { NavUser } from './nav-user';
 import { ThemeButton } from './theme-button';
 import { buttonVariants } from './ui/button';
 import { SettingsIcon } from './ui/settings';
+import { ShellIcon } from 'lucide-react';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
   return (
@@ -20,7 +21,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
       <Sidebar collapsible='offcanvas'>
         <SidebarHeader className='mt-2'>
           <div className='flex items-center gap-2'>
-            <h2 className='text-lg font-semibold'>Name.chat</h2>
+            <h2 className='text-lg font-semibold mx-2'><ShellIcon /></h2>
           </div>
         </SidebarHeader>
         <SidebarContent className='overflow-hidden'>
