@@ -8,6 +8,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
+  server: {
+    port: 3000,
+  },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',

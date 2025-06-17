@@ -1,5 +1,5 @@
 import { id } from '@instantdb/react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   Accordion,
   AccordionContent,
@@ -9,7 +9,7 @@ import {
 import { Button } from '@web/components/ui/button';
 import { Textarea } from '@web/components/ui/textarea';
 import { useUser } from '@web/hooks/use-user';
-import { updateChatModel } from '@web/lib/chats';
+import { copySharedChat, updateChatModel } from '@web/lib/chats';
 import { createChat } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import {
@@ -57,6 +57,7 @@ export function Chat({
 }: ChatProps) {
   const user = useUser();
   const navigate = useNavigate();
+  const params = useParams({ from: '/_chat' });
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -66,6 +67,7 @@ export function Chat({
     messagesContainerRef,
     messages,
   });
+  const [isCopying, setIsCopying] = useState(false);
 
   const handleNewMessage = async (
     message: string,
@@ -226,6 +228,22 @@ export function Chat({
     } catch (error) {
       console.error('Failed to create a new branch:', error);
       toast.error('Failed to create a new branch.');
+    }
+  };
+
+  const handleCopyChat = async () => {
+    if (!user.data || !chat || isCopying) return;
+
+    setIsCopying(true);
+    try {
+      const newChatId = await copySharedChat(chat, user.data, messages);
+      navigate({ to: '/$chatId', params: { chatId: newChatId } });
+      toast.success('Chat copied to your account!');
+    } catch (error) {
+      console.error('Failed to copy chat:', error);
+      toast.error('Failed to copy chat');
+    } finally {
+      setIsCopying(false);
     }
   };
 
@@ -475,12 +493,21 @@ export function Chat({
             Scroll to bottom
           </Button>
         )}
-        <ChatFooter
-          onSubmit={handleNewMessage}
-          selectedModel={chat.model as ModelId}
-          updateModel={model => updateChatModel(chat, model)}
-          lastMessage={messages[messages.length - 1]}
-        />
+        {'shareToken' in params ? (
+          <div className="w-full flex items-center justify-center h-16">
+            <Button onClick={handleCopyChat} disabled={isCopying}>
+              <Copy className="h-4 w-4" />
+              Copy Chat
+            </Button>
+          </div>
+        ) : (
+          <ChatFooter
+            onSubmit={handleNewMessage}
+            selectedModel={chat.model as ModelId}
+            updateModel={model => updateChatModel(chat, model)}
+            lastMessage={messages[messages.length - 1]}
+          />
+        )}
       </div>
     </>
   );

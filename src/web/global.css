@@ -121,7 +121,7 @@ code {
   width: 5px;
 }
 .chat-scrollbar:hover::-webkit-scrollbar-thumb {
-  background-color: #d4d4d8;
+  background-color: var(--secondary);
   border-radius: 10px;
 }
 

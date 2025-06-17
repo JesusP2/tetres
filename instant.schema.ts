@@ -1,5 +1,4 @@
 import { i } from '@instantdb/react';
-
 const _schema = i.schema({
   entities: {
     $files: i.entity({
@@ -81,6 +80,8 @@ const _schema = i.schema({
       projectId: i.string().indexed().optional(),
       userId: i.string().indexed(),
       branchId: i.string().optional(),
+      sharedAt: i.date().optional(),
+      shareToken: i.string().unique().optional(),
       updatedAt: i.date().indexed(),
       createdAt: i.date(),
     }),
@@ -94,7 +95,6 @@ const _schema = i.schema({
       time: i.number().optional(),
       model: i.string(),
       chatId: i.string().indexed(),
-      userId: i.string().indexed(),
       updatedAt: i.date().indexed(),
       createdAt: i.date(),
     }),

@@ -190,7 +190,7 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
         Projects
       </div>
       <ProjectButton />
-      <div className='max-h-[200px] overflow-auto overflow-x-hidden chat-oerflow'>
+      <div className='max-h-[200px] overflow-auto overflow-x-hidden chat-oerflow chat-scrollbar'>
         <SidebarMenu>
           {projects.map(project => {
             const isExpanded = expandedProjects.has(project.id);

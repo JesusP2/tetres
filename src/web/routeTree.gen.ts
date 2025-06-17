@@ -18,6 +18,7 @@ import { Route as ChatImport } from './routes/_chat'
 import { Route as ChatIndexImport } from './routes/_chat.index'
 import { Route as AuthIdImport } from './routes/auth.$id'
 import { Route as ChatChatIdImport } from './routes/_chat.$chatId'
+import { Route as ChatSharedShareTokenImport } from './routes/_chat.shared.$shareToken'
 import { Route as ApiAuthCallbackGoogleImport } from './routes/api.auth.callback.google'
 
 // Create Virtual Routes
@@ -78,6 +79,12 @@ const AuthIdRoute = AuthIdImport.update({
 const ChatChatIdRoute = ChatChatIdImport.update({
   id: '/$chatId',
   path: '/$chatId',
+  getParentRoute: () => ChatRoute,
+} as any)
+
+const ChatSharedShareTokenRoute = ChatSharedShareTokenImport.update({
+  id: '/shared/$shareToken',
+  path: '/shared/$shareToken',
   getParentRoute: () => ChatRoute,
 } as any)
 
@@ -147,6 +154,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsIndexLazyImport
       parentRoute: typeof SettingsImport
     }
+    '/_chat/shared/$shareToken': {
+      id: '/_chat/shared/$shareToken'
+      path: '/shared/$shareToken'
+      fullPath: '/shared/$shareToken'
+      preLoaderRoute: typeof ChatSharedShareTokenImport
+      parentRoute: typeof ChatImport
+    }
     '/api/auth/callback/google': {
       id: '/api/auth/callback/google'
       path: '/api/auth/callback/google'
@@ -162,11 +176,13 @@ declare module '@tanstack/react-router' {
 interface ChatRouteChildren {
   ChatChatIdRoute: typeof ChatChatIdRoute
   ChatIndexRoute: typeof ChatIndexRoute
+  ChatSharedShareTokenRoute: typeof ChatSharedShareTokenRoute
 }
 
 const ChatRouteChildren: ChatRouteChildren = {
   ChatChatIdRoute: ChatChatIdRoute,
   ChatIndexRoute: ChatIndexRoute,
+  ChatSharedShareTokenRoute: ChatSharedShareTokenRoute,
 }
 
 const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
@@ -196,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/settings/api-keys': typeof SettingsApiKeysLazyRoute
   '/': typeof ChatIndexRoute
   '/settings/': typeof SettingsIndexLazyRoute
+  '/shared/$shareToken': typeof ChatSharedShareTokenRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
@@ -206,6 +223,7 @@ export interface FileRoutesByTo {
   '/settings/api-keys': typeof SettingsApiKeysLazyRoute
   '/': typeof ChatIndexRoute
   '/settings': typeof SettingsIndexLazyRoute
+  '/shared/$shareToken': typeof ChatSharedShareTokenRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
@@ -219,6 +237,7 @@ export interface FileRoutesById {
   '/settings/api-keys': typeof SettingsApiKeysLazyRoute
   '/_chat/': typeof ChatIndexRoute
   '/settings/': typeof SettingsIndexLazyRoute
+  '/_chat/shared/$shareToken': typeof ChatSharedShareTokenRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
 }
 
@@ -233,6 +252,7 @@ export interface FileRouteTypes {
     | '/settings/api-keys'
     | '/'
     | '/settings/'
+    | '/shared/$shareToken'
     | '/api/auth/callback/google'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -242,6 +262,7 @@ export interface FileRouteTypes {
     | '/settings/api-keys'
     | '/'
     | '/settings'
+    | '/shared/$shareToken'
     | '/api/auth/callback/google'
   id:
     | '__root__'
@@ -253,6 +274,7 @@ export interface FileRouteTypes {
     | '/settings/api-keys'
     | '/_chat/'
     | '/settings/'
+    | '/_chat/shared/$shareToken'
     | '/api/auth/callback/google'
   fileRoutesById: FileRoutesById
 }
@@ -291,7 +313,8 @@ export const routeTree = rootRoute
       "filePath": "_chat.tsx",
       "children": [
         "/_chat/$chatId",
-        "/_chat/"
+        "/_chat/",
+        "/_chat/shared/$shareToken"
       ]
     },
     "/settings": {
@@ -324,6 +347,10 @@ export const routeTree = rootRoute
     "/settings/": {
       "filePath": "settings/index.lazy.tsx",
       "parent": "/settings"
+    },
+    "/_chat/shared/$shareToken": {
+      "filePath": "_chat.shared.$shareToken.tsx",
+      "parent": "/_chat"
     },
     "/api/auth/callback/google": {
       "filePath": "api.auth.callback.google.tsx"

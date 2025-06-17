@@ -1,4 +1,3 @@
-import { useParams } from '@tanstack/react-router';
 import { db } from '@web/lib/instant';
 import { renderMarkdown } from '@web/lib/syntax-highlighting';
 import type { Chat, Message, ParsedMessage } from '@web/lib/types';
@@ -34,11 +33,10 @@ function createReasoningCacheKey(messageId: string, reasoning: string) {
   return `${messageId}-reasoning-${reasoningHash}`;
 }
 
-export function useChatMessages() {
-  const { chatId } = useParams({ from: '/_chat/$chatId' });
+export function useChatMessages(chatId: string, key: 'id' | 'shareToken' = 'id') {
   const { isLoading, data } = db.useQuery({
     chats: {
-      $: { where: { id: chatId } },
+      $: { where: { [key]: chatId } },
       messages: {
         files: {},
         $: {

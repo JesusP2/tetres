@@ -15,7 +15,7 @@ type ThemeProviderState = {
 
 const initialState: ThemeProviderState = {
   preset: 'mocha-mousse',
-  theme: 'light',
+  theme: 'dark',
   setPreset: () => null,
   setTheme: () => null,
 };
@@ -74,7 +74,7 @@ function setBodyProperties(
 function setThemeInDocument() {
   let theme = localStorage.getItem(themeKey) as Theme;
   if (!theme) {
-    theme = 'light';
+    theme = initialState.theme;
     localStorage.setItem(themeKey, theme);
   }
   const root = window.document.documentElement;
@@ -88,7 +88,7 @@ function setThemeInDocument() {
 function setPresetInDocument() {
   let presetName = localStorage.getItem(presetKey) as Preset;
   if (!presetName) {
-    presetName = 'modern-minimal';
+    presetName = initialState.preset;
     localStorage.setItem(presetKey, presetName);
   }
 

@@ -7,8 +7,9 @@ export const Route = createFileRoute('/_chat/$chatId')({
 });
 
 function RouteComponent() {
+  const { chatId } = Route.useParams();
   const { isLoading, parsedMessages, setParsedMessages, chat } =
-    useChatMessages();
+    useChatMessages(chatId);
   if (!isLoading && !chat) return <Navigate to='/' />;
   if (!chat) return null;
 
