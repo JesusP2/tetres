@@ -185,12 +185,12 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
   };
 
   return (
-    <div className='px-4 pb-4'>
-      <div className='text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase'>
+    <div className='px-4'>
+      <div className='text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase flex gap-x-2'>
         Projects
       </div>
       <ProjectButton />
-      <ScrollArea className='h-48'>
+      <div className='max-h-[200px] overflow-auto overflow-x-hidden chat-oerflow'>
         <SidebarMenu>
           {projects.map(project => {
             const isExpanded = expandedProjects.has(project.id);
@@ -350,7 +350,7 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
             );
           })}
         </SidebarMenu>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

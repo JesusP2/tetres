@@ -103,7 +103,7 @@ export function Content() {
   }, []);
   return (
     <>
-      <div className='flex flex-col gap-4 p-4 py-0'>
+      <div className='flex flex-col gap-4 p-4 py-1'>
         <Button onClick={handleNewChat} disabled={!window.navigator.onLine}>
           <PlusIcon className='mr-2' /> New Chat
         </Button>

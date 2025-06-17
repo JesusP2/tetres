@@ -14,7 +14,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-  preset: 'modern-minimal',
+  preset: 'mocha-mousse',
   theme: 'light',
   setPreset: () => null,
   setTheme: () => null,
