@@ -1,5 +1,6 @@
 import { FileText } from 'lucide-react';
 import { Button } from '../ui/button';
+import { ExpandableImage } from '../expandable-image';
 
 type AttachmentFile = {
   key: string;
@@ -17,7 +18,7 @@ export function MessageAttachments({ files }: { files: AttachmentFile[] }) {
           file.ufsUrl && (
             <div key={file.key}>
               {file.type.startsWith('image/') ? (
-                <img
+                <ExpandableImage
                   src={file.ufsUrl}
                   alt={file.name}
                   className='max-w-xs rounded-lg'
