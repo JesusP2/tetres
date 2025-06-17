@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useConfirmDialog } from '../providers/confirm-dialog-provider';
-import { useSidebar } from '../ui/sidebar';
 import { ShareDialog } from '../chat/share-dialog';
 
 export function ChatItem({
@@ -39,7 +38,6 @@ export function ChatItem({
   className?: string;
 }) {
   const value = useParams({ from: '/_chat' }) as { chatId: string };
-  const { width } = useSidebar();
   const { confirmDelete } = useConfirmDialog();
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -127,7 +125,7 @@ export function ChatItem({
                 className,
               )}
               style={{
-                width: `calc(${width} - 2rem)`,
+                width: `calc(var(--sidebar-width) - 2rem)`,
                 cursor: isDragging ? 'grabbing' : 'grab',
               }}
               onDoubleClick={() => {
