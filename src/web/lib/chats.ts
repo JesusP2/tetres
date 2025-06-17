@@ -73,7 +73,7 @@ export async function shareChat(
     sharedChatId,
     chat.model as ModelId,
     undefined,
-    chat.projectId,
+    undefined,
     new Date().toISOString(),
     shareToken,
   );
