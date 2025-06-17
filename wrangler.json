@@ -37,7 +37,6 @@
    */
   "vars": {
     "VITE_INSTANT_APP_ID": "407d46a5-8ca5-4888-a1fa-f0abf80fc945",
-    "VITE_CLIENT_APP_URL": "https://omokage.app",
     "BASE_URL": "https://omokage.app"
   }
   /**
