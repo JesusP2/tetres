@@ -176,30 +176,53 @@ const app = new Hono<AppBindings>({ strict: false })
     const body = c.req.valid('json');
     const modelId = body.config.model;
     const model = models.find(m => m.id === modelId);
+    const canAttachImage =
+      model?.architecture.input_modalities.includes('image');
+    const canAttachFile = model?.architecture.input_modalities.includes('file');
 
-    if (model && !model.architecture.input_modalities.includes('file')) {
-      const filteredMessages = [];
-      for (const message of body.messages) {
-        let keep = true;
-        if (message.role === 'user' || message.role === 'assistant') {
-          if (Array.isArray(message.content)) {
-            for (const part of message.content) {
-              if (part.type === 'file') {
-                keep = false;
-                break;
-              }
-            }
+    const filteredMessages: Body['messages'] = [];
+    for (const message of body.messages) {
+      let keep = true;
+      if (Array.isArray(message.content)) {
+        for (const part of message.content) {
+          if (
+            message.role === 'user' &&
+            part.type === 'file' &&
+            part.mimeType.startsWith('text/plain')
+          ) {
+            keep = false;
+            const res = await fetch(part.data);
+            if (!res) continue;
+            const text = await res.text();
+            filteredMessages.push({
+              ...message,
+              content: [
+                {
+                  type: 'text',
+                  text: text,
+                },
+              ],
+            });
+            break;
+          }
+          if (!canAttachImage && part.type === 'image') {
+            keep = false;
+            break;
+          } else if (!canAttachFile && part.type === 'file') {
+            keep = false;
+            break;
           }
         }
-        if (keep) {
-          filteredMessages.push(message);
-        }
       }
-      body.messages = filteredMessages;
+      if (keep) {
+        filteredMessages.push(message);
+      }
     }
+
     c.executionCtx.waitUntil(
       sendMessageToModel({
-        ...body,
+        config: body.config,
+        messages: filteredMessages,
         db: c.get('db'),
         apiKey: c.env.OPENROUTER_KEY,
       }),

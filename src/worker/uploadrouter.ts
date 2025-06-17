@@ -12,6 +12,9 @@ export const uploadRouter = {
       maxFileSize: '8MB',
       maxFileCount: 1,
     },
+    'text/plain': {
+      maxFileSize: '1MB',
+    },
   }).onUploadComplete(data => {
     console.log('upload completed', data);
   }),

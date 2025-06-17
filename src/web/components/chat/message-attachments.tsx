@@ -22,7 +22,7 @@ export function MessageAttachments({ files }: { files: AttachmentFile[] }) {
                   alt={file.name}
                   className='max-w-xs rounded-lg'
                 />
-              ) : file.type === 'application/pdf' ? (
+              ) : (
                 <a
                   href={file.ufsUrl}
                   download={file.name}
@@ -34,7 +34,7 @@ export function MessageAttachments({ files }: { files: AttachmentFile[] }) {
                     <span className='flex-1 truncate'> {file.name} </span>
                   </Button>
                 </a>
-              ) : null}
+              )}
             </div>
           ),
       )}

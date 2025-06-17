@@ -118,26 +118,27 @@ export function ChatFooter({
   const canAttachFile = (
     model?.architecture.input_modalities as readonly string[]
   )?.includes('file');
-  const canAttach = canAttachImage || canAttachFile;
 
-  let acceptTypes = '';
+  let acceptTypes = '.txt';
   if (canAttachImage && canAttachFile) {
-    acceptTypes = 'image/*,.pdf,.txt';
+    acceptTypes += ',image/*,.pdf';
   } else if (canAttachImage) {
-    acceptTypes = 'image/*';
+    acceptTypes = ',image/*';
   } else if (canAttachFile) {
-    acceptTypes = '.pdf,.txt';
+    acceptTypes = ',.pdf';
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (
-      !message.trim() ||
+      (!message.trim() && !messageFiles.length) ||
       messageFiles.find(file => typeof file === 'string') ||
       !window.navigator.onLine ||
       isProcessing
-    )
+    ) {
+      console.log('not submitting');
       return;
+    }
     setMessageFiles([]);
     setMessage('');
     await onSubmit(
@@ -243,31 +244,29 @@ export function ChatFooter({
                   setReasoningLevel={setReasoningLevel}
                 />
               )}
-              {canAttach && (
-                <MyUploadButton
-                  disabled={isProcessing}
-                  onClientUploadComplete={files => {
-                    const file = files[0];
-                    if (!file) return;
-                    setIsProcessing(false);
+              <MyUploadButton
+                disabled={isProcessing}
+                onClientUploadComplete={files => {
+                  const file = files[0];
+                  if (!file) return;
+                  setIsProcessing(false);
+                  setMessageFiles(prev => {
+                    const files = prev.slice(0, prev.length - 1);
+                    return [...files, file];
+                  });
+                }}
+                onUploadBegin={() => setIsProcessing(true)}
+                onBeforeUploadBegin={files => {
+                  return files.map(file => {
                     setMessageFiles(prev => {
-                      const files = prev.slice(0, prev.length - 1);
-                      return [...files, file];
+                      return [...prev, file.name];
                     });
-                  }}
-                  onUploadBegin={() => setIsProcessing(true)}
-                  onBeforeUploadBegin={files => {
-                    return files.map(file => {
-                      setMessageFiles(prev => {
-                        return [...prev, file.name];
-                      });
-                      return file;
-                    });
-                  }}
-                  endpoint='uploader'
-                  acceptTypes={acceptTypes}
-                />
-              )}
+                    return file;
+                  });
+                }}
+                endpoint='uploader'
+                acceptTypes={acceptTypes}
+              />
             </div>
             <div className='flex items-center gap-2'>
               {isGenerating ? (
@@ -289,7 +288,9 @@ export function ChatFooter({
                     <Button
                       className={cn(
                         'size-8',
-                        message.trim() ? '' : 'opacity-50',
+                        message.trim() || messageFiles.length
+                          ? ''
+                          : 'opacity-50',
                       )}
                       type='submit'
                     >

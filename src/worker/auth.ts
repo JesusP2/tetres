@@ -26,7 +26,6 @@ export const createAuth = (env: typeof cloudflareEnv) => {
     database: instantDBAdapter({
       db: adminDb,
       usePlural: true,
-      debugLogs: true,
     }),
     emailAndPassword: {
       enabled: true,
