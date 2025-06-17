@@ -131,7 +131,22 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
     setDragOverProjectId(null);
 
     try {
-      const dragData = JSON.parse(e.dataTransfer.getData('application/json'));
+      let dragData = null;
+      try {
+        dragData = JSON.parse(e.dataTransfer.getData('application/json'));
+      } catch (_) {
+        const chatId = new URL(e.dataTransfer.getData('text')).pathname.split('/')[1];
+        dragData = allChats?.find(c => c.id === chatId);
+        if (dragData) {
+          dragData = {
+            ...dragData,
+            type: 'chat',
+            currentProjectId: dragData.projectId,
+            chatTitle: dragData.title,
+            chatId: dragData.id,
+          }
+        }
+      }
 
       if (dragData.type === 'chat') {
         const { chatId, chatTitle, currentProjectId } = dragData;

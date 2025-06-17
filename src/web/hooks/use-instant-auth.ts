@@ -1,7 +1,7 @@
 import type { InstantSchemaDef } from '@instantdb/admin';
 import type { InstantReactWebDatabase } from '@instantdb/react';
 import type { Session, User } from 'better-auth';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export function useInstantAuth({
   db,
