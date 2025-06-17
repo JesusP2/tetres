@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import type { Body } from '@server/types';
 import type { ModelId } from '@server/utils/models';
 
@@ -56,4 +57,17 @@ export async function renameChat(chatId: string, message: string) {
     },
     body: JSON.stringify(body),
   });
+}
+
+export async function addKey(provider: string, apiKey: string) {
+  const response = await fetch('/api/user-keys', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, apiKey }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to add API key');
+  }
 }

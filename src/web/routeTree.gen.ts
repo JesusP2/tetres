@@ -23,6 +23,7 @@ import { Route as ApiAuthCallbackGoogleImport } from './routes/api.auth.callback
 // Create Virtual Routes
 
 const SettingsIndexLazyImport = createFileRoute('/settings/')()
+const SettingsApiKeysLazyImport = createFileRoute('/settings/api-keys')()
 const SettingsAccountLazyImport = createFileRoute('/settings/account')()
 
 // Create/Update Routes
@@ -51,6 +52,14 @@ const ChatIndexRoute = ChatIndexImport.update({
   path: '/',
   getParentRoute: () => ChatRoute,
 } as any)
+
+const SettingsApiKeysLazyRoute = SettingsApiKeysLazyImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => SettingsRoute,
+} as any).lazy(() =>
+  import('./routes/settings/api-keys.lazy').then((d) => d.Route),
+)
 
 const SettingsAccountLazyRoute = SettingsAccountLazyImport.update({
   id: '/account',
@@ -117,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAccountLazyImport
       parentRoute: typeof SettingsImport
     }
+    '/settings/api-keys': {
+      id: '/settings/api-keys'
+      path: '/api-keys'
+      fullPath: '/settings/api-keys'
+      preLoaderRoute: typeof SettingsApiKeysLazyImport
+      parentRoute: typeof SettingsImport
+    }
     '/_chat/': {
       id: '/_chat/'
       path: '/'
@@ -157,11 +173,13 @@ const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
 
 interface SettingsRouteChildren {
   SettingsAccountLazyRoute: typeof SettingsAccountLazyRoute
+  SettingsApiKeysLazyRoute: typeof SettingsApiKeysLazyRoute
   SettingsIndexLazyRoute: typeof SettingsIndexLazyRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAccountLazyRoute: SettingsAccountLazyRoute,
+  SettingsApiKeysLazyRoute: SettingsApiKeysLazyRoute,
   SettingsIndexLazyRoute: SettingsIndexLazyRoute,
 }
 
@@ -175,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
   '/settings/account': typeof SettingsAccountLazyRoute
+  '/settings/api-keys': typeof SettingsApiKeysLazyRoute
   '/': typeof ChatIndexRoute
   '/settings/': typeof SettingsIndexLazyRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
@@ -184,6 +203,7 @@ export interface FileRoutesByTo {
   '/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
   '/settings/account': typeof SettingsAccountLazyRoute
+  '/settings/api-keys': typeof SettingsApiKeysLazyRoute
   '/': typeof ChatIndexRoute
   '/settings': typeof SettingsIndexLazyRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
@@ -196,6 +216,7 @@ export interface FileRoutesById {
   '/_chat/$chatId': typeof ChatChatIdRoute
   '/auth/$id': typeof AuthIdRoute
   '/settings/account': typeof SettingsAccountLazyRoute
+  '/settings/api-keys': typeof SettingsApiKeysLazyRoute
   '/_chat/': typeof ChatIndexRoute
   '/settings/': typeof SettingsIndexLazyRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
@@ -209,6 +230,7 @@ export interface FileRouteTypes {
     | '/$chatId'
     | '/auth/$id'
     | '/settings/account'
+    | '/settings/api-keys'
     | '/'
     | '/settings/'
     | '/api/auth/callback/google'
@@ -217,6 +239,7 @@ export interface FileRouteTypes {
     | '/$chatId'
     | '/auth/$id'
     | '/settings/account'
+    | '/settings/api-keys'
     | '/'
     | '/settings'
     | '/api/auth/callback/google'
@@ -227,6 +250,7 @@ export interface FileRouteTypes {
     | '/_chat/$chatId'
     | '/auth/$id'
     | '/settings/account'
+    | '/settings/api-keys'
     | '/_chat/'
     | '/settings/'
     | '/api/auth/callback/google'
@@ -274,6 +298,7 @@ export const routeTree = rootRoute
       "filePath": "settings.tsx",
       "children": [
         "/settings/account",
+        "/settings/api-keys",
         "/settings/"
       ]
     },
@@ -286,6 +311,10 @@ export const routeTree = rootRoute
     },
     "/settings/account": {
       "filePath": "settings/account.lazy.tsx",
+      "parent": "/settings"
+    },
+    "/settings/api-keys": {
+      "filePath": "settings/api-keys.lazy.tsx",
       "parent": "/settings"
     },
     "/_chat/": {

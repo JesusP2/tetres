@@ -102,6 +102,15 @@ const rules = {
       update: 'true',
     },
   },
+  apiKeys: {
+    bind: ['isOwner', 'auth.id != null && auth.id == data.userId'],
+    allow: {
+      view: 'isOwner',
+      create: 'false',
+      delete: 'isOwner',
+      update: 'isOwner',
+    },
+  },
 } satisfies InstantRules;
 
 export default rules;

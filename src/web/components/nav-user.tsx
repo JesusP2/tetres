@@ -87,8 +87,11 @@ export function NavUser() {
               <DropdownMenuItem asChild>
                 <Link to='/settings'>Settings</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link to='/settings/account'>Account</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to='/settings/api-keys'>API Keys</Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

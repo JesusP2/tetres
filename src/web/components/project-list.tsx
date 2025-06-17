@@ -59,7 +59,7 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
           chats: {},
         },
       }
-      : {},
+      : null,
   );
 
   const projects = (data?.projects || []) as (Project & { chats?: Chat[] })[];

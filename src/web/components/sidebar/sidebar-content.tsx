@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useUser } from '@web/hooks/use-user';
 import { db } from '@web/lib/instant';
-import type { Chat } from '@web/lib/types';
+import type { Chat, Project } from '@web/lib/types';
 import { PlusIcon, SearchIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { groupBy, partition, pipe } from 'remeda';
@@ -69,9 +69,10 @@ export function Content() {
             },
           },
         }
-      : {},
+      : null,
   );
   const chats = (data?.chats || []) as Chat[];
+  const projects = (data?.projects || []) as Project[];
 
   const orphanedChats = chats.filter(chat => !chat.projectId);
 
@@ -124,7 +125,7 @@ export function Content() {
       />
       <ProjectList allChats={chats} />
       <ChatList
-        projects={data?.projects ?? []}
+        projects={projects}
         allChats={chats}
         pinned={pinned}
         groupedChats={groupedChats}

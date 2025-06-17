@@ -105,6 +105,16 @@ const _schema = i.schema({
       createdAt: i.date(),
       updatedAt: i.date(),
     }),
+    apiKeys: i.entity({
+      provider: i.string().indexed(),
+      encryptedKey: i.string(),
+      keyHash: i.string(),
+      isActive: i.boolean(),
+      lastValidated: i.date().optional(),
+      userId: i.string().indexed(),
+      createdAt: i.date(),
+      updatedAt: i.date(),
+    }),
   },
   links: {
     users$user: {
@@ -195,6 +205,15 @@ const _schema = i.schema({
         onDelete: 'cascade',
       },
       reverse: { on: 'chats', has: 'many', label: 'messages' },
+    },
+    apiKeysUser: {
+      forward: {
+        on: 'apiKeys',
+        has: 'one',
+        label: 'user',
+        onDelete: 'cascade',
+      },
+      reverse: { on: 'users', has: 'many', label: 'apiKeys' },
     },
   },
 });

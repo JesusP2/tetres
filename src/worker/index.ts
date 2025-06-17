@@ -1,4 +1,5 @@
 import { zValidator } from '@hono/zod-validator';
+import { id } from '@instantdb/core';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { generateText, streamText } from 'ai';
 import { Hono } from 'hono';
@@ -9,9 +10,10 @@ import { z } from 'zod/v4';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
 import { envMiddleware } from './middleware/env-middleware';
-import { bodySchema, renameChatSchema } from './schemas';
+import { bodySchema, renameChatSchema, userKeySchema } from './schemas';
 import { AppBindings } from './types';
 import { uploadRouter } from './uploadrouter';
+import { decryptKey, encryptKey, generateKeyHash } from './utils/crypto';
 import { HttpError } from './utils/http-error';
 import { models } from './utils/models';
 
@@ -34,6 +36,33 @@ export const renameChat = async ({
   });
   const text = response.text;
   return text;
+};
+
+const getApiKey = async (
+  userId: string,
+  provider: string,
+  db: AppBindings['Variables']['db'],
+  globalKey: string,
+  encryptionSecret: string,
+): Promise<string> => {
+  const userKeys = await db.query({
+    apiKeys: {
+      $: { where: { userId, provider, isActive: true } },
+    },
+  });
+
+  if (userKeys.apiKeys.length > 0) {
+    const userKey = userKeys.apiKeys[0];
+    const decryptedKey = await decryptKey(
+      userKey.encryptedKey,
+      encryptionSecret,
+    );
+    const verificationHash = await generateKeyHash(decryptedKey);
+    if (verificationHash === userKey.keyHash) {
+      return decryptedKey;
+    }
+  }
+  return globalKey;
 };
 
 export const sendMessageToModel = async ({
@@ -139,7 +168,7 @@ const app = new Hono<AppBindings>({ strict: false })
       router: uploadRouter,
       config: {
         token: c.env.UPLOADTHING_TOKEN,
-        isDev: c.env.ENVIRONMENT === 'production',
+        isDev: false,
         fetch: (url, init) => {
           if (init && 'cache' in init) delete init.cache;
           return fetch(url, init);
@@ -159,11 +188,23 @@ const app = new Hono<AppBindings>({ strict: false })
   })
   .post('/api/rename-chat', zValidator('json', renameChatSchema), async c => {
     const body = c.req.valid('json');
+    const user = c.get('user');
+    const db = c.get('db');
+
+    // Get appropriate API key (user's or global)
+    const apiKey = await getApiKey(
+      user.id,
+      'openrouter',
+      db,
+      c.env.OPENROUTER_KEY,
+      c.env.BETTER_AUTH_SECRET,
+    );
+
     const newTitle = await renameChat({
       message: body.message,
-      apiKey: c.env.OPENROUTER_KEY,
+      apiKey,
     });
-    const db = c.get('db');
+
     await db.transact(
       db.tx.chats[body.chatId].update({
         title: newTitle,
@@ -172,13 +213,54 @@ const app = new Hono<AppBindings>({ strict: false })
     );
     return c.json({ success: true });
   })
+  .post('/api/user-keys', zValidator('json', userKeySchema), async c => {
+    const { provider, apiKey } = c.req.valid('json');
+    const user = c.get('user');
+    const db = c.get('db');
+    const keyHash = await generateKeyHash(apiKey);
+    const encryptedKey = await encryptKey(apiKey, c.env.BETTER_AUTH_SECRET);
+
+    const existingKeys = await db.query({
+      apiKeys: {
+        $: { where: { userId: user.id, provider } },
+      },
+    });
+
+    const now = new Date().toISOString();
+    if (existingKeys.apiKeys.length > 0) {
+      await db.transact(
+        db.tx.apiKeys[existingKeys.apiKeys[0].id].update({
+          encryptedKey,
+          keyHash,
+          lastValidated: now,
+          updatedAt: now,
+        }),
+      );
+    } else {
+      await db.transact(
+        db.tx.apiKeys[id()].update({
+          provider,
+          encryptedKey,
+          keyHash,
+          isActive: true,
+          lastValidated: now,
+          createdAt: now,
+          updatedAt: now,
+          userId: user.id,
+        }),
+      );
+    }
+    return c.json({ success: true });
+  })
   .post('/api/model', zValidator('json', bodySchema), async c => {
     const body = c.req.valid('json');
     const modelId = body.config.model;
     const model = models.find(m => m.id === modelId);
     const canAttachImage =
       model?.architecture.input_modalities.includes('image');
-    const canAttachFile = model?.architecture.input_modalities.includes('file');
+    const canAttachFile = model?.architecture.input_modalities.includes(
+      'file' as any,
+    );
 
     const filteredMessages: Body['messages'] = [];
     for (const message of body.messages) {
@@ -219,12 +301,22 @@ const app = new Hono<AppBindings>({ strict: false })
       }
     }
 
+    const user = c.get('user');
+    const db = c.get('db');
+    const apiKey = await getApiKey(
+      user.id,
+      'openrouter',
+      db,
+      c.env.OPENROUTER_KEY,
+      c.env.BETTER_AUTH_SECRET,
+    );
+
     c.executionCtx.waitUntil(
       sendMessageToModel({
         config: body.config,
         messages: filteredMessages,
-        db: c.get('db'),
-        apiKey: c.env.OPENROUTER_KEY,
+        db,
+        apiKey,
       }),
     );
     return c.json({ success: true });

@@ -17,7 +17,7 @@ export function useUI() {
             },
           },
         }
-      : {},
+      : null,
   );
   const [ui, setUI] = useState<{
     id: string;
