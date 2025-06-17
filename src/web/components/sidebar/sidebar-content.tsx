@@ -122,9 +122,10 @@ export function Content() {
         chats={chats}
         user={user}
       />
-      <ProjectList />
+      <ProjectList allChats={chats} />
       <ChatList
         projects={data?.projects ?? []}
+        allChats={chats}
         pinned={pinned}
         groupedChats={groupedChats}
       />

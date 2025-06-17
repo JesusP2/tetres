@@ -42,6 +42,7 @@ export function ChatItem({
   const { confirmDelete } = useConfirmDialog();
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const isActive = value.chatId === chat.id;
 
   const handleUpdateTitle = async () => {
@@ -79,21 +80,49 @@ export function ChatItem({
     }
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true);
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'chat',
+      chatId: chat.id,
+      chatTitle: chat.title,
+      currentProjectId: chat.projectId || null,
+    }));
+    e.dataTransfer.effectAllowed = 'move';
+    
+    // Add some visual feedback to the drag image
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5';
+    }
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setIsDragging(false);
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
+  };
+
   return (
     <ContextMenu key={chat.id}>
       <ContextMenuTrigger asChild>
         <Link to='/$chatId' params={{ chatId: chat.id }}>
           <div
+            draggable={!editingChatId}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
             className={cn(
               'relative mb-1 rounded-lg transition-all duration-200 ease-in-out',
               'hover:bg-accent/50 hover:shadow-sm',
               'group cursor-pointer',
               isActive && 'bg-accent shadow-sm',
               'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
+              isDragging && 'opacity-50 scale-95',
               className,
             )}
             style={{
               width: `calc(${width} - 2rem)`,
+              cursor: isDragging ? 'grabbing' : 'grab',
             }}
             onDoubleClick={() => {
               setEditingChatId(chat.id);
