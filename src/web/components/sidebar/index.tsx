@@ -46,7 +46,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </Button>
       </div>
       {children}
-      <div className='absolute top-1 right-8 flex items-center'>
+      <div className='absolute top-3 right-8 flex items-center bg-sidebar p-1 rounded-sm'>
         <ThemeButton />
         <Link
           to='/settings'

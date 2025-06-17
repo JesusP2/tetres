@@ -214,7 +214,6 @@ export function ChatItem({
                     {project.name}
                   </ContextMenuItem>
                 ))}
-                {projects.length > 0 && <ContextMenuSeparator />}
               </ContextMenuSubContent>
             </ContextMenuSub>
           )}
