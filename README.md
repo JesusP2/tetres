@@ -21,3 +21,7 @@
 -- remove isValid
 -- adjust permissions
 -- remove validation with openrouter sp
+-- check use effects
+-- settings redirect on layout
+-- display shortcuts somewhere
+-- add delete/pin on chat hover
