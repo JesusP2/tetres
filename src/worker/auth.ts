@@ -18,12 +18,11 @@ export const createAuth = (env: typeof cloudflareEnv) => {
       passkey(),
       magicLink({
         sendMagicLink: async ({ email, url }) => {
-          console.log('i hate my life:', url, env.BASE_URL);
           await resend.emails.send({
             from: 'no-reply@omokage.app',
             to: email,
             subject: 'Magic link',
-            react: magicLinkTemplate(url, env.BASE_URL),
+            react: magicLinkTemplate(url, env.VITE_CLIENT_APP_URL),
           });
         },
       }),
@@ -40,7 +39,7 @@ export const createAuth = (env: typeof cloudflareEnv) => {
           from: 'no-reply@omokage.app',
           to: user.email,
           subject: 'Reset password',
-          react: forgotPasswordTemplate(url, env.BASE_URL),
+          react: forgotPasswordTemplate(url, env.VITE_CLIENT_APP_URL),
         });
       },
     },
