@@ -25,6 +25,7 @@ import {
 import { Input } from '@web/components/ui/input';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
 import { ChatItem } from './sidebar/chat-item';
+import { ProjectButton } from './project-button';
 
 export function ProjectList() {
   const user = useUser();
@@ -33,7 +34,7 @@ export function ProjectList() {
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
-  const { data, ...rest } = db.useQuery(
+  const { data } = db.useQuery(
     !user.isPending
       ? {
         projects: {
@@ -52,7 +53,6 @@ export function ProjectList() {
   );
 
   const projects = (data?.projects || []) as (Project & { chats?: Chat[] })[];
-  console.log(projects);
 
   const toggleExpanded = (projectId: string) => {
     const newExpanded = new Set(expandedProjects);
@@ -77,7 +77,7 @@ export function ProjectList() {
   const handleDeleteProject = (project: Project) => {
     confirmDelete({
       title: 'Delete Project',
-      description: `Are you sure you want to delete "${project.name}"? Chats in this project will not be deleted.`,
+      description: `Are you sure you want to delete "${project.name}"? Chats in this project will be deleted.`,
       handleConfirm: () => deleteProject(project),
       handleCancel: () => setEditingProjectId(null),
     });
@@ -92,15 +92,12 @@ export function ProjectList() {
     }
   };
 
-  if (projects.length === 0) {
-    return null;
-  }
-
   return (
     <div className="px-4 pb-4">
       <div className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
         Projects
       </div>
+      <ProjectButton />
       <SidebarMenu>
         {projects.map(project => {
           const isExpanded = expandedProjects.has(project.id);
@@ -193,7 +190,7 @@ export function ProjectList() {
               {isExpanded && projectChats.length > 0 && (
                 <div className="ml-6 space-y-1">
                   {projectChats.map(chat => (
-                    <ChatItem projects={projects ?? []} key={chat.id} chat={chat} />
+                    <ChatItem className="w-full!" projects={projects ?? []} key={chat.id} chat={chat} />
                   ))}
                 </div>
               )}

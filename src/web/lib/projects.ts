@@ -36,25 +36,31 @@ export function toggleProjectPin(project: Project) {
 }
 
 export function deleteProject(project: Project) {
-  return db.transact([
-    db.tx.projects[project.id].delete(),
-  ]);
+  const chatsTx = project.chats?.map(chat => db.tx.chats[chat.id].delete());
+  if (chatsTx) {
+    return db.transact([db.tx.projects[project.id].delete(), ...chatsTx]);
+  }
+  return db.transact([db.tx.projects[project.id].delete()]);
 }
 
 export function assignChatToProject(chat: Chat, projectId: string) {
   return db.transact([
-    db.tx.chats[chat.id].update({
-      projectId,
-      updatedAt: new Date().toISOString(),
-    }),
+    db.tx.chats[chat.id]
+      .update({
+        projectId,
+        updatedAt: new Date().toISOString(),
+      })
+      .link({ project: projectId }),
   ]);
 }
 
 export function removeChatFromProject(chat: Chat) {
   return db.transact([
-    db.tx.chats[chat.id].update({
-      projectId: null,
-      updatedAt: new Date().toISOString(),
-    }),
+    db.tx.chats[chat.id]
+      .update({
+        projectId: null,
+        updatedAt: new Date().toISOString(),
+      })
+      .unlink({ project: chat.projectId }),
   ]);
 }

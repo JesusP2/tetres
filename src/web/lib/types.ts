@@ -15,4 +15,6 @@ export type ParsedMessage = Message & {
   highlightedReasoning?: string;
 };
 
-export type Project = InstaQLEntity<typeof schema, 'projects'>
+export type Project = InstaQLEntity<typeof schema, 'projects'> & {
+  chats?: Chat[];
+}

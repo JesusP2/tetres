@@ -45,7 +45,7 @@ export function ProjectButton() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
+        <Button variant="ghost" className="w-full justify-start">
           <FolderPlus className="mr-2 size-4" />
           New Project
         </Button>

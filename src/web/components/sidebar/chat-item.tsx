@@ -18,26 +18,23 @@ import {
   GitBranchIcon,
   Pin,
   PinOff,
-  Plus,
   Trash2,
 } from 'lucide-react';
 import { useState } from "react";
-import { useUser } from "@web/hooks/use-user";
 import type { Chat, Project } from "@web/lib/types";
-import { assignChatToProject, createProject, removeChatFromProject } from "@web/lib/projects";
+import { assignChatToProject, removeChatFromProject } from "@web/lib/projects";
 import { deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
 import { cn } from "@web/lib/utils";
 import { handleExportChat } from "@web/lib/export-chat";
+import { buttonVariants } from "../ui/button";
 
-export function ChatItem({ chat, projects }: { chat: Chat; projects: Project[] }) {
+export function ChatItem({ chat, projects, className }: { chat: Chat; projects: Project[], className?: string; }) {
   const value = useParams({ from: '/_chat' }) as { chatId: string };
   const { width } = useSidebar();
   const { confirmDelete } = useConfirmDialog();
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
-  const [newProjectName, setNewProjectName] = useState('');
   const isActive = value.chatId === chat.id;
-  const user = useUser();
 
   const handleUpdateTitle = async () => {
     if (!editingChatId) return;
@@ -65,18 +62,6 @@ export function ChatItem({ chat, projects }: { chat: Chat; projects: Project[] }
     await removeChatFromProject(chat);
   };
 
-  const handleCreateNewProject = async () => {
-    if (!user.data || !newProjectName.trim()) return;
-    try {
-      await createProject(user.data, newProjectName.trim());
-      // After creating the project, we'll need to get its ID and assign the chat
-      // For now, we'll let the user manually assign it
-      setNewProjectName('');
-    } catch (error) {
-      console.error('Failed to create project:', error);
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleUpdateTitle();
@@ -97,6 +82,7 @@ export function ChatItem({ chat, projects }: { chat: Chat; projects: Project[] }
               'group cursor-pointer',
               isActive && 'bg-accent shadow-sm',
               'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
+              className,
             )}
             style={{
               width: `calc(${width} - 2rem)`,
@@ -163,7 +149,7 @@ export function ChatItem({ chat, projects }: { chat: Chat; projects: Project[] }
           <FileEdit className='mr-2 size-4' />
           Rename
         </ContextMenuItem>
-        
+
         {/* Project Assignment Menu */}
         {chat.projectId ? (
           <ContextMenuItem onClick={handleRemoveFromProject}>
@@ -186,14 +172,10 @@ export function ChatItem({ chat, projects }: { chat: Chat; projects: Project[] }
                 </ContextMenuItem>
               ))}
               {projects.length > 0 && <ContextMenuSeparator />}
-              <ContextMenuItem onClick={handleCreateNewProject}>
-                <Plus className='mr-2 size-4' />
-                Create New Project
-              </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
         )}
-        
+
         <ContextMenuItem onClick={() => handleExportChat(chat)}>
           <Download className='mr-2 size-4' />
           Export
