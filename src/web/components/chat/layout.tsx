@@ -1,5 +1,5 @@
-import { AppSidebar } from '@web/components//app-sidebar';
-import { AppSidebarInset } from '@web/components/app-sidebar-inset';
+import { AppSidebar } from '@web/components/sidebar';
+import { AppSidebarInset } from '@web/components/sidebar/inset';
 import { SIDEBAR_WIDTH, SidebarProvider } from '@web/components/ui/sidebar';
 
 type ProviderProps = {

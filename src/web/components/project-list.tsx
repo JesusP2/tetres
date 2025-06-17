@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -10,9 +9,8 @@ import {
 import { SidebarMenu } from '@web/components/ui/sidebar';
 import { useUser } from '@web/hooks/use-user';
 import { db } from '@web/lib/instant';
-import type { Project } from '@web/lib/projects';
 import { deleteProject, toggleProjectPin, updateProjectName } from '@web/lib/projects';
-import type { Chat } from '@web/lib/types';
+import type { Chat, Project } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import {
   ChevronDown,
@@ -25,8 +23,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Input } from '@web/components/ui/input';
-import { RenderChat } from './chat-list';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
+import { ChatItem } from './sidebar/chat-item';
 
 export function ProjectList() {
   const user = useUser();
@@ -35,31 +33,26 @@ export function ProjectList() {
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
-  const { data } = db.useQuery(
+  const { data, ...rest } = db.useQuery(
     !user.isPending
       ? {
-          projects: {
-            $: {
-              where: {
-                userId: user.data?.id || '',
-              },
-              order: {
-                updatedAt: 'desc',
-              },
+        projects: {
+          $: {
+            where: {
+              userId: user.data?.id || '',
             },
-            chats: {
-              $: {
-                order: {
-                  updatedAt: 'desc',
-                },
-              },
+            order: {
+              updatedAt: 'desc',
             },
           },
-        }
+          chats: {},
+        },
+      }
       : {},
   );
 
   const projects = (data?.projects || []) as (Project & { chats?: Chat[] })[];
+  console.log(projects);
 
   const toggleExpanded = (projectId: string) => {
     const newExpanded = new Set(expandedProjects);
@@ -112,7 +105,7 @@ export function ProjectList() {
         {projects.map(project => {
           const isExpanded = expandedProjects.has(project.id);
           const projectChats = project.chats || [];
-          
+
           return (
             <div key={project.id} className="space-y-1">
               <ContextMenu>
@@ -197,11 +190,10 @@ export function ProjectList() {
                   </ContextMenuItem>
                 </ContextMenuContent>
               </ContextMenu>
-              
               {isExpanded && projectChats.length > 0 && (
                 <div className="ml-6 space-y-1">
                   {projectChats.map(chat => (
-                    <RenderChat key={chat.id} chat={chat} />
+                    <ChatItem projects={projects ?? []} key={chat.id} chat={chat} />
                   ))}
                 </div>
               )}

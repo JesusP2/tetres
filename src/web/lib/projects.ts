@@ -1,15 +1,6 @@
 import { id } from '@instantdb/core';
 import { db } from '@web/lib/instant';
-import type { Chat } from './types';
-
-export interface Project {
-  id: string;
-  name: string;
-  pinned: boolean;
-  userId: string;
-  updatedAt: string;
-  createdAt: string;
-}
+import type { Chat, Project } from './types';
 
 export function createProject(user: { id: string }, name: string) {
   const projectId = id();

@@ -1,0 +1,212 @@
+import { Link, useParams } from "@tanstack/react-router";
+import { useSidebar } from "../ui/sidebar";
+import { useConfirmDialog } from "../providers/confirm-dialog-provider";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from '@web/components/ui/context-menu';
+import {
+  Download,
+  FileEdit,
+  FolderPlus,
+  GitBranchIcon,
+  Pin,
+  PinOff,
+  Plus,
+  Trash2,
+} from 'lucide-react';
+import { useState } from "react";
+import { useUser } from "@web/hooks/use-user";
+import type { Chat, Project } from "@web/lib/types";
+import { assignChatToProject, createProject, removeChatFromProject } from "@web/lib/projects";
+import { deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
+import { cn } from "@web/lib/utils";
+import { handleExportChat } from "@web/lib/export-chat";
+
+export function ChatItem({ chat, projects }: { chat: Chat; projects: Project[] }) {
+  const value = useParams({ from: '/_chat' }) as { chatId: string };
+  const { width } = useSidebar();
+  const { confirmDelete } = useConfirmDialog();
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [newProjectName, setNewProjectName] = useState('');
+  const isActive = value.chatId === chat.id;
+  const user = useUser();
+
+  const handleUpdateTitle = async () => {
+    if (!editingChatId) return;
+    if (chat && editingTitle.trim() && editingTitle.trim() !== chat.title) {
+      await updateChatTitle(chat, editingTitle.trim());
+    }
+    setEditingChatId(null);
+    setEditingTitle('');
+  };
+
+  const handleDeleteChat = (chat: Chat) => {
+    confirmDelete({
+      title: 'Delete Chat',
+      description: `Are you sure you want to delete "${chat.title}"?`,
+      handleConfirm: () => deleteChat(chat),
+      handleCancel: () => setEditingChatId(null),
+    });
+  };
+
+  const handleAssignToProject = async (projectId: string) => {
+    await assignChatToProject(chat, projectId);
+  };
+
+  const handleRemoveFromProject = async () => {
+    await removeChatFromProject(chat);
+  };
+
+  const handleCreateNewProject = async () => {
+    if (!user.data || !newProjectName.trim()) return;
+    try {
+      await createProject(user.data, newProjectName.trim());
+      // After creating the project, we'll need to get its ID and assign the chat
+      // For now, we'll let the user manually assign it
+      setNewProjectName('');
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleUpdateTitle();
+    } else if (e.key === 'Escape') {
+      setEditingChatId(null);
+      setEditingTitle('');
+    }
+  };
+
+  return (
+    <ContextMenu key={chat.id}>
+      <ContextMenuTrigger asChild>
+        <Link to='/$chatId' params={{ chatId: chat.id }}>
+          <div
+            className={cn(
+              'relative mb-1 rounded-lg transition-all duration-200 ease-in-out',
+              'hover:bg-accent/50 hover:shadow-sm',
+              'group cursor-pointer',
+              isActive && 'bg-accent shadow-sm',
+              'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
+            )}
+            style={{
+              width: `calc(${width} - 2rem)`,
+            }}
+            onDoubleClick={() => {
+              setEditingChatId(chat.id);
+              setEditingTitle(chat.title);
+            }}
+          >
+            <div className={cn('flex items-center gap-3 rounded-lg px-3 py-2')}>
+              <div className='min-w-0 flex-1 flex items-center'>
+                {chat.branchId ? <GitBranchIcon className='size-4 mr-2' /> : null}
+                {editingChatId === chat.id ? (
+                  <input
+                    value={editingTitle}
+                    onChange={e => setEditingTitle(e.target.value)}
+                    onBlur={handleUpdateTitle}
+                    onKeyDown={handleKeyDown}
+                    autoFocus
+                    onFocus={e => e.target.select()}
+                    className='border-none p-0 text-sm font-medium outline-none'
+                  />
+                ) : (
+                  <span
+                    className={cn(
+                      'truncate text-sm font-medium transition-colors',
+                      isActive
+                        ? 'text-foreground'
+                        : 'text-foreground/80 group-hover:text-foreground',
+                    )}
+                  >
+                    {chat.title}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Link>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem
+          onClick={() => {
+            togglePin(chat);
+          }}
+        >
+          {chat.pinned ? (
+            <>
+              <PinOff className='mr-2 size-4' />
+              Unpin
+            </>
+          ) : (
+            <>
+              <Pin className='mr-2 size-4' />
+              Pin
+            </>
+          )}
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            setEditingChatId(chat.id);
+            setEditingTitle(chat.title);
+          }}
+        >
+          <FileEdit className='mr-2 size-4' />
+          Rename
+        </ContextMenuItem>
+        
+        {/* Project Assignment Menu */}
+        {chat.projectId ? (
+          <ContextMenuItem onClick={handleRemoveFromProject}>
+            <FolderPlus className='mr-2 size-4' />
+            Remove from Project
+          </ContextMenuItem>
+        ) : (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <FolderPlus className='mr-2 size-4' />
+              Add to Project
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {projects.map(project => (
+                <ContextMenuItem
+                  key={project.id}
+                  onClick={() => handleAssignToProject(project.id)}
+                >
+                  {project.name}
+                </ContextMenuItem>
+              ))}
+              {projects.length > 0 && <ContextMenuSeparator />}
+              <ContextMenuItem onClick={handleCreateNewProject}>
+                <Plus className='mr-2 size-4' />
+                Create New Project
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        )}
+        
+        <ContextMenuItem onClick={() => handleExportChat(chat)}>
+          <Download className='mr-2 size-4' />
+          Export
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          variant='destructive'
+          onClick={() => handleDeleteChat(chat)}
+        >
+          <Trash2 className='mr-2 size-4' />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}

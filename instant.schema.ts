@@ -160,11 +160,11 @@ const _schema = i.schema({
       },
       reverse: { on: 'users', has: 'many', label: 'projects' },
     },
-    projectsChat: {
+    chatsProject: {
       forward: {
-        on: 'projects',
+        on: 'chats',
         has: 'one',
-        label: 'chat',
+        label: 'project',
         onDelete: 'cascade',
       },
       reverse: { on: 'projects', has: 'many', label: 'chats' },
