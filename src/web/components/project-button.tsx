@@ -23,7 +23,7 @@ export function ProjectButton() {
 
   const handleCreateProject = async () => {
     if (!user.data || !projectName.trim()) return;
-    
+
     setIsCreating(true);
     try {
       await createProject(user.data, projectName.trim());
@@ -45,8 +45,8 @@ export function ProjectButton() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start">
-          <FolderPlus className="mr-2 size-4" />
+        <Button variant='ghost' className='w-full justify-start'>
+          <FolderPlus className='mr-2 size-4' />
           New Project
         </Button>
       </DialogTrigger>
@@ -57,14 +57,14 @@ export function ProjectButton() {
             Create a new project to organize your chats.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="project-name">Project Name</Label>
+        <div className='space-y-4 py-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='project-name'>Project Name</Label>
             <Input
-              id="project-name"
-              placeholder="Enter project name..."
+              id='project-name'
+              placeholder='Enter project name...'
               value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
+              onChange={e => setProjectName(e.target.value)}
               onKeyDown={handleKeyDown}
               autoFocus
             />
@@ -72,7 +72,7 @@ export function ProjectButton() {
         </div>
         <DialogFooter>
           <Button
-            variant="outline"
+            variant='outline'
             onClick={() => {
               setProjectName('');
               setIsOpen(false);

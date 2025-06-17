@@ -1,8 +1,8 @@
 import { ScrollArea } from '@web/components/ui/scroll-area';
 import { SidebarMenu } from '@web/components/ui/sidebar';
+import type { Chat, Project } from '@web/lib/types';
 import { PinIcon } from 'lucide-react';
 import { ChatItem } from './chat-item';
-import type { Chat, Project } from '@web/lib/types';
 
 export function ChatList({
   projects,
@@ -43,5 +43,5 @@ export function ChatList({
         ))}
       </SidebarMenu>
     </ScrollArea>
-  )
+  );
 }

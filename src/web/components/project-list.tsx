@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -6,11 +5,16 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@web/components/ui/context-menu';
-import { SidebarMenu } from '@web/components/ui/sidebar';
+import { Input } from '@web/components/ui/input';
 import { ScrollArea } from '@web/components/ui/scroll-area';
+import { SidebarMenu } from '@web/components/ui/sidebar';
 import { useUser } from '@web/hooks/use-user';
 import { db } from '@web/lib/instant';
-import { deleteProject, toggleProjectPin, updateProjectName } from '@web/lib/projects';
+import {
+  deleteProject,
+  toggleProjectPin,
+  updateProjectName,
+} from '@web/lib/projects';
 import type { Chat, Project } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import {
@@ -23,33 +27,35 @@ import {
   PinOff,
   Trash2,
 } from 'lucide-react';
-import { Input } from '@web/components/ui/input';
+import { useState } from 'react';
+import { ProjectButton } from './project-button';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
 import { ChatItem } from './sidebar/chat-item';
-import { ProjectButton } from './project-button';
 
 export function ProjectList() {
   const user = useUser();
   const { confirmDelete } = useConfirmDialog();
-  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
+    new Set(),
+  );
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
   const { data } = db.useQuery(
     !user.isPending
       ? {
-        projects: {
-          $: {
-            where: {
-              userId: user.data?.id || '',
+          projects: {
+            $: {
+              where: {
+                userId: user.data?.id || '',
+              },
+              order: {
+                updatedAt: 'desc',
+              },
             },
-            order: {
-              updatedAt: 'desc',
-            },
+            chats: {},
           },
-          chats: {},
-        },
-      }
+        }
       : {},
   );
 
@@ -94,36 +100,38 @@ export function ProjectList() {
   };
 
   return (
-    <div className="px-4 pb-4">
-      <div className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
+    <div className='px-4 pb-4'>
+      <div className='text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase'>
         Projects
       </div>
       <ProjectButton />
-      <ScrollArea className="h-48">
+      <ScrollArea className='h-48'>
         <SidebarMenu>
           {projects.map(project => {
             const isExpanded = expandedProjects.has(project.id);
             const projectChats = project.chats || [];
 
             return (
-              <div key={project.id} className="space-y-1">
+              <div key={project.id} className='space-y-1'>
                 <ContextMenu>
                   <ContextMenuTrigger asChild>
                     <div
                       className={cn(
-                        'flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer transition-colors mr-4',
+                        'mr-4 flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-colors',
                         'hover:bg-accent/50',
                         'group',
                       )}
                       onClick={() => toggleExpanded(project.id)}
                     >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className='flex min-w-0 flex-1 items-center gap-2'>
                         {isExpanded ? (
-                          <FolderOpen className="size-4 text-muted-foreground" />
+                          <FolderOpen className='text-muted-foreground size-4' />
                         ) : (
-                          <Folder className="size-4 text-muted-foreground" />
+                          <Folder className='text-muted-foreground size-4' />
                         )}
-                        {project.pinned && <Pin className="size-3 text-muted-foreground" />}
+                        {project.pinned && (
+                          <Pin className='text-muted-foreground size-3' />
+                        )}
                         {editingProjectId === project.id ? (
                           <Input
                             value={editingName}
@@ -132,40 +140,38 @@ export function ProjectList() {
                             onKeyDown={handleKeyDown}
                             autoFocus
                             onFocus={e => e.target.select()}
-                            className="h-6 px-1 text-sm border-none p-0 outline-none bg-transparent"
+                            className='h-6 border-none bg-transparent p-0 px-1 text-sm outline-none'
                           />
                         ) : (
-                          <span className="text-sm font-medium truncate">
+                          <span className='truncate text-sm font-medium'>
                             {project.name}
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className='text-muted-foreground text-xs'>
                         {projectChats.length}
                       </span>
                       {projectChats.length > 0 ? (
                         isExpanded ? (
-                          <ChevronDown className="size-4 text-muted-foreground" />
+                          <ChevronDown className='text-muted-foreground size-4' />
                         ) : (
-                          <ChevronRight className="size-4 text-muted-foreground" />
+                          <ChevronRight className='text-muted-foreground size-4' />
                         )
                       ) : (
-                        <div className="size-4" />
+                        <div className='size-4' />
                       )}
                     </div>
                   </ContextMenuTrigger>
                   <ContextMenuContent>
-                    <ContextMenuItem
-                      onClick={() => toggleProjectPin(project)}
-                    >
+                    <ContextMenuItem onClick={() => toggleProjectPin(project)}>
                       {project.pinned ? (
                         <>
-                          <PinOff className="mr-2 size-4" />
+                          <PinOff className='mr-2 size-4' />
                           Unpin
                         </>
                       ) : (
                         <>
-                          <Pin className="mr-2 size-4" />
+                          <Pin className='mr-2 size-4' />
                           Pin
                         </>
                       )}
@@ -176,24 +182,28 @@ export function ProjectList() {
                         setEditingName(project.name);
                       }}
                     >
-                      <FileEdit className="mr-2 size-4" />
+                      <FileEdit className='mr-2 size-4' />
                       Rename
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
-                      variant="destructive"
+                      variant='destructive'
                       onClick={() => handleDeleteProject(project)}
                     >
-                      <Trash2 className="mr-2 size-4" />
+                      <Trash2 className='mr-2 size-4' />
                       Delete
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
                 {isExpanded && projectChats.length > 0 && (
-                  <div className="ml-2">
-                    <div className="space-y-1">
+                  <div className='ml-2'>
+                    <div className='space-y-1'>
                       {projectChats.map(chat => (
-                        <ChatItem projects={projects ?? []} key={chat.id} chat={chat} />
+                        <ChatItem
+                          projects={projects ?? []}
+                          key={chat.id}
+                          chat={chat}
+                        />
                       ))}
                     </div>
                   </div>

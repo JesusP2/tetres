@@ -17,4 +17,4 @@ export type ParsedMessage = Message & {
 
 export type Project = InstaQLEntity<typeof schema, 'projects'> & {
   chats?: Chat[];
-}
+};

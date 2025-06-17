@@ -26,7 +26,14 @@ export const handleCreateChat = async (
 ) => {
   if (!user.data || !ui || !window.navigator.onLine) return;
   const newChatId = id();
-  const chatTx = createChat(user.data, 'New Chat', newChatId, ui.defaultModel, undefined, projectId);
+  const chatTx = createChat(
+    user.data,
+    'New Chat',
+    newChatId,
+    ui.defaultModel,
+    undefined,
+    projectId,
+  );
   const userMessage = createMessageObject({
     role: 'user',
     content: messageContent,

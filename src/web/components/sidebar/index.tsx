@@ -20,7 +20,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
       <Sidebar collapsible='offcanvas'>
         <SidebarHeader className='mt-2'>
           <div className='flex items-center gap-2'>
-            <h2 className='mx-2 text-lg font-semibold flex items-center gap-2'>
+            <h2 className='mx-2 flex items-center gap-2 text-lg font-semibold'>
               <ShellIcon />
               Omokage
             </h2>

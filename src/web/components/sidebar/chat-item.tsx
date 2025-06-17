@@ -1,6 +1,4 @@
-import { Link, useParams } from "@tanstack/react-router";
-import { useSidebar } from "../ui/sidebar";
-import { useConfirmDialog } from "../providers/confirm-dialog-provider";
+import { Link, useParams } from '@tanstack/react-router';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -11,6 +9,11 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@web/components/ui/context-menu';
+import { deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
+import { handleExportChat } from '@web/lib/export-chat';
+import { assignChatToProject, removeChatFromProject } from '@web/lib/projects';
+import type { Chat, Project } from '@web/lib/types';
+import { cn } from '@web/lib/utils';
 import {
   Download,
   FileEdit,
@@ -20,15 +23,20 @@ import {
   PinOff,
   Trash2,
 } from 'lucide-react';
-import { useState } from "react";
-import type { Chat, Project } from "@web/lib/types";
-import { assignChatToProject, removeChatFromProject } from "@web/lib/projects";
-import { deleteChat, togglePin, updateChatTitle } from '@web/lib/chats';
-import { cn } from "@web/lib/utils";
-import { handleExportChat } from "@web/lib/export-chat";
-import { buttonVariants } from "../ui/button";
+import { useState } from 'react';
+import { useConfirmDialog } from '../providers/confirm-dialog-provider';
+import { buttonVariants } from '../ui/button';
+import { useSidebar } from '../ui/sidebar';
 
-export function ChatItem({ chat, projects, className }: { chat: Chat; projects: Project[], className?: string; }) {
+export function ChatItem({
+  chat,
+  projects,
+  className,
+}: {
+  chat: Chat;
+  projects: Project[];
+  className?: string;
+}) {
   const value = useParams({ from: '/_chat' }) as { chatId: string };
   const { width } = useSidebar();
   const { confirmDelete } = useConfirmDialog();
@@ -93,8 +101,10 @@ export function ChatItem({ chat, projects, className }: { chat: Chat; projects: 
             }}
           >
             <div className={cn('flex items-center gap-3 rounded-lg px-3 py-2')}>
-              <div className='min-w-0 flex-1 flex items-center'>
-                {chat.branchId ? <GitBranchIcon className='size-4 mr-2' /> : null}
+              <div className='flex min-w-0 flex-1 items-center'>
+                {chat.branchId ? (
+                  <GitBranchIcon className='mr-2 size-4' />
+                ) : null}
                 {editingChatId === chat.id ? (
                   <input
                     value={editingTitle}

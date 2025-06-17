@@ -1,15 +1,15 @@
-import { db } from '@web/lib/instant';
-import { useUser } from '@web/hooks/use-user';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useUser } from '@web/hooks/use-user';
+import { db } from '@web/lib/instant';
 import type { Chat } from '@web/lib/types';
-import { ChatList } from './chat-list';
-import { Button } from '../ui/button';
 import { PlusIcon, SearchIcon } from 'lucide-react';
-import { Input } from '../ui/input';
-import { ChatSearch } from './chat-search';
-import { pipe, groupBy, partition } from 'remeda';
+import { useEffect, useState } from 'react';
+import { groupBy, partition, pipe } from 'remeda';
 import { ProjectList } from '../project-list';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { ChatList } from './chat-list';
+import { ChatSearch } from './chat-search';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -48,27 +48,27 @@ export function Content() {
   const { data } = db.useQuery(
     !user.isPending && user.data
       ? {
-        chats: {
-          $: {
-            where: {
-              userId: user.data.id || '',
-            },
-            order: {
-              updatedAt: 'desc',
+          chats: {
+            $: {
+              where: {
+                userId: user.data.id || '',
+              },
+              order: {
+                updatedAt: 'desc',
+              },
             },
           },
-        },
-        projects: {
-          $: {
-            where: {
-              userId: user.data.id || '',
-            },
-            order: {
-              updatedAt: 'asc',
+          projects: {
+            $: {
+              where: {
+                userId: user.data.id || '',
+              },
+              order: {
+                updatedAt: 'asc',
+              },
             },
           },
         }
-      }
       : {},
   );
   const chats = (data?.chats || []) as Chat[];
@@ -77,8 +77,8 @@ export function Content() {
 
   const filteredChats = searchQuery
     ? orphanedChats.filter(chat =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : orphanedChats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);
@@ -123,7 +123,11 @@ export function Content() {
         user={user}
       />
       <ProjectList />
-      <ChatList projects={data?.projects ?? []} pinned={pinned} groupedChats={groupedChats} />
+      <ChatList
+        projects={data?.projects ?? []}
+        pinned={pinned}
+        groupedChats={groupedChats}
+      />
     </>
-  )
+  );
 }

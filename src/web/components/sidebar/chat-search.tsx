@@ -1,4 +1,5 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useNavigate } from '@tanstack/react-router';
 import {
   Dialog,
   DialogContent,
@@ -6,16 +7,13 @@ import {
   DialogTitle,
 } from '@web/components/ui/dialog';
 import { useUI } from '@web/hooks/use-ui';
-import { handleCreateChat } from '@web/lib/create-chat';
 import { type MyUser } from '@web/hooks/use-user';
-import { cn } from '@web/lib/utils';
-import {
-  PlusIcon,
-  Search,
-} from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { handleCreateChat } from '@web/lib/create-chat';
 import type { Chat } from '@web/lib/types';
-import { useNavigate } from '@tanstack/react-router';
+import { cn } from '@web/lib/utils';
+import { PlusIcon, Search } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
 export function ChatSearch({
   isOpen,
   setIsOpen,
@@ -175,4 +173,3 @@ export function ChatSearch({
     </Dialog>
   );
 }
-

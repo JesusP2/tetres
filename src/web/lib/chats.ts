@@ -8,7 +8,7 @@ export function createChat(
   chatId: string,
   model: ModelId,
   branchId?: string,
-  projectId?: string
+  projectId?: string,
 ) {
   return db.tx.chats[chatId]
     .update({
