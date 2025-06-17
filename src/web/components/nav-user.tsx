@@ -18,6 +18,7 @@ import {
 import { useUser } from '@web/hooks/use-user';
 import { authClient } from '@web/lib/auth-client';
 import { buttonVariants } from './ui/button';
+import { db } from '@web/lib/instant';
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -98,6 +99,7 @@ export function NavUser() {
             <DropdownMenuItem
               onClick={async () => {
                 await authClient.signOut();
+                await db.auth.signOut();
                 window.location.href = '/';
               }}
             >

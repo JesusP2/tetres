@@ -13,8 +13,7 @@ export function useInstantAuth({
   sessionData?: { session: Session; user: User } | null;
   isPending: boolean;
 }) {
-  const { user: _user, isLoading } = db.useAuth();
-  const [user, setUser] = useState(_user);
+  const { user, isLoading } = db.useAuth();
 
   useEffect(() => {
     if (isPending || isLoading) return;
@@ -22,15 +21,14 @@ export function useInstantAuth({
     async function getUser() {
       if (sessionData) {
         if (!user || user.id !== sessionData.user.id) {
-          const { user } = await db.auth.signInWithToken(
+          db.auth.signInWithToken(
             sessionData.session.token,
           );
-          setUser(user);
         }
       } else {
         db.auth.signOut({ invalidateToken: false });
       }
     }
     getUser();
-  }, [db, isPending, isLoading, sessionData, _user]);
+  }, [db, isPending, isLoading, sessionData, user]);
 }

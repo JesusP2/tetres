@@ -109,7 +109,7 @@ export const instantDBAdapter = ({
     adapter: ({ options, getFieldName, getDefaultModelName }) => {
       return {
         async create({ data, model }) {
-          // @ts-ignore
+          // @ts-expect-error idk
           data.id = options.advanced?.database?.generateId
             ? options.advanced.database.generateId({ model })
             : id();
