@@ -47,19 +47,18 @@ export function ApiKeyForm({ provider, onSubmit, onCancel }: ApiKeyFormProps) {
     }
   };
 
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4'>
         <FormField
           control={form.control}
-          name="apiKey"
+          name='apiKey'
           render={({ field }) => (
             <FormItem>
               <FormLabel>API Key</FormLabel>
               <FormControl>
                 <Input
-                  type="password"
+                  type='password'
                   placeholder={`Enter your ${provider} API key`}
                   {...field}
                 />
@@ -70,11 +69,11 @@ export function ApiKeyForm({ provider, onSubmit, onCancel }: ApiKeyFormProps) {
           )}
         />
 
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isSubmitting}>
+        <div className='flex gap-2'>
+          <Button type='submit' disabled={isSubmitting}>
             {isSubmitting ? 'Validating...' : 'Add API Key'}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type='button' variant='outline' onClick={onCancel}>
             Cancel
           </Button>
         </div>
@@ -87,20 +86,33 @@ const ProviderInstructions = ({ provider }: { provider: string }) => {
   switch (provider.toLowerCase()) {
     case 'openrouter':
       return (
-        <div className="text-sm text-muted-foreground space-y-1">
+        <div className='text-muted-foreground space-y-1 text-sm'>
           <p>To get your OpenRouter API key:</p>
-          <ol className="list-decimal list-inside space-y-1 ml-2">
-            <li>Visit <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">openrouter.ai/keys</a></li>
+          <ol className='ml-2 list-inside list-decimal space-y-1'>
+            <li>
+              Visit{' '}
+              <a
+                href='https://openrouter.ai/keys'
+                target='_blank'
+                rel='noopener noreferrer'
+                className='text-primary hover:underline'
+              >
+                openrouter.ai/keys
+              </a>
+            </li>
             <li>Create a new API key</li>
             <li>Copy and paste it below</li>
           </ol>
-          <p className="mt-2 text-xs">Your key will be encrypted and stored securely.</p>
+          <p className='mt-2 text-xs'>
+            Your key will be encrypted and stored securely.
+          </p>
         </div>
       );
     default:
       return (
-        <div className="text-sm text-muted-foreground">
-          Enter your {provider} API key. It will be encrypted and stored securely.
+        <div className='text-muted-foreground text-sm'>
+          Enter your {provider} API key. It will be encrypted and stored
+          securely.
         </div>
       );
   }

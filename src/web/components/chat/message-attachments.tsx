@@ -1,6 +1,6 @@
 import { FileText } from 'lucide-react';
-import { Button } from '../ui/button';
 import { ExpandableImage } from '../expandable-image';
+import { Button } from '../ui/button';
 
 type AttachmentFile = {
   key: string;

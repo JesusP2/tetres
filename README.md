@@ -11,11 +11,10 @@
 - [-] image gen
 - [-] emails
 - [-] test google auth
-- [-] BYOK
+- [x] BYOK
 - [-] login dialog
-- [-] expanding image
+- [x] expanding image
 - [-] add react query
-
 
 - Move searchDialogOpen to ChatSearch(useEffect too)
 

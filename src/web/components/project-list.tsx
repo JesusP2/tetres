@@ -11,10 +11,10 @@ import { SidebarMenu } from '@web/components/ui/sidebar';
 import { useUser } from '@web/hooks/use-user';
 import { db } from '@web/lib/instant';
 import {
+  assignChatToProject,
   deleteProject,
   toggleProjectPin,
   updateProjectName,
-  assignChatToProject,
 } from '@web/lib/projects';
 import type { Chat, Project } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
@@ -42,23 +42,25 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
   );
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
-  const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(null);
+  const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(
+    null,
+  );
 
   const { data } = db.useQuery(
     !user.isPending
       ? {
-        projects: {
-          $: {
-            where: {
-              userId: user.data?.id || '',
+          projects: {
+            $: {
+              where: {
+                userId: user.data?.id || '',
+              },
+              order: {
+                updatedAt: 'desc',
+              },
             },
-            order: {
-              updatedAt: 'desc',
-            },
+            chats: {},
           },
-          chats: {},
-        },
-      }
+        }
       : null,
   );
 
@@ -118,7 +120,7 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX;
     const y = e.clientY;
-    
+
     if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
       setDragOverProjectId(null);
     }
@@ -127,37 +129,35 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
   const handleDrop = async (e: React.DragEvent, targetProjectId: string) => {
     e.preventDefault();
     setDragOverProjectId(null);
-    
+
     try {
       const dragData = JSON.parse(e.dataTransfer.getData('application/json'));
-      
+
       if (dragData.type === 'chat') {
         const { chatId, chatTitle, currentProjectId } = dragData;
-        
+
         // Don't allow dropping on the same project
         if (currentProjectId === targetProjectId) {
           toast.info('Chat is already in this project');
           return;
         }
-        
+
         // Find the chat object
-        const chat = allChats 
+        const chat = allChats
           ? allChats.find(c => c.id === chatId)
-          : projects
-              .flatMap(p => p.chats || [])
-              .find(c => c.id === chatId);
-          
+          : projects.flatMap(p => p.chats || []).find(c => c.id === chatId);
+
         if (!chat) {
           toast.error('Chat not found');
           return;
         }
-        
+
         // Assign chat to new project
         await assignChatToProject(chat, targetProjectId);
-        
+
         const targetProject = projects.find(p => p.id === targetProjectId);
         toast.success(`Moved "${chatTitle}" to "${targetProject?.name}"`);
-        
+
         // Auto-expand the target project to show the newly added chat
         if (!expandedProjects.has(targetProjectId)) {
           setExpandedProjects(prev => new Set([...prev, targetProjectId]));
@@ -187,10 +187,10 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
                 <ContextMenu>
                   <ContextMenuTrigger asChild>
                     <div
-                      onDragOver={(e) => handleDragOver(e, project.id)}
-                      onDragEnter={(e) => handleDragEnter(e, project.id)}
+                      onDragOver={e => handleDragOver(e, project.id)}
+                      onDragEnter={e => handleDragEnter(e, project.id)}
                       onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, project.id)}
+                      onDrop={e => handleDrop(e, project.id)}
                       className={cn(
                         'mr-4 flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-colors',
                         'hover:bg-accent/50',
@@ -201,21 +201,33 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
                     >
                       <div className='flex min-w-0 flex-1 items-center gap-2'>
                         {isExpanded ? (
-                          <FolderOpen className={cn(
-                            'size-4',
-                            isDragOver ? 'text-muted-foreground/50' : 'text-muted-foreground'
-                          )} />
+                          <FolderOpen
+                            className={cn(
+                              'size-4',
+                              isDragOver
+                                ? 'text-muted-foreground/50'
+                                : 'text-muted-foreground',
+                            )}
+                          />
                         ) : (
-                          <Folder className={cn(
-                            'size-4',
-                            isDragOver ? 'text-muted-foreground/50' : 'text-muted-foreground'
-                          )} />
+                          <Folder
+                            className={cn(
+                              'size-4',
+                              isDragOver
+                                ? 'text-muted-foreground/50'
+                                : 'text-muted-foreground',
+                            )}
+                          />
                         )}
                         {project.pinned && (
-                          <Pin className={cn(
-                            'size-3',
-                            isDragOver ? 'text-muted-foreground/50' : 'text-muted-foreground'
-                          )} />
+                          <Pin
+                            className={cn(
+                              'size-3',
+                              isDragOver
+                                ? 'text-muted-foreground/50'
+                                : 'text-muted-foreground',
+                            )}
+                          />
                         )}
                         {editingProjectId === project.id ? (
                           <Input
@@ -228,31 +240,45 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
                             className='h-6 border-none bg-transparent p-0 px-1 text-sm outline-none'
                           />
                         ) : (
-                          <span className={cn(
-                            'truncate text-sm font-medium',
-                            isDragOver && 'text-muted-foreground/50'
-                          )}>
+                          <span
+                            className={cn(
+                              'truncate text-sm font-medium',
+                              isDragOver && 'text-muted-foreground/50',
+                            )}
+                          >
                             {project.name}
                           </span>
                         )}
                       </div>
-                      <span className={cn(
-                        'text-xs',
-                        isDragOver ? 'text-muted-foreground/50' : 'text-muted-foreground'
-                      )}>
+                      <span
+                        className={cn(
+                          'text-xs',
+                          isDragOver
+                            ? 'text-muted-foreground/50'
+                            : 'text-muted-foreground',
+                        )}
+                      >
                         {projectChats.length}
                       </span>
                       {projectChats.length > 0 ? (
                         isExpanded ? (
-                          <ChevronDown className={cn(
-                            'size-4',
-                            isDragOver ? 'text-muted-foreground/50' : 'text-muted-foreground'
-                          )} />
+                          <ChevronDown
+                            className={cn(
+                              'size-4',
+                              isDragOver
+                                ? 'text-muted-foreground/50'
+                                : 'text-muted-foreground',
+                            )}
+                          />
                         ) : (
-                          <ChevronRight className={cn(
-                            'size-4',
-                            isDragOver ? 'text-muted-foreground/50' : 'text-muted-foreground'
-                          )} />
+                          <ChevronRight
+                            className={cn(
+                              'size-4',
+                              isDragOver
+                                ? 'text-muted-foreground/50'
+                                : 'text-muted-foreground',
+                            )}
+                          />
                         )
                       ) : (
                         <div className='size-4' />

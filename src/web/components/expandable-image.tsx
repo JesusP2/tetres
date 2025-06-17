@@ -1,7 +1,5 @@
-import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { cn } from '@web/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -9,9 +7,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@web/components/ui/dialog';
+import { cn } from '@web/lib/utils';
 import { XIcon } from 'lucide-react';
+import * as React from 'react';
 
-interface ExpandableImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface ExpandableImageProps
+  extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   className?: string;
@@ -33,15 +34,15 @@ export function ExpandableImage({
           alt={alt}
           className={cn(
             'cursor-pointer transition-opacity hover:opacity-80',
-            className
+            className,
           )}
           {...props}
         />
       </DialogTrigger>
       <DialogContent
         className={cn(
-          'max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 border-0 bg-transparent shadow-none',
-          expandedClassName
+          'h-auto max-h-[95vh] w-auto max-w-[95vw] border-0 bg-transparent p-0 shadow-none',
+          expandedClassName,
         )}
       >
         <VisuallyHidden>
@@ -50,14 +51,14 @@ export function ExpandableImage({
         <VisuallyHidden>
           <DialogDescription>{alt}</DialogDescription>
         </VisuallyHidden>
-        <div className="relative">
+        <div className='relative'>
           <img
             src={src}
             alt={alt}
-            className="max-w-full max-h-[95vh] object-contain rounded-lg"
+            className='max-h-[95vh] max-w-full rounded-lg object-contain'
           />
         </div>
       </DialogContent>
     </Dialog>
   );
-} 
+}

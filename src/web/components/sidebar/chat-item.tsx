@@ -82,14 +82,17 @@ export function ChatItem({
 
   const handleDragStart = (e: React.DragEvent) => {
     setIsDragging(true);
-    e.dataTransfer.setData('application/json', JSON.stringify({
-      type: 'chat',
-      chatId: chat.id,
-      chatTitle: chat.title,
-      currentProjectId: chat.projectId || null,
-    }));
+    e.dataTransfer.setData(
+      'application/json',
+      JSON.stringify({
+        type: 'chat',
+        chatId: chat.id,
+        chatTitle: chat.title,
+        currentProjectId: chat.projectId || null,
+      }),
+    );
     e.dataTransfer.effectAllowed = 'move';
-    
+
     // Add some visual feedback to the drag image
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '0.5';
@@ -117,7 +120,7 @@ export function ChatItem({
               'group cursor-pointer',
               isActive && 'bg-accent shadow-sm',
               'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
-              isDragging && 'opacity-50 scale-95',
+              isDragging && 'scale-95 opacity-50',
               className,
             )}
             style={{

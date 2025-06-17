@@ -37,7 +37,7 @@ export function ChatList({
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX;
     const y = e.clientY;
-    
+
     if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
       setIsDragOver(false);
     }
@@ -46,30 +46,30 @@ export function ChatList({
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     try {
       const dragData = JSON.parse(e.dataTransfer.getData('application/json'));
-      
+
       if (dragData.type === 'chat') {
         const { chatId, chatTitle, currentProjectId } = dragData;
-        
+
         // Only allow removing from projects (not moving unassigned chats)
         if (!currentProjectId) {
           toast.info('Chat is already unassigned');
           return;
         }
-        
+
         // Find the chat object from all chats
         const chat = allChats.find(c => c.id === chatId);
-          
+
         if (!chat) {
           toast.error('Chat not found');
           return;
         }
-        
+
         // Remove chat from project
         await removeChatFromProject(chat);
-        
+
         toast.success(`Removed "${chatTitle}" from project`);
       }
     } catch (error) {
@@ -79,7 +79,7 @@ export function ChatList({
   };
 
   return (
-    <ScrollArea 
+    <ScrollArea
       className={cn(
         'masked-scroll-area mr-1 h-full overflow-y-auto transition-all duration-200',
       )}
@@ -91,17 +91,23 @@ export function ChatList({
       <SidebarMenu className='mt-3'>
         {pinned.length > 0 && (
           <div className='px-4 pt-2 pb-4'>
-            <div className={cn(
-              'mb-3 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase',
-              isDragOver ? 'text-muted-foreground/50' : 'text-muted-foreground'
-            )}>
+            <div
+              className={cn(
+                'mb-3 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase',
+                isDragOver
+                  ? 'text-muted-foreground/50'
+                  : 'text-muted-foreground',
+              )}
+            >
               <PinIcon className='size-3' />
               Pinned
             </div>
-            <div className={cn(
-              'space-y-1 transition-opacity duration-200',
-              isDragOver && 'opacity-50'
-            )}>
+            <div
+              className={cn(
+                'space-y-1 transition-opacity duration-200',
+                isDragOver && 'opacity-50',
+              )}
+            >
               {pinned.map(chat => (
                 <ChatItem projects={projects} chat={chat} key={chat.id} />
               ))}
@@ -110,16 +116,22 @@ export function ChatList({
         )}
         {Object.entries(groupedChats).map(([period, chats]) => (
           <div key={period} className='px-4 pb-4'>
-            <div className={cn(
-              'mb-3 text-xs font-semibold tracking-wide uppercase',
-              isDragOver ? 'text-muted-foreground/50' : 'text-muted-foreground'
-            )}>
+            <div
+              className={cn(
+                'mb-3 text-xs font-semibold tracking-wide uppercase',
+                isDragOver
+                  ? 'text-muted-foreground/50'
+                  : 'text-muted-foreground',
+              )}
+            >
               {period}
             </div>
-            <div className={cn(
-              'space-y-1 transition-opacity duration-200',
-              isDragOver && 'opacity-50'
-            )}>
+            <div
+              className={cn(
+                'space-y-1 transition-opacity duration-200',
+                isDragOver && 'opacity-50',
+              )}
+            >
               {chats.map(chat => (
                 <ChatItem projects={projects} chat={chat} key={chat.id} />
               ))}

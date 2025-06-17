@@ -12,21 +12,24 @@ export async function generateKeyHash(apiKey: string): Promise<string> {
 /**
  * Encrypt an API key using AES-GCM
  */
-export async function encryptKey(apiKey: string, secret: string): Promise<string> {
+export async function encryptKey(
+  apiKey: string,
+  secret: string,
+): Promise<string> {
   const encoder = new TextEncoder();
-  
+
   // Generate a random IV
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  
+
   // Create key from secret
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     encoder.encode(secret),
     { name: 'PBKDF2' },
     false,
-    ['deriveKey']
+    ['deriveKey'],
   );
-  
+
   const key = await crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
@@ -37,20 +40,20 @@ export async function encryptKey(apiKey: string, secret: string): Promise<string
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
-    ['encrypt']
+    ['encrypt'],
   );
-  
+
   const encrypted = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     key,
-    encoder.encode(apiKey)
+    encoder.encode(apiKey),
   );
-  
+
   // Combine IV and encrypted data
   const combined = new Uint8Array(iv.length + encrypted.byteLength);
   combined.set(iv);
   combined.set(new Uint8Array(encrypted), iv.length);
-  
+
   // Return as base64
   return btoa(String.fromCharCode(...combined));
 }
@@ -58,17 +61,20 @@ export async function encryptKey(apiKey: string, secret: string): Promise<string
 /**
  * Decrypt an API key using AES-GCM
  */
-export async function decryptKey(encryptedData: string, secret: string): Promise<string> {
+export async function decryptKey(
+  encryptedData: string,
+  secret: string,
+): Promise<string> {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-  
+
   // Decode from base64
   const combined = new Uint8Array(
     atob(encryptedData)
       .split('')
-      .map(char => char.charCodeAt(0))
+      .map(char => char.charCodeAt(0)),
   );
-  
+
   // Extract IV and encrypted data
   const iv = combined.slice(0, 12);
   const encrypted = combined.slice(12);
@@ -77,9 +83,9 @@ export async function decryptKey(encryptedData: string, secret: string): Promise
     encoder.encode(secret),
     { name: 'PBKDF2' },
     false,
-    ['deriveKey']
+    ['deriveKey'],
   );
-  
+
   const key = await crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
@@ -90,16 +96,16 @@ export async function decryptKey(encryptedData: string, secret: string): Promise
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
-    ['decrypt']
+    ['decrypt'],
   );
-  
+
   // Decrypt the data
   const decrypted = await crypto.subtle.decrypt(
     { name: 'AES-GCM', iv },
     key,
-    encrypted
+    encrypted,
   );
-  
+
   return decoder.decode(decrypted);
 }
 
@@ -119,4 +125,4 @@ export async function decryptKey(encryptedData: string, secret: string): Promise
 //   }
 //
 //   return false;
-// } 
+// }

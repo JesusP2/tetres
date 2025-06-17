@@ -1,5 +1,9 @@
-import { useState } from 'react';
+import { useUser } from '@web/hooks/use-user';
+import { deleteKey, toggleApiKey } from '@web/lib/api-keys';
+import { db } from '@web/lib/instant';
+import { addKey } from '@web/services';
 import { format } from 'date-fns';
+import { useState } from 'react';
 import { ApiKeyForm } from './api-key-form';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
 import { Badge } from './ui/badge';
@@ -13,10 +17,6 @@ import {
 } from './ui/card';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
-import { deleteKey, toggleApiKey } from '@web/lib/api-keys';
-import { addKey } from '@web/services';
-import { db } from '@web/lib/instant';
-import { useUser } from '@web/hooks/use-user';
 
 type Provider = {
   id: string;
@@ -35,11 +35,13 @@ const PROVIDERS: Provider[] = [
 export function ApiKeysSettings() {
   const user = useUser();
   const apiKeysQuery = db.useQuery(
-    user?.data ? {
-      apiKeys: {
-        $: { where: { userId: user.data.id } }
-      }
-    } : null
+    user?.data
+      ? {
+          apiKeys: {
+            $: { where: { userId: user.data.id } },
+          },
+        }
+      : null,
   );
   const apiKeys = apiKeysQuery.data?.apiKeys || [];
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
@@ -57,11 +59,12 @@ export function ApiKeysSettings() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">API Keys</h2>
-        <p className="text-muted-foreground">
-          Add your own API keys to use instead of the global keys. Your keys are encrypted and stored securely.
+    <div className='space-y-4'>
+      <div className='space-y-2'>
+        <h2 className='text-xl font-semibold'>API Keys</h2>
+        <p className='text-muted-foreground'>
+          Add your own API keys to use instead of the global keys. Your keys are
+          encrypted and stored securely.
         </p>
       </div>
 
@@ -70,28 +73,32 @@ export function ApiKeysSettings() {
         return (
           <Card key={provider.id}>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className='flex items-center justify-between'>
                 <div>
-                  <CardTitle className="capitalize">{provider.name}</CardTitle>
+                  <CardTitle className='capitalize'>{provider.name}</CardTitle>
                   <CardDescription>{provider.description}</CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className='flex items-center gap-2'>
                   {existingKey ? (
-                    <div className="flex items-center gap-2">
-                      <Badge variant="default">✓ Configured</Badge>
+                    <div className='flex items-center gap-2'>
+                      <Badge variant='default'>✓ Configured</Badge>
                       {existingKey.lastValidated && (
-                        <span className="text-xs text-muted-foreground">
-                          Last validated: {format(new Date(existingKey.lastValidated), 'MMM d, yyyy')}
+                        <span className='text-muted-foreground text-xs'>
+                          Last validated:{' '}
+                          {format(
+                            new Date(existingKey.lastValidated),
+                            'MMM d, yyyy',
+                          )}
                         </span>
                       )}
                     </div>
                   ) : (
-                    <Badge variant="secondary">Using global key</Badge>
+                    <Badge variant='secondary'>Using global key</Badge>
                   )}
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className='space-y-4'>
               {!existingKey && selectedProvider !== provider.id && (
                 <Button onClick={() => setSelectedProvider(provider.id)}>
                   Add Your {provider.name} API Key
@@ -100,7 +107,7 @@ export function ApiKeysSettings() {
               {selectedProvider === provider.id && (
                 <ApiKeyForm
                   provider={provider.name}
-                  onSubmit={async (apiKey) => {
+                  onSubmit={async apiKey => {
                     await addKey(provider.id, apiKey);
                     setSelectedProvider(null);
                   }}
@@ -108,34 +115,37 @@ export function ApiKeysSettings() {
                 />
               )}
               {existingKey && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
+                <div className='space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <div className='space-y-1'>
                       <Label>Use your API key instead of global key</Label>
-                      <p className="text-sm text-muted-foreground">
-                        When enabled, your personal API key will be used for all requests
+                      <p className='text-muted-foreground text-sm'>
+                        When enabled, your personal API key will be used for all
+                        requests
                       </p>
                     </div>
                     <Switch
                       checked={existingKey.isActive}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={checked =>
                         toggleApiKey(existingKey.id, checked)
                       }
                     />
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className='flex gap-2'>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant='outline'
+                      size='sm'
                       onClick={() => setSelectedProvider(provider.id)}
                     >
                       Update Key
                     </Button>
                     <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteKey(existingKey.id, provider.name)}
+                      variant='destructive'
+                      size='sm'
+                      onClick={() =>
+                        handleDeleteKey(existingKey.id, provider.name)
+                      }
                     >
                       Remove Key
                     </Button>
@@ -148,4 +158,4 @@ export function ApiKeysSettings() {
       })}
     </div>
   );
-} 
+}
