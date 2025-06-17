@@ -1,12 +1,12 @@
 import { fromAsyncCodeToHtml } from '@shikijs/markdown-it/async';
 import MarkdownItAsync from 'markdown-it-async';
 import { codeToHtml } from 'shiki';
+import minDark from 'tm-themes/themes/min-dark.json';
 // import everforestLight from 'tm-themes/themes/everforest-light.json';
 // import everforestDark from 'tm-themes/themes/everforest-dark.json';
 // import kanagawaLotus from 'tm-themes/themes/kanagawa-lotus.json';
 // import kanagawaWave from 'tm-themes/themes/kanagawa-wave.json';
 import minLight from 'tm-themes/themes/min-light.json';
-import minDark from 'tm-themes/themes/min-dark.json';
 
 const md = MarkdownItAsync();
 md.use(
@@ -146,10 +146,10 @@ md.use(
             ],
           };
         },
-                  postprocess(html: string) {
-            return html.replace(
-              'replace-text-with-icons',
-              `<span class="copy-icon">
+        postprocess(html: string) {
+          return html.replace(
+            'replace-text-with-icons',
+            `<span class="copy-icon">
                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
@@ -160,8 +160,8 @@ md.use(
                    <path d="M20 6 9 17l-5-5"/>
                  </svg>
                </span>`,
-            );
-          },
+          );
+        },
       },
     ],
   }),

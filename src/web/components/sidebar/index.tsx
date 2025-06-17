@@ -7,13 +7,12 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@web/components/ui/sidebar';
-import { ShellIcon } from 'lucide-react';
+import { SettingsIcon, ShellIcon } from 'lucide-react';
 import * as React from 'react';
-import { ChatList } from './chat-list';
-import { NavUser } from './nav-user';
-import { ThemeButton } from './theme-button';
-import { buttonVariants } from './ui/button';
-import { SettingsIcon } from './ui/settings';
+import { NavUser } from '../nav-user';
+import { ThemeButton } from '../theme-button';
+import { buttonVariants } from '../ui/button';
+import { Content } from './sidebar-content';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
   return (
@@ -21,14 +20,14 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
       <Sidebar collapsible='offcanvas'>
         <SidebarHeader className='mt-2'>
           <div className='flex items-center gap-2'>
-            <h2 className='mx-2 text-lg font-semibold flex items-center gap-2'>
+            <h2 className='mx-2 flex items-center gap-2 text-lg font-semibold'>
               <ShellIcon />
               Omokage
             </h2>
           </div>
         </SidebarHeader>
         <SidebarContent className='overflow-hidden'>
-          <ChatList />
+          <Content />
         </SidebarContent>
         <SidebarFooter className='mb-2'>
           <NavUser />

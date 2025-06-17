@@ -1,13 +1,13 @@
 import { id } from '@instantdb/react';
 import { useNavigate } from '@tanstack/react-router';
-import { Button } from '@web/components/ui/button';
-import { Textarea } from '@web/components/ui/textarea';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger
+  AccordionTrigger,
 } from '@web/components/ui/accordion';
+import { Button } from '@web/components/ui/button';
+import { Textarea } from '@web/components/ui/textarea';
 import { useUser } from '@web/hooks/use-user';
 import { updateChatModel } from '@web/lib/chats';
 import { createChat } from '@web/lib/chats';
@@ -29,9 +29,9 @@ import {
   Check,
   Copy,
   Edit3,
+  GitBranchIcon,
   Loader2,
   RotateCcw,
-  GitBranchIcon,
   X,
 } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useRef, useState } from 'react';
@@ -46,9 +46,7 @@ type ChatProps = {
   chat: ChatType;
   messages?: ParsedMessage[];
   onSubmit?: (message: string) => void;
-  setParsedMessages: Dispatch<
-    SetStateAction<ParsedMessage[]>
-  >;
+  setParsedMessages: Dispatch<SetStateAction<ParsedMessage[]>>;
 };
 
 export function Chat({
@@ -186,14 +184,15 @@ export function Chat({
     const messagesToCopy = messages.slice(0, messageIndex + 1);
 
     const newChatId = id();
-    const newChatTitle = chat.title
+    const newChatTitle = chat.title;
 
     const createChatTx = createChat(
       user.data,
       newChatTitle,
       newChatId,
       chat.model as ModelId,
-      chat.id,
+      chat.id, // branchId (parent chat ID)
+      chat.projectId, // inherit project from parent chat
     );
 
     const newMessageTxs = messagesToCopy.map(msgToCopy => {
@@ -241,8 +240,7 @@ export function Chat({
             {messages.map(m => {
               const isEditing = editingMessageId === m.id;
               const isLoading =
-                m.role === 'assistant' &&
-                (!m.content && !m.reasoning);
+                m.role === 'assistant' && !m.content && !m.reasoning;
               const isAborted = m.aborted !== undefined;
               return m.role === 'user' ? (
                 <div data-role='user' key={m.id} className='flex justify-end'>
@@ -292,10 +290,12 @@ export function Chat({
                     ) : (
                       <div className='group'>
                         <div className='bg-secondary rounded-lg p-2'>
-                          <span dangerouslySetInnerHTML={{
-                            __html: m.highlightedText || '',
-                          }}
-                            className='text-secondary-foreground' />
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: m.highlightedText || '',
+                            }}
+                            className='text-secondary-foreground'
+                          />
                           <MessageAttachments files={m.files || []} />
                         </div>
                         <div className='mt-1 flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100'>
@@ -375,12 +375,12 @@ export function Chat({
                     <div className='mb-3'>
                       <Accordion type='single' collapsible>
                         <AccordionItem value='reasoning'>
-                          <AccordionTrigger className='text-sm text-muted-foreground hover:text-foreground cursor-pointer'>
+                          <AccordionTrigger className='text-muted-foreground hover:text-foreground cursor-pointer text-sm'>
                             <span>Reasoning</span>
                           </AccordionTrigger>
                           <AccordionContent>
                             <div
-                              className='text-sm text-muted-foreground prose prose-sm max-w-none ml-6 reasoning'
+                              className='text-muted-foreground prose prose-sm reasoning ml-6 max-w-none text-sm'
                               dangerouslySetInnerHTML={{
                                 __html: m.highlightedReasoning,
                               }}
@@ -391,7 +391,7 @@ export function Chat({
                     </div>
                   )}
                   <div
-                    className="content"
+                    className='content'
                     dangerouslySetInnerHTML={{
                       __html: m.highlightedText || '',
                     }}

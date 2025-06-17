@@ -28,6 +28,7 @@ import {
 import { Textarea } from '@web/components/ui/textarea';
 import { Toggle } from '@web/components/ui/toggle';
 import { abortGeneration } from '@web/lib/messages';
+import { defaultPresets } from '@web/lib/theme-presets';
 import type { Message } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import { deleteFile } from '@web/services';
@@ -45,10 +46,9 @@ import {
 import { type SVGProps, useRef, useState } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
+import { useTheme } from '../providers/theme-provider';
 import { Tooltip, TooltipContent } from '../ui/tooltip';
 import { MyUploadButton } from '../upload-button';
-import { useTheme } from '../providers/theme-provider';
-import { defaultPresets } from '@web/lib/theme-presets';
 
 function ModelIcon({ modelId }: { modelId: ModelId }) {
   const { theme, preset } = useTheme();
@@ -63,9 +63,7 @@ function ModelIcon({ modelId }: { modelId: ModelId }) {
   } else {
     Icon = Bot;
   }
-  return (
-    <Icon className='text-primary mr-2 h-4 w-4' fill={primaryColor} />
-  );
+  return <Icon className='text-primary mr-2 h-4 w-4' fill={primaryColor} />;
 }
 
 type ChatFooterProps = {
@@ -397,7 +395,11 @@ function ReasoningDropdown({
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline' size='sm' className='flex items-center gap-2'>
+            <Button
+              variant='outline'
+              size='sm'
+              className='flex items-center gap-2'
+            >
               {reasoningLevel === 'off' ? (
                 <Brain className='text-muted-foreground h-4 w-4' />
               ) : (
@@ -414,9 +416,7 @@ function ReasoningDropdown({
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>
-          Reasoning Effort
-        </TooltipContent>
+        <TooltipContent>Reasoning Effort</TooltipContent>
       </Tooltip>
       <DropdownMenuContent>
         {Object.entries(reasoningConfig).map(
