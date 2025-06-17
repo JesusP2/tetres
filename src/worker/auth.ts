@@ -1,43 +1,47 @@
-import { instantDBAdapter } from '@daveyplate/better-auth-instantdb';
 import { betterAuth } from 'better-auth';
 import { magicLink } from 'better-auth/plugins';
 import { passkey } from 'better-auth/plugins/passkey';
 import { env as cloudflareEnv } from 'cloudflare:workers';
+import { Resend } from 'resend';
 import { getDb } from './db';
+import { magicLinkTemplate } from './emails/magic-link';
+import { forgotPasswordTemplate } from './emails/otp';
+import { instantDBAdapter } from './instant-adapteer';
 
 export const createAuth = (env: typeof cloudflareEnv) => {
   const adminDb = getDb(env);
+
+  const resend = new Resend(env.RESEND_API_KEY);
   return betterAuth({
     secret: env.BETTER_AUTH_SECRET,
     plugins: [
       passkey(),
       magicLink({
         sendMagicLink: async ({ email, url }) => {
-          console.log('send magic link', email, url);
-          // await resend.emails.send({
-          //   from: EMAIL_FROM,
-          //   to: email,
-          //   subject: 'Magic link',
-          //   react: magicLinkTemplate(url),
-          // });
+          console.log('i hate my life:', url, env.BASE_URL);
+          await resend.emails.send({
+            from: 'no-reply@omokage.app',
+            to: email,
+            subject: 'Magic link',
+            react: magicLinkTemplate(url, env.BASE_URL),
+          });
         },
       }),
     ],
     database: instantDBAdapter({
       db: adminDb,
       usePlural: true,
+      debugLogs: true,
     }),
     emailAndPassword: {
       enabled: true,
-      sendResetPassword: async ({ user, token }) => {
-        console.log('send reset password', user, token);
-        // const url = BASE_URL + "/auth/reset-password/" + token;
-        // await resend.emails.send({
-        //   from: EMAIL_FROM,
-        //   to: user.email,
-        //   subject: "Reset password",
-        //   react: forgotPasswordTemplate(url),
-        // });
+      sendResetPassword: async ({ user, url }) => {
+        await resend.emails.send({
+          from: 'no-reply@omokage.app',
+          to: user.email,
+          subject: 'Reset password',
+          react: forgotPasswordTemplate(url, env.BASE_URL),
+        });
       },
     },
     socialProviders: {
@@ -45,8 +49,6 @@ export const createAuth = (env: typeof cloudflareEnv) => {
         enabled: true,
         clientId: env.GOOGLE_CLIENT_ID,
         clientSecret: env.GOOGLE_CLIENT_SECRET,
-        // clientId: process.env.GOOGLE_CLIENT_ID!,
-        // clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       },
     },
   });

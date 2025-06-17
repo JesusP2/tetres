@@ -5,6 +5,7 @@
     "noUncheckedIndexedAccess": false,
     "verbatimModuleSyntax": false,
     "types": ["vite/client", "./worker-configuration.d.ts"],
+    "jsx": "react-jsx",
     "paths": {
       "@server/*": ["./src/worker/*"]
     }

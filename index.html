@@ -20,6 +20,34 @@
     <p>
     </p>
     <script>
+      // https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/#client-side-callbacks
+      async function magicLinkCallback() {
+        const response = await fetch(
+          '/api/auth/magic-link/verify' + window.location.search,
+        );
+        if (response.ok) {
+          window.location.href = '/';
+        } else {
+          const error = 'Failed to authenticate with Google, this account may already be linked to another user.';
+          const href = `/auth/sign-in?error=${encodeURIComponent(error)}`
+        }
+      }
+
+      async function resetPasswordCallback() {
+        const url = window.location.pathname + window.location.search;
+        const response = await fetch(url);
+        if (response.redirected) {
+          window.location.href = response.url;
+        } else {
+          const error = 'Failed to authenticate with Google, this account may already be linked to another user.';
+          const href = `/auth/sign-in?error=${encodeURIComponent(error)}`
+        }
+      }
+      if (window.location.href.includes('/api/auth/magic-link/verify')) {
+        magicLinkCallback();
+      } else if (window.location.href.includes('/api/auth/reset-password')) {
+        resetPasswordCallback();
+      }
     </script>
     <script type="module" src="/src/web/main.tsx"></script>
   </body>

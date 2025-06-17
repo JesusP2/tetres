@@ -7,6 +7,7 @@ import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
 import { createRouteHandler, UTApi } from 'uploadthing/server';
 import { z } from 'zod/v4';
+import { createAuth } from './auth';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
 import { envMiddleware } from './middleware/env-middleware';
@@ -162,6 +163,10 @@ const app = new Hono<AppBindings>({ strict: false })
   .use(csrf())
   .use(envMiddleware)
   .use(dbMiddleware)
+  .on(['POST', 'GET'], '/api/auth/*', async c => {
+    const auth = createAuth(c.env);
+    return auth.handler(c.req.raw).catch(console.error);
+  })
   .use(betterAuthMiddleware)
   .on(['POST', 'GET'], '/api/uploadthing', async c => {
     const handlers = createRouteHandler({
@@ -320,11 +325,6 @@ const app = new Hono<AppBindings>({ strict: false })
       }),
     );
     return c.json({ success: true });
-  })
-  .on(['POST', 'GET'], '/api/auth/*', async c => {
-    const auth = c.get('auth');
-    const yo = await auth.handler(c.req.raw).catch(console.error);
-    return yo;
   })
   .onError((err, c) => {
     console.error(err);

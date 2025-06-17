@@ -11,9 +11,7 @@ export const betterAuthMiddleware = createMiddleware<AppBindings>(
 
     const session = await auth.api.getSession({ headers: c.req.raw.headers });
     const url = new URL(c.req.url);
-    console.log(session, url, url.pathname)
-    if (!session && !url.pathname.startsWith('/api/auth')) {
-      console.log('redirecting:', '/api/auth/login')
+    if (!session && url.pathname.startsWith('/api/')) {
       throw new HttpError('Unauthorized', 401);
     }
 

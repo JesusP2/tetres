@@ -52,8 +52,8 @@ const _schema = i.schema({
     verifications: i.entity({
       identifier: i.string(),
       value: i.string(),
-      expiresAt: i.date(),
-      createdAt: i.date(),
+      expiresAt: i.date().indexed(),
+      createdAt: i.date().indexed(),
       updatedAt: i.date(),
     }),
     passkeys: i.entity({
