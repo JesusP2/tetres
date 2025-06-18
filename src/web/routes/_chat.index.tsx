@@ -1,4 +1,4 @@
-import { id } from '@instantdb/react';
+import { id } from '@instantdb/core';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ChatFooter } from '@web/components/chat/footer';
 import { Button } from '@web/components/ui/button';
@@ -6,17 +6,7 @@ import { Card } from '@web/components/ui/card';
 import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
 import { useUI } from '@web/hooks/use-ui';
 import { useUser } from '@web/hooks/use-user';
-import { createChat } from '@web/lib/chats';
 import { handleCreateChat } from '@web/lib/create-chat';
-import { db } from '@web/lib/instant';
-import { createAssistantMessage, createUserMessage } from '@web/lib/messages';
-import {
-  createMessageObject,
-  fileToIFile,
-  messageToAPIMessage,
-} from '@web/lib/utils/message';
-import { renameChat, sendMessage } from '@web/services';
-import type { ClientUploadedFileData } from 'uploadthing/types';
 import { z } from 'zod';
 
 const indexSearchSchema = z.object({
@@ -96,19 +86,22 @@ function Index() {
         <ChatFooter
           userId={user.data ? user.data.id : undefined}
           onSubmit={async (search, files, webSearchEnabled, reasoning) => {
-            const newChatId = await handleCreateChat(
-              search,
-              files,
-              webSearchEnabled,
-              reasoning,
-              user,
-              ui,
-            );
-            if (!newChatId) return;
-            await navigate({
-              to: '/$chatId',
-              params: { chatId: newChatId },
-            });
+            const newChatId = id();
+            await Promise.all([
+              handleCreateChat(
+                newChatId,
+                search,
+                files,
+                webSearchEnabled,
+                reasoning,
+                user,
+                ui,
+              ),
+              navigate({
+                to: '/$chatId',
+                params: { chatId: newChatId },
+              })
+            ])
           }}
           selectedModel={ui?.defaultModel}
           updateModel={model => updateUI({ defaultModel: model })}

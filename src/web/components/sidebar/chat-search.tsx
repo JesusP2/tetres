@@ -1,3 +1,4 @@
+import { id } from '@instantdb/core';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useNavigate } from '@tanstack/react-router';
 import {
@@ -43,19 +44,22 @@ export function ChatSearch({
     } else if (user.data && ui && window.navigator.onLine) {
       setIsOpen(false);
       setSearch('');
-      const newChatId = await handleCreateChat(
-        search,
-        [],
-        false,
-        'off',
-        user,
-        ui,
-      );
-      if (!newChatId) return;
-      await navigate({
-        to: '/$chatId',
-        params: { chatId: newChatId },
-      });
+      const newChatId = id();
+      await Promise.all([
+        handleCreateChat(
+          newChatId,
+          search,
+          [],
+          false,
+          'off',
+          user,
+          ui,
+        ),
+        navigate({
+          to: '/$chatId',
+          params: { chatId: newChatId },
+        })
+      ]);
     }
   };
 

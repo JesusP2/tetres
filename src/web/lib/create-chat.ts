@@ -13,6 +13,7 @@ import {
 } from './utils/message';
 
 export const handleCreateChat = async (
+  newChatId: string,
   messageContent: string,
   files: ClientUploadedFileData<null>[],
   webSearchEnabled: boolean,
@@ -25,7 +26,6 @@ export const handleCreateChat = async (
   projectId?: string,
 ) => {
   if (!user.data || !ui || !window.navigator.onLine) return;
-  const newChatId = id();
   const chatTx = createChat(
     user.data,
     'New Chat',
