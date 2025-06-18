@@ -45,7 +45,7 @@ export function ProjectButton() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant='ghost' className='w-full justify-start'>
+        <Button variant='ghost' className='w-full justify-start hover:text-secondary-foreground'>
           <FolderPlus className='mr-2 size-4' />
           New Project
         </Button>

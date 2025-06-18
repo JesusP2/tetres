@@ -117,7 +117,7 @@ export function ChatItem({
               onDragEnd={handleDragEnd}
               className={cn(
                 'relative mb-1 rounded-lg transition-all duration-200 ease-in-out',
-                'hover:bg-accent/50 hover:shadow-sm',
+                'hover:bg-accent/50 hover:shadow-sm w-[calc(var(--sidebar-width)-2rem)]',
                 'group cursor-pointer',
                 isActive && 'bg-accent shadow-sm',
                 'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
@@ -125,7 +125,6 @@ export function ChatItem({
                 className,
               )}
               style={{
-                width: `calc(var(--sidebar-width) - 2rem)`,
                 cursor: isDragging ? 'grabbing' : 'grab',
               }}
               onDoubleClick={() => {

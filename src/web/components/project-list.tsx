@@ -6,7 +6,6 @@ import {
   ContextMenuTrigger,
 } from '@web/components/ui/context-menu';
 import { Input } from '@web/components/ui/input';
-import { ScrollArea } from '@web/components/ui/scroll-area';
 import { SidebarMenu } from '@web/components/ui/sidebar';
 import { useUser } from '@web/hooks/use-user';
 import { db } from '@web/lib/instant';
@@ -192,7 +191,7 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
         Projects
       </div>
       <ProjectButton />
-      <div className='chat-oerflow chat-scrollbar max-h-[200px] overflow-auto overflow-x-hidden'>
+      <div className='chat-scrollbar overflow-auto overflow-x-hidden'>
         <SidebarMenu>
           {projects.map(project => {
             const isExpanded = expandedProjects.has(project.id);
@@ -209,7 +208,7 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
                       onDragLeave={handleDragLeave}
                       onDrop={e => handleDrop(e, project.id)}
                       className={cn(
-                        'mr-4 flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-colors',
+                        'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-colors',
                         'hover:bg-accent/50',
                         'group',
                         isDragOver && 'bg-accent/50',
@@ -340,6 +339,7 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
                     <div className='space-y-1'>
                       {projectChats.map(chat => (
                         <ChatItem
+                          className="w-[calc(var(--sidebar-width)-2.55rem)]"
                           projects={projects ?? []}
                           key={chat.id}
                           chat={chat}
