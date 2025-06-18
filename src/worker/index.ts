@@ -67,7 +67,7 @@ const getApiKey = async (
   return globalKey;
 };
 
-export const sendMessageToModel = async ({
+export const sendMessageToOpenrouter = async ({
   messages,
   config,
   db,
@@ -261,7 +261,6 @@ const app = new Hono<AppBindings>({ strict: false })
   .post('/api/audio', async c => {
     const formData = await c.req.formData();
     const audioFile = formData.get('audio') as File;
-    const timestamp = formData.get('timestamp') as string | null;
 
     if (!audioFile) {
       return c.json({ error: 'No audio file provided' }, 400);
@@ -351,14 +350,18 @@ const app = new Hono<AppBindings>({ strict: false })
       c.env.BETTER_AUTH_SECRET,
     );
 
-    c.executionCtx.waitUntil(
-      sendMessageToModel({
-        config: body.config,
-        messages: filteredMessages,
-        db,
-        apiKey,
-      }),
-    );
+    if (body.config.model === 'openai/gpt-4.1-mini-image') {
+      // TODO: add support for image generation
+    } else {
+      c.executionCtx.waitUntil(
+        sendMessageToOpenrouter({
+          config: body.config,
+          messages: filteredMessages,
+          db,
+          apiKey,
+        }),
+      );
+    }
     return c.json({ success: true });
   })
   .onError((err, c) => {
