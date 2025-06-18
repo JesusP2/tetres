@@ -5,6 +5,7 @@ import { generateText, streamText } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
+import OpenAI from 'openai';
 import { createRouteHandler, UTApi } from 'uploadthing/server';
 import { z } from 'zod/v4';
 import { createAuth } from './auth';
@@ -257,12 +258,46 @@ const app = new Hono<AppBindings>({ strict: false })
     }
     return c.json({ success: true });
   })
+  .post('/api/audio', async c => {
+    const formData = await c.req.formData();
+    const audioFile = formData.get('audio') as File;
+    const timestamp = formData.get('timestamp') as string | null;
+
+    if (!audioFile) {
+      return c.json({ error: 'No audio file provided' }, 400);
+    }
+    if (!audioFile.type.startsWith('audio/')) {
+      return c.json({ error: 'Invalid file type. Audio files only.' }, 400);
+    }
+    const maxSize = 10 * 1024 * 1024; // 4MB
+    if (audioFile.size > maxSize) {
+      return c.json(
+        { error: 'Audio file too large. Maximum size is 10MB.' },
+        400,
+      );
+    }
+
+    const openai = new OpenAI({
+      apiKey: c.env.OPENAI_API_KEY,
+    });
+
+    const transcription = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: 'whisper-1',
+    });
+    return c.json({
+      success: true,
+      message: 'Audio transcribed successfully',
+      transcription: transcription.text,
+    });
+  })
   .post('/api/model', zValidator('json', bodySchema), async c => {
     const body = c.req.valid('json');
     const modelId = body.config.model;
     const model = models.find(m => m.id === modelId);
-    const canAttachImage =
-      model?.architecture.input_modalities.includes('image');
+    const canAttachImage = model?.architecture.input_modalities.includes(
+      'image' as any,
+    );
     const canAttachFile = model?.architecture.input_modalities.includes(
       'file' as any,
     );

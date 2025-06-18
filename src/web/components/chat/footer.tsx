@@ -1,9 +1,4 @@
-import { TooltipTrigger } from '@radix-ui/react-tooltip';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { AnthropicLogo } from '@web/components/icons/anthropic';
-import { GeminiLogo } from '@web/components/icons/gemini';
-import { OpenAILogo } from '@web/components/icons/openai';
-import { DeepSeekLogo } from '@web/components/icons/deepseek';
 import { Button } from '@web/components/ui/button';
 import {
   Command,
@@ -29,45 +24,30 @@ import {
 import { Textarea } from '@web/components/ui/textarea';
 import { Toggle } from '@web/components/ui/toggle';
 import { abortGeneration } from '@web/lib/messages';
-import { defaultPresets } from '@web/lib/theme-presets';
 import type { Message } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import { deleteFile } from '@web/services';
 import {
   ArrowUp,
-  Bot,
   Brain,
   ChevronsUpDown,
   Globe,
   LoaderCircleIcon,
+  Mic,
   Paperclip,
   Square,
   X,
 } from 'lucide-react';
-import { type SVGProps, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
-import { useTheme } from '../providers/theme-provider';
-import { Tooltip, TooltipContent } from '../ui/tooltip';
+import { useAudioRecorder } from '@web/hooks/use-audio-recorder';
+import { formatDuration, isAudioRecordingSupported } from '@web/lib/audio-utils';
+import { sendAudio } from '@web/services';
 import { MyUploadButton } from '../upload-button';
-
-function ModelIcon({ modelId }: { modelId: ModelId }) {
-  const { theme, preset } = useTheme();
-  const primaryColor = defaultPresets[preset].styles[theme].primary;
-  let Icon: React.FC<SVGProps<SVGSVGElement>>;
-  if (modelId.startsWith('openai/')) {
-    Icon = OpenAILogo;
-  } else if (modelId.startsWith('google/')) {
-    Icon = GeminiLogo;
-  } else if (modelId.startsWith('anthropic/')) {
-    Icon = AnthropicLogo;
-  } else if (modelId.startsWith('deepseek/')) {
-    Icon = DeepSeekLogo;
-  } else {
-    Icon = Bot;
-  }
-  return <Icon className='text-primary mr-2 h-4 w-4' fill={primaryColor} />;
-}
+import { AudioLinesIcon } from '../ui/audio-lines';
+import { Tooltip, TooltipContent } from '../ui/tooltip';
+import { TooltipTrigger } from '@radix-ui/react-tooltip';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -99,6 +79,27 @@ export function ChatFooter({
   >('off');
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
 
+  const handleAudioReady = async (audioBlob: Blob) => {
+    try {
+      const transcription = await sendAudio(audioBlob);
+      const textarea = formRef.current.elements['message']
+      textarea.value = transcription;
+      setMessage(transcription);
+    } catch (error) {
+      console.error('Failed to send audio:', error);
+    }
+  };
+
+  const {
+    recordingState,
+    duration,
+    startRecording,
+    stopRecording,
+    isRecording,
+  } = useAudioRecorder(handleAudioReady);
+
+  const isAudioSupported = isAudioRecordingSupported();
+
   const model = models.find(m => m.id === selectedModel);
   const isGenerating =
     lastMessage?.role === 'assistant' && !lastMessage.finished;
@@ -121,14 +122,15 @@ export function ChatFooter({
   const canAttachFile = (
     model?.architecture.input_modalities as readonly string[]
   )?.includes('file');
+  const canAttach = canAttachImage || canAttachFile;
 
-  let acceptTypes = '.txt';
+  let acceptTypes = '';
   if (canAttachImage && canAttachFile) {
-    acceptTypes += ',image/*,.pdf';
+    acceptTypes = 'image/*,.pdf,.txt';
   } else if (canAttachImage) {
-    acceptTypes = ',image/*';
+    acceptTypes = 'image/*';
   } else if (canAttachFile) {
-    acceptTypes = ',.pdf';
+    acceptTypes = '.pdf,.txt';
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -138,10 +140,8 @@ export function ChatFooter({
       messageFiles.find(file => typeof file === 'string') ||
       !window.navigator.onLine ||
       isProcessing
-    ) {
-      console.log('not submitting');
+    )
       return;
-    }
     setMessageFiles([]);
     setMessage('');
     await onSubmit(
@@ -239,7 +239,7 @@ export function ChatFooter({
                 variant='outline'
               >
                 <Globe className='h-4 w-4' />
-                <span className='hidden sm:inline'>Web</span>
+                Web
               </Toggle>
               {supportsReasoning && (
                 <ReasoningDropdown
@@ -247,61 +247,97 @@ export function ChatFooter({
                   setReasoningLevel={setReasoningLevel}
                 />
               )}
-              <MyUploadButton
-                disabled={isProcessing}
-                onClientUploadComplete={files => {
-                  const file = files[0];
-                  if (!file) return;
-                  setIsProcessing(false);
-                  setMessageFiles(prev => {
-                    const files = prev.slice(0, prev.length - 1);
-                    return [...files, file];
-                  });
-                }}
-                onUploadBegin={() => setIsProcessing(true)}
-                onBeforeUploadBegin={files => {
-                  return files.map(file => {
+              {canAttach && (
+                <MyUploadButton
+                  disabled={isProcessing}
+                  onClientUploadComplete={files => {
+                    const file = files[0];
+                    if (!file) return;
+                    setIsProcessing(false);
                     setMessageFiles(prev => {
-                      return [...prev, file.name];
+                      const files = prev.slice(0, prev.length - 1);
+                      return [...files, file];
                     });
-                    return file;
-                  });
-                }}
-                endpoint='uploader'
-                acceptTypes={acceptTypes}
-              />
+                  }}
+                  onUploadBegin={() => setIsProcessing(true)}
+                  onBeforeUploadBegin={files => {
+                    return files.map(file => {
+                      setMessageFiles(prev => {
+                        return [...prev, file.name];
+                      });
+                      return file;
+                    });
+                  }}
+                  endpoint='uploader'
+                  acceptTypes={acceptTypes}
+                />
+              )}
+              {isAudioSupported && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='outline'
+                      disabled={isProcessing || isGenerating}
+                      onClick={isRecording ? stopRecording : startRecording}
+                      className={cn(
+                        'flex items-center gap-2',
+                        isRecording && 'border-red-500 bg-red-50 dark:bg-red-950'
+                      )}
+                    >
+                      {isRecording ? (
+                        <>
+                          <AudioLinesIcon size={16} />
+                          <span className='text-xs text-red-600 dark:text-red-400'>
+                            {formatDuration(duration)}
+                          </span>
+                        </>
+                      ) : (
+                        <Mic className='h-4 w-4' />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isRecording ? (
+                      <div>Stop recording ({formatDuration(duration)})</div>
+                    ) : recordingState === 'processing' ? (
+                      <div>Processing audio...</div>
+                    ) : (
+                      <div>Record voice message</div>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
             <div className='flex items-center gap-2'>
               {isGenerating ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      className='size-8'
+                      className="size-8"
                       variant='destructive'
                       onClick={handleStop}
                     >
                       <Square className='h-4 w-4' />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Cancel response generation</TooltipContent>
+                  <TooltipContent>
+                    Cancel response generation
+                  </TooltipContent>
                 </Tooltip>
               ) : (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      className={cn(
-                        'size-8',
-                        message.trim() || messageFiles.length
-                          ? ''
-                          : 'opacity-50',
-                      )}
+                      className={cn('size-8', message.trim() || messageFiles.length ? '' : 'opacity-50')}
                       type='submit'
                     >
                       <ArrowUp className='h-4 w-4' />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {message.trim() ? (
+                    {message.trim() || messageFiles.length ? (
                       <div>Send</div>
                     ) : (
                       <div>Message requires text</div>
@@ -334,7 +370,7 @@ export function ModelsButton({
           variant='outline'
           role='combobox'
           aria-expanded={open}
-          className='max-w-[200px] justify-between sm:max-w-[250px]'
+          className='w-[250px] justify-between'
         >
           <span className='truncate'>
             {selectedModel
@@ -357,21 +393,18 @@ export function ModelsButton({
           <CommandList className='chat-scrollbar'>
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
-              {models.map(m => {
-                return (
-                  <CommandItem
-                    key={m.id}
-                    value={m.id}
-                    onSelect={currentValue => {
-                      updateModel(currentValue as ModelId);
-                      setOpen(false);
-                    }}
-                  >
-                    <ModelIcon modelId={m.id} />
-                    {m.name}
-                  </CommandItem>
-                );
-              })}
+              {models.map(m => (
+                <CommandItem
+                  key={m.id}
+                  value={m.id}
+                  onSelect={currentValue => {
+                    updateModel(currentValue as ModelId);
+                    setOpen(false);
+                  }}
+                >
+                  {m.name}
+                </CommandItem>
+              ))}
             </CommandGroup>
           </CommandList>
         </Command>
@@ -396,32 +429,23 @@ function ReasoningDropdown({
 
   return (
     <DropdownMenu>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant='outline'
-              size='sm'
-              className='flex items-center gap-2'
-            >
-              {reasoningLevel === 'off' ? (
-                <Brain className='text-muted-foreground h-4 w-4' />
-              ) : (
-                <Brain className='h-4 w-4' />
-              )}
-              <span
-                className={cn(
-                  'hidden capitalize sm:inline',
-                  reasoningLevel === 'off' && 'text-muted-foreground',
-                )}
-              >
-                {reasoningLevel}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Reasoning Effort</TooltipContent>
-      </Tooltip>
+      <DropdownMenuTrigger asChild>
+        <Button variant='outline' size='sm' className='flex items-center gap-2'>
+          {reasoningLevel === 'off' ? (
+            <Brain className='text-muted-foreground h-4 w-4' />
+          ) : (
+            <Brain className='h-4 w-4' />
+          )}
+          <span
+            className={cn(
+              'capitalize',
+              reasoningLevel === 'off' && 'text-muted-foreground',
+            )}
+          >
+            {reasoningLevel}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
       <DropdownMenuContent>
         {Object.entries(reasoningConfig).map(
           ([level, { icon: Icon, label }]) => (
