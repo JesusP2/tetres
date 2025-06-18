@@ -1,6 +1,6 @@
 import { id } from '@instantdb/react';
 import { db } from '@web/lib/instant';
-import type { Message } from '@web/lib/types';
+import type { Message, ParsedMessage } from '@web/lib/types';
 import { sendMessage } from '@web/services';
 import type { ModelId } from '@server/utils/models';
 import { createMessageObject, messageToAPIMessage } from './utils/message';
@@ -20,23 +20,20 @@ export function createAssistantMessage(message: Message) {
     .link({ chat: message.chatId });
 }
 
-function getLastUserMessage(messages: { role: 'user' | 'assistant' }[]) {
-  return messages[messages.length - 1]?.role === 'user'
-    ? messages[messages.length - 1]
-    : messages[messages.length - 2];
-}
-
 export async function retryMessage(
-  messages: Message[],
-  targetMessage: Message,
+  messages: ParsedMessage[],
+  targetMessage: ParsedMessage,
   newContent: string,
   userId: string,
   model: ModelId,
   webSearchEnabled: boolean,
   reasoning: 'off' | 'low' | 'medium' | 'high',
 ) {
-  const targetIndex = messages.findIndex(m => m.id === targetMessage.id);
-  const messagesToDelete = messages.slice(targetIndex + 1);
+  let targetIndex = messages.findIndex(m => m.id === targetMessage.id);
+  if (targetMessage.role === 'user') {
+    targetIndex += 1;
+  }
+  const messagesToDelete = messages.slice(targetIndex);
   const deleteActions = messagesToDelete.map(m =>
     db.tx.messages[m.id].delete(),
   );
@@ -46,17 +43,19 @@ export async function retryMessage(
     chatId: targetMessage.chatId,
     model: model,
   });
-  await db.transact([
-    ...deleteActions,
-    db.tx.messages[targetMessage.id].update({
-      content: newContent,
-      model: model,
-      updatedAt: new Date().toISOString(),
-    }),
-    createAssistantMessage(newAssistantMessage),
-  ]);
+  const tx = [...deleteActions, createAssistantMessage(newAssistantMessage)];
+  if (targetMessage.role === 'user') {
+    tx.push(
+      db.tx.messages[targetMessage.id].update({
+        content: newContent,
+        model: model,
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+  }
+  await db.transact(tx);
 
-  const conversationUpToTarget = messages.slice(0, targetIndex + 1);
+  const conversationUpToTarget = messages.slice(0, targetIndex);
   const messagesForApi = conversationUpToTarget.map(m =>
     messageToAPIMessage(m),
   );
