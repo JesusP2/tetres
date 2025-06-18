@@ -1,29 +1,28 @@
 import { zValidator } from '@hono/zod-validator';
 import { id } from '@instantdb/core';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { generateText, streamText } from 'ai';
+import { streamText } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
 import OpenAI from 'openai';
-import { ResponseInputImage } from 'openai/resources/responses/responses.mjs';
 import { createRouteHandler, UTApi } from 'uploadthing/server';
-import { z } from 'zod/v4';
 import { createAuth } from './auth';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
 import { envMiddleware } from './middleware/env-middleware';
 import {
   bodySchema,
-  coreUserMessageSchema,
   renameChatSchema,
   userKeySchema,
 } from './schemas';
 import { AppBindings, Body } from './types';
 import { uploadRouter } from './uploadrouter';
-import { encryptKey, generateKeyHash } from './utils/crypto';
+import { encryptKey, generateKeyHash, getApiKey } from './utils/crypto';
 import { HttpError } from './utils/http-error';
 import { models } from './utils/models';
+import { renameChat } from './rename-chat';
+import { generateImage } from './imagegen';
 
 
 export const sendMessageToOpenrouter = async ({
@@ -310,54 +309,7 @@ const app = new Hono<AppBindings>({ strict: false })
     );
 
     if (body.config.model === 'openai/gpt-4.1-mini-image') {
-      const lastMessage = filteredMessages[
-        filteredMessages.length - 1
-      ] as z.infer<typeof coreUserMessageSchema>;
-      const messageContent = lastMessage.content.map(part => {
-        if (part.type === 'image') {
-          // TODO: transform url to base64
-          return {
-            type: 'input_image',
-            image_url: part.image,
-          };
-        } else if (part.type === 'text') {
-          return {
-            type: 'input_text',
-            text: part.text,
-          };
-        }
-        throw new Error('File upload not supported');
-      }) as ResponseInputImage[];
-      if (lastMessage.role !== 'user') {
-        throw new Error('Last message is not a user message');
-      }
-      const openai = new OpenAI({
-        apiKey: c.env.OPENAI_API_KEY,
-      });
-      const response = await openai.responses.create({
-        model: 'gpt-4.1-mini',
-        input: [
-          {
-            role: 'user',
-            content: messageContent,
-          },
-        ],
-        tools: [{ type: 'image_generation' }],
-      });
-
-    const utapi = new UTApi({
-      token: c.env.UPLOADTHING_TOKEN,
-    });
-    const responseId = response.id;
-    const message = response.output_text;
-    for (const output of response.output) {
-      if (output.type === 'image_generation_call') {
-        const file_ext = output.output_format;
-        const base64 = output.result;
-        // TODO: upload to uploadthing
-      }
-    }
-      // TODO: add support for image generation
+    const idk = await generateImage(filteredMessages, c.env.OPENAI_API_KEY, c.env.UPLOADTHING_TOKEN);
     } else {
       c.executionCtx.waitUntil(
         sendMessageToOpenrouter({
