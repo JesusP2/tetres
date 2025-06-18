@@ -18,16 +18,18 @@ import { cn } from '@web/lib/utils';
 import { useState } from 'react';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
-  const { state, isMobile } = useSidebar();
+  const { state } = useSidebar();
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   return (
     <>
       <Sidebar collapsible='offcanvas'>
         <SidebarHeader className='mt-2'>
           <div className='flex items-center gap-2 mx-auto'>
-            <h2 className='mx-2 flex items-center gap-2 text-lg font-semibold'>
-              <ShellIcon />
-              Omokage
+            <h2 className='mx-2 text-lg font-semibold'>
+              <Link to="/" className="flex items-center gap-2">
+                <ShellIcon />
+                Omokage
+              </Link>
             </h2>
           </div>
         </SidebarHeader>
