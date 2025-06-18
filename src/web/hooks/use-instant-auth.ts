@@ -21,9 +21,7 @@ export function useInstantAuth({
     async function getUser() {
       if (sessionData) {
         if (!user || user.id !== sessionData.user.id) {
-          db.auth.signInWithToken(
-            sessionData.session.token,
-          );
+          db.auth.signInWithToken(sessionData.session.token);
         }
       } else {
         db.auth.signOut({ invalidateToken: false });

@@ -50,20 +50,32 @@ function Index() {
               How can I help you, {user.data?.name ?? 'you'}?
             </h1>
             <div className='mb-8 flex space-x-2 sm:space-x-4'>
-              <Button variant='outline' className='flex-1 flex-col gap-y-1 sm:flex-row h-14 sm:h-auto'>
-                <Create className='mb-1 sm:mb-0 sm:mr-2' />
+              <Button
+                variant='outline'
+                className='h-14 flex-1 flex-col gap-y-1 sm:h-auto sm:flex-row'
+              >
+                <Create className='mb-1 sm:mr-2 sm:mb-0' />
                 <span className='text-xs sm:text-sm'>Create</span>
               </Button>
-              <Button variant='outline' className='flex-1 flex-col gap-y-1 sm:flex-row h-14 sm:h-auto'>
-                <Explore className='mb-1 sm:mb-0 sm:mr-2' />
+              <Button
+                variant='outline'
+                className='h-14 flex-1 flex-col gap-y-1 sm:h-auto sm:flex-row'
+              >
+                <Explore className='mb-1 sm:mr-2 sm:mb-0' />
                 <span className='text-xs sm:text-sm'>Explore</span>
               </Button>
-              <Button variant='outline' className='flex-1 flex-col gap-y-1 sm:flex-row h-14 sm:h-auto'>
-                <Code className='mb-1 sm:mb-0 sm:mr-2' />
+              <Button
+                variant='outline'
+                className='h-14 flex-1 flex-col gap-y-1 sm:h-auto sm:flex-row'
+              >
+                <Code className='mb-1 sm:mr-2 sm:mb-0' />
                 <span className='text-xs sm:text-sm'>Code</span>
               </Button>
-              <Button variant='outline' className='flex-1 flex-col gap-y-1 sm:flex-row h-14 sm:h-auto'>
-                <Learn className='mb-1 sm:mb-0 sm:mr-2' />
+              <Button
+                variant='outline'
+                className='h-14 flex-1 flex-col gap-y-1 sm:h-auto sm:flex-row'
+              >
+                <Learn className='mb-1 sm:mr-2 sm:mb-0' />
                 <span className='text-xs sm:text-sm'>Learn</span>
               </Button>
             </div>
@@ -80,27 +92,27 @@ function Index() {
           </div>
         )}
       </div>
-      <div className="px-2">
-      <ChatFooter
-        userId={user.data ? user.data.id : undefined}
-        onSubmit={async (search, files, webSearchEnabled, reasoning) => {
-          const newChatId = await handleCreateChat(
-            search,
-            files,
-            webSearchEnabled,
-            reasoning,
-            user,
-            ui,
-          );
-          if (!newChatId) return;
-          await navigate({
-            to: '/$chatId',
-            params: { chatId: newChatId },
-          });
-        }}
-        selectedModel={ui?.defaultModel}
-        updateModel={model => updateUI({ defaultModel: model })}
-      />
+      <div className='px-2'>
+        <ChatFooter
+          userId={user.data ? user.data.id : undefined}
+          onSubmit={async (search, files, webSearchEnabled, reasoning) => {
+            const newChatId = await handleCreateChat(
+              search,
+              files,
+              webSearchEnabled,
+              reasoning,
+              user,
+              ui,
+            );
+            if (!newChatId) return;
+            await navigate({
+              to: '/$chatId',
+              params: { chatId: newChatId },
+            });
+          }}
+          selectedModel={ui?.defaultModel}
+          updateModel={model => updateUI({ defaultModel: model })}
+        />
       </div>
     </div>
   );

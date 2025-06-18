@@ -5,13 +5,13 @@
 export async function generateKeyHash(apiKey: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(apiKey);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function uint8ArrayToBase64(array: Uint8Array): string {
-  let binary = "";
+  let binary = '';
   for (let i = 0; i < array.byteLength; i++) {
     binary += String.fromCharCode(array[i]);
   }
@@ -40,31 +40,33 @@ export async function encryptKey(
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const keyMaterial = await crypto.subtle.importKey(
-    "raw",
+    'raw',
     encoder.encode(secret),
-    { name: "PBKDF2" },
+    { name: 'PBKDF2' },
     false,
-    ["deriveKey"],
+    ['deriveKey'],
   );
 
   const key = await crypto.subtle.deriveKey(
     {
-      name: "PBKDF2",
+      name: 'PBKDF2',
       salt: salt, // Use the generated salt
       iterations: 100000,
-      hash: "SHA-256",
+      hash: 'SHA-256',
     },
     keyMaterial,
-    { name: "AES-GCM", length: 256 },
+    { name: 'AES-GCM', length: 256 },
     true, // Key is now extractable if needed, but we'll use it directly
-    ["encrypt"],
+    ['encrypt'],
   );
   const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
+    { name: 'AES-GCM', iv },
     key,
     encoder.encode(apiKey),
   );
-  const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+  const combined = new Uint8Array(
+    salt.length + iv.length + encrypted.byteLength,
+  );
   combined.set(salt, 0);
   combined.set(iv, salt.length);
   combined.set(new Uint8Array(encrypted), salt.length + iv.length);
@@ -87,34 +89,34 @@ export async function decryptKey(
     const iv = combined.slice(16, 28);
     const encrypted = combined.slice(28);
     const keyMaterial = await crypto.subtle.importKey(
-      "raw",
+      'raw',
       encoder.encode(secret),
-      { name: "PBKDF2" },
+      { name: 'PBKDF2' },
       false,
-      ["deriveKey"],
+      ['deriveKey'],
     );
 
     const key = await crypto.subtle.deriveKey(
       {
-        name: "PBKDF2",
+        name: 'PBKDF2',
         salt,
         iterations: 100000,
-        hash: "SHA-256",
+        hash: 'SHA-256',
       },
       keyMaterial,
-      { name: "AES-GCM", length: 256 },
+      { name: 'AES-GCM', length: 256 },
       true,
-      ["decrypt"],
+      ['decrypt'],
     );
     const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
+      { name: 'AES-GCM', iv },
       key,
       encrypted,
     );
 
     return decoder.decode(decrypted);
   } catch (error) {
-    console.error("Decryption failed:", error);
+    console.error('Decryption failed:', error);
     // Return null if decryption fails (e.g., wrong secret, tampered data)
     return null;
   }

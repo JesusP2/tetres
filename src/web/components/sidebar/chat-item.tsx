@@ -25,8 +25,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
-import { useConfirmDialog } from '../providers/confirm-dialog-provider';
 import { ShareDialog } from '../chat/share-dialog';
+import { useConfirmDialog } from '../providers/confirm-dialog-provider';
 
 export function ChatItem({
   chat,
@@ -133,7 +133,9 @@ export function ChatItem({
                 setEditingTitle(chat.title);
               }}
             >
-              <div className={cn('flex items-center gap-3 rounded-lg px-3 py-2')}>
+              <div
+                className={cn('flex items-center gap-3 rounded-lg px-3 py-2')}
+              >
                 <div className='flex min-w-0 flex-1 items-center'>
                   {chat.branchId ? (
                     <GitBranchIcon className='mr-2 size-4' />

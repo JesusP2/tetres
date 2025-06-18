@@ -52,7 +52,9 @@ export function ChatList({
       try {
         dragData = JSON.parse(e.dataTransfer.getData('application/json'));
       } catch (_) {
-        const chatId = new URL(e.dataTransfer.getData('text')).pathname.split('/')[1];
+        const chatId = new URL(e.dataTransfer.getData('text')).pathname.split(
+          '/',
+        )[1];
         dragData = allChats.find(c => c.id === chatId);
         if (dragData) {
           dragData = {
@@ -61,7 +63,7 @@ export function ChatList({
             currentProjectId: dragData.projectId,
             chatTitle: dragData.title,
             chatId: dragData.id,
-          }
+          };
         }
       }
 

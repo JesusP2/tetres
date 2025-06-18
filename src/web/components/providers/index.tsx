@@ -2,11 +2,11 @@
 import { AuthUIProvider } from '@daveyplate/better-auth-ui';
 import { useInstantOptions } from '@daveyplate/better-auth-ui/instantdb';
 import { Link, useNavigate } from '@tanstack/react-router';
+import { useInstantAuth } from '@web/hooks/use-instant-auth';
 import { authClient, useSession } from '@web/lib/auth-client';
 import { db } from '@web/lib/instant';
 import { ConfirmDialogProvider } from './confirm-dialog-provider';
 import { ThemeProvider } from './theme-provider';
-import { useInstantAuth } from '@web/hooks/use-instant-auth';
 
 function NavLink({ href, children }: any) {
   return <Link to={href}>{children}</Link>;

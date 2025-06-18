@@ -1,4 +1,5 @@
 import { i } from '@instantdb/react';
+
 const _schema = i.schema({
   entities: {
     $files: i.entity({

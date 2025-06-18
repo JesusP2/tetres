@@ -8,14 +8,14 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@web/components/ui/sidebar';
+import { cn } from '@web/lib/utils';
 import { SearchIcon, SettingsIcon, ShellIcon } from 'lucide-react';
 import * as React from 'react';
+import { useState } from 'react';
 import { NavUser } from '../nav-user';
 import { ThemeButton } from '../theme-button';
 import { Button, buttonVariants } from '../ui/button';
 import { Content } from './sidebar-content';
-import { cn } from '@web/lib/utils';
-import { useState } from 'react';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
   const { state } = useSidebar();
@@ -24,9 +24,9 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
     <>
       <Sidebar collapsible='offcanvas'>
         <SidebarHeader className='mt-2'>
-          <div className='flex items-center gap-2 mx-auto'>
+          <div className='mx-auto flex items-center gap-2'>
             <h2 className='mx-2 text-lg font-semibold'>
-              <Link to="/" className="flex items-center gap-2">
+              <Link to='/' className='flex items-center gap-2'>
                 <ShellIcon />
                 Omokage
               </Link>
@@ -34,21 +34,37 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
           </div>
         </SidebarHeader>
         <SidebarContent className='overflow-hidden'>
-          <Content searchDialogOpen={searchDialogOpen} setSearchDialogOpen={setSearchDialogOpen} />
+          <Content
+            searchDialogOpen={searchDialogOpen}
+            setSearchDialogOpen={setSearchDialogOpen}
+          />
         </SidebarContent>
         <SidebarFooter className='mb-2'>
           <NavUser />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
-      <div className={cn('absolute z-10 top-3 left-2 p-1 rounded-sm duration-300 ease-in-out bg-sidebar flex gap-2', state === 'collapsed' ? 'w-18' : 'w-9')}>
-        <SidebarTrigger className="z-10" />
-        <Button onClick={() => setSearchDialogOpen(open => !open)} size="icon" className={cn('h-7 w-7 relative duration-300', state === 'collapsed' ? 'right-0' : 'right-7 opacity-0')} variant="ghost">
+      <div
+        className={cn(
+          'bg-sidebar absolute top-3 left-2 z-10 flex gap-2 rounded-sm p-1 duration-300 ease-in-out',
+          state === 'collapsed' ? 'w-18' : 'w-9',
+        )}
+      >
+        <SidebarTrigger className='z-10' />
+        <Button
+          onClick={() => setSearchDialogOpen(open => !open)}
+          size='icon'
+          className={cn(
+            'relative h-7 w-7 duration-300',
+            state === 'collapsed' ? 'right-0' : 'right-7 opacity-0',
+          )}
+          variant='ghost'
+        >
           <SearchIcon />
         </Button>
       </div>
       {children}
-      <div className='absolute top-3 right-8 flex items-center bg-sidebar p-1 rounded-sm hidden sm:flex'>
+      <div className='bg-sidebar absolute top-3 right-8 flex hidden items-center rounded-sm p-1 sm:flex'>
         <ThemeButton />
         <Link
           to='/settings'

@@ -40,34 +40,40 @@ const groupChats = (chats: Chat[]) => {
   );
 };
 
-export function Content({ searchDialogOpen, setSearchDialogOpen }: { searchDialogOpen: boolean, setSearchDialogOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
+export function Content({
+  searchDialogOpen,
+  setSearchDialogOpen,
+}: {
+  searchDialogOpen: boolean;
+  setSearchDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const user = useUser();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const { data } = db.useQuery(
     !user.isPending && user.data
       ? {
-        chats: {
-          $: {
-            where: {
-              userId: user.data.id || '',
-            },
-            order: {
-              updatedAt: 'desc',
-            },
-          },
-        },
-        projects: {
-          $: {
-            where: {
-              userId: user.data.id || '',
-            },
-            order: {
-              updatedAt: 'asc',
+          chats: {
+            $: {
+              where: {
+                userId: user.data.id || '',
+              },
+              order: {
+                updatedAt: 'desc',
+              },
             },
           },
-        },
-      }
+          projects: {
+            $: {
+              where: {
+                userId: user.data.id || '',
+              },
+              order: {
+                updatedAt: 'asc',
+              },
+            },
+          },
+        }
       : null,
   );
   const chats = (data?.chats || []) as Chat[];
@@ -77,8 +83,8 @@ export function Content({ searchDialogOpen, setSearchDialogOpen }: { searchDialo
 
   const filteredChats = searchQuery
     ? orphanedChats.filter(chat =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
     : orphanedChats;
   const [pinned, unpinned] = partition(filteredChats, c => c.pinned);
   const groupedChats = groupChats(unpinned);

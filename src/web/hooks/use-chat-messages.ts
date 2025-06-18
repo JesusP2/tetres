@@ -33,7 +33,10 @@ function createReasoningCacheKey(messageId: string, reasoning: string) {
   return `${messageId}-reasoning-${reasoningHash}`;
 }
 
-export function useChatMessages(chatId: string, key: 'id' | 'shareToken' = 'id') {
+export function useChatMessages(
+  chatId: string,
+  key: 'id' | 'shareToken' = 'id',
+) {
   const { isLoading, data } = db.useQuery({
     chats: {
       $: { where: { [key]: chatId } },

@@ -494,9 +494,9 @@ export function Chat({
           </Button>
         )}
         {'shareToken' in params ? (
-          <div className="w-full flex items-center justify-center h-16">
+          <div className='flex h-16 w-full items-center justify-center'>
             <Button onClick={handleCopyChat} disabled={isCopying}>
-              <Copy className="h-4 w-4" />
+              <Copy className='h-4 w-4' />
               Copy Chat
             </Button>
           </div>

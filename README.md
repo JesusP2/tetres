@@ -18,14 +18,13 @@
 
 - Move searchDialogOpen to ChatSearch(useEffect too)
 
--- remove isValid
 -- adjust permissions
 -- remove validation with openrouter sp
 -- check use effects
 -- settings redirect on layout
 -- display shortcuts somewhere
--- remove loading screen
+-- [-] remove loading screen
 -- mobile:
--- close sidebar on new chat
--- adjust footer
--- remove right side icons and move them to the sidebar
+-- [x] close sidebar on new chat
+-- [x] adjust footer
+-- [-] remove right side icons and move them to the sidebar

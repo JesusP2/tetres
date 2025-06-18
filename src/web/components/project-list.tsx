@@ -135,7 +135,9 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
       try {
         dragData = JSON.parse(e.dataTransfer.getData('application/json'));
       } catch (_) {
-        const chatId = new URL(e.dataTransfer.getData('text')).pathname.split('/')[1];
+        const chatId = new URL(e.dataTransfer.getData('text')).pathname.split(
+          '/',
+        )[1];
         dragData = allChats?.find(c => c.id === chatId);
         if (dragData) {
           dragData = {
@@ -144,7 +146,7 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
             currentProjectId: dragData.projectId,
             chatTitle: dragData.title,
             chatId: dragData.id,
-          }
+          };
         }
       }
 
@@ -186,11 +188,11 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
 
   return (
     <div className='px-4'>
-      <div className='text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase flex gap-x-2'>
+      <div className='text-muted-foreground mb-3 flex gap-x-2 text-xs font-semibold tracking-wide uppercase'>
         Projects
       </div>
       <ProjectButton />
-      <div className='max-h-[200px] overflow-auto overflow-x-hidden chat-oerflow chat-scrollbar'>
+      <div className='chat-oerflow chat-scrollbar max-h-[200px] overflow-auto overflow-x-hidden'>
         <SidebarMenu>
           {projects.map(project => {
             const isExpanded = expandedProjects.has(project.id);

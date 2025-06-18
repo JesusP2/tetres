@@ -93,7 +93,7 @@ const rules = {
     ],
     allow: {
       view: 'isOwner',
-      create: "isLoggedIn",
+      create: 'isLoggedIn',
       delete: 'isOwner',
       update: 'isOwner',
     },

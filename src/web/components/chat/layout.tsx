@@ -35,18 +35,18 @@ export function ChatLayout({ children }: ProviderProps) {
       <AppSidebar>
         <AppSidebarInset>{children}</AppSidebarInset>
       </AppSidebar>
-      
+
       <Dialog open={showAuthDialog}>
-        <DialogContent showCloseButton={false} className="sm:max-w-md">
+        <DialogContent showCloseButton={false} className='sm:max-w-md'>
           <DialogHeader>
             <DialogTitle>Authentication Required</DialogTitle>
             <DialogDescription>
               You need to sign in to access the chat functionality.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center pt-4">
+          <div className='flex justify-center pt-4'>
             <Button asChild>
-              <Link to="/auth/$id" params={{ id: 'sign-in' }}>
+              <Link to='/auth/$id' params={{ id: 'sign-in' }}>
                 Sign In
               </Link>
             </Button>

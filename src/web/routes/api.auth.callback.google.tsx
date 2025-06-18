@@ -11,7 +11,9 @@ export const Route = createFileRoute('/api/auth/callback/google')({
 function RouteComponent() {
   const [isLoading, setIsLoading] = useState(true);
   async function sendState() {
-    const response = await fetch('/api/auth/callback/google' + window.location.search);
+    const response = await fetch(
+      '/api/auth/callback/google' + window.location.search,
+    );
     if (response.ok) {
       window.location.href = '/';
     }
@@ -19,33 +21,37 @@ function RouteComponent() {
   }
   useEffect(() => {
     sendState();
-  }, [])
+  }, []);
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-md">
-          <Alert variant="default">
-            <AlertCircle className="h-4 w-4" />
+      <div className='flex min-h-screen items-center justify-center p-4'>
+        <div className='w-full max-w-md'>
+          <Alert variant='default'>
+            <AlertCircle className='h-4 w-4' />
             <AlertTitle>Authenticating...</AlertTitle>
-            <AlertDescription>
-            </AlertDescription>
+            <AlertDescription></AlertDescription>
           </Alert>
         </div>
       </div>
     );
   }
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <div className="w-full max-w-md">
-        <Alert variant="default">
-          <AlertCircle className="h-4 w-4" />
+    <div className='flex min-h-screen items-center justify-center p-4'>
+      <div className='w-full max-w-md'>
+        <Alert variant='default'>
+          <AlertCircle className='h-4 w-4' />
           <AlertTitle>Authentication Failed</AlertTitle>
           <AlertDescription>
-            Failed to authenticate with Google, this account may already be linked to another user.
-            <Link to="/auth/$id" params={{ id: 'sign-in' }} className={buttonVariants({
-              variant: 'link',
-              className: 'pl-0'
-            })}>
+            Failed to authenticate with Google, this account may already be
+            linked to another user.
+            <Link
+              to='/auth/$id'
+              params={{ id: 'sign-in' }}
+              className={buttonVariants({
+                variant: 'link',
+                className: 'pl-0',
+              })}
+            >
               Go to sign in
             </Link>
           </AlertDescription>

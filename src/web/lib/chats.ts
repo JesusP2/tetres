@@ -1,7 +1,7 @@
+import { id } from '@instantdb/react';
 import { db } from '@web/lib/instant';
 import type { ModelId } from '@server/utils/models';
 import type { Chat } from './types';
-import { id } from '@instantdb/react';
 
 export function createChat(
   user: { id: string },
@@ -66,7 +66,7 @@ export async function shareChat(
 ) {
   const shareToken = id();
   const sharedChatId = id();
-  
+
   const createChatTx = createChat(
     user,
     chat.title,
@@ -77,7 +77,7 @@ export async function shareChat(
     new Date().toISOString(),
     shareToken,
   );
-  
+
   // Copy all messages (similar to createNewBranch logic)
   const newMessageTxs = messages.map(msgToCopy => {
     const newMsgId = id();
@@ -102,13 +102,13 @@ export async function shareChat(
     }
     return db.tx.messages[newMsgId].update(newMessageData).link(links);
   });
-  
+
   await db.transact([createChatTx, ...newMessageTxs]);
-  
-  return { 
-    sharedChatId, 
+
+  return {
+    sharedChatId,
     shareToken,
-    shareUrl: `${window.location.origin}/shared/${shareToken}`
+    shareUrl: `${window.location.origin}/shared/${shareToken}`,
   };
 }
 
@@ -116,10 +116,10 @@ export async function shareChat(
 export async function copySharedChat(
   sharedChat: Chat,
   user: { id: string },
-  messages: any[]
+  messages: any[],
 ) {
   const newChatId = id();
-  
+
   // Create new chat as a "branch" of the shared chat
   const createChatTx = createChat(
     user,
@@ -127,7 +127,7 @@ export async function copySharedChat(
     newChatId,
     sharedChat.model as ModelId,
   );
-  
+
   // Copy all messages from shared chat
   const newMessageTxs = messages.map(msgToCopy => {
     const newMsgId = id();
@@ -152,9 +152,9 @@ export async function copySharedChat(
     }
     return db.tx.messages[newMsgId]!.update(newMessageData).link(links);
   });
-  
+
   await db.transact([createChatTx, ...newMessageTxs]);
-  
+
   return newChatId;
 }
 

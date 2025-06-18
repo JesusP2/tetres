@@ -17,8 +17,7 @@
 
   <body>
     <div id="root"></div>
-    <p>
-    </p>
+    <p></p>
     <script>
       // https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/#client-side-callbacks
       async function magicLinkCallback() {
@@ -28,8 +27,9 @@
         if (response.ok) {
           window.location.href = '/';
         } else {
-          const error = 'Failed to authenticate with Google, this account may already be linked to another user.';
-          const href = `/auth/sign-in?error=${encodeURIComponent(error)}`
+          const error =
+            'Failed to authenticate with Google, this account may already be linked to another user.';
+          const href = `/auth/sign-in?error=${encodeURIComponent(error)}`;
         }
       }
 
@@ -39,8 +39,9 @@
         if (response.redirected) {
           window.location.href = response.url;
         } else {
-          const error = 'Failed to authenticate with Google, this account may already be linked to another user.';
-          const href = `/auth/sign-in?error=${encodeURIComponent(error)}`
+          const error =
+            'Failed to authenticate with Google, this account may already be linked to another user.';
+          const href = `/auth/sign-in?error=${encodeURIComponent(error)}`;
         }
       }
       if (window.location.href.includes('/api/auth/magic-link/verify')) {
