@@ -103,6 +103,6 @@ export const renameChatSchema = z.object({
 });
 
 export const userKeySchema = z.object({
-  provider: z.enum(['openrouter']),
+  provider: z.enum(['openrouter', 'openai']),
   apiKey: z.string().min(1, 'API key is required'),
 });

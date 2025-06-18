@@ -229,8 +229,17 @@ const app = new Hono<AppBindings>({ strict: false })
       );
     }
 
+    const user = c.get('user');
+    const db = c.get('db');
+    const openaiApiKey = await getApiKey(
+      user.id,
+      'openai',
+      db,
+      c.env.OPENAI_API_KEY,
+      c.env.BETTER_AUTH_SECRET,
+    );
     const openai = new OpenAI({
-      apiKey: c.env.OPENAI_API_KEY,
+      apiKey: openaiApiKey,
     });
 
     const transcription = await openai.audio.transcriptions.create({
@@ -295,19 +304,18 @@ const app = new Hono<AppBindings>({ strict: false })
 
     const user = c.get('user');
     const db = c.get('db');
-    const apiKey = await getApiKey(
-      user.id,
-      'openrouter',
-      db,
-      c.env.OPENROUTER_KEY,
-      c.env.BETTER_AUTH_SECRET,
-    );
-
     if (body.config.model === 'openai/gpt-4.1-mini-image') {
+      const openaiApiKey = await getApiKey(
+        user.id,
+        'openai',
+        db,
+        c.env.OPENAI_API_KEY,
+        c.env.BETTER_AUTH_SECRET,
+      );
       c.executionCtx.waitUntil(
         generateImage({
           filteredMessages,
-          OPENAI_API_KEY: c.env.OPENAI_API_KEY,
+          OPENAI_API_KEY: openaiApiKey,
           UPLOADTHING_TOKEN: c.env.UPLOADTHING_TOKEN,
           db,
           previousResponseId: body.config.previousResponseId,
@@ -316,12 +324,19 @@ const app = new Hono<AppBindings>({ strict: false })
         }),
       );
     } else {
+      const openrouterApiKey = await getApiKey(
+        user.id,
+        'openrouter',
+        db,
+        c.env.OPENROUTER_KEY,
+        c.env.BETTER_AUTH_SECRET,
+      );
       c.executionCtx.waitUntil(
         sendMessageToOpenrouter({
           config: body.config,
           messages: filteredMessages,
           db,
-          apiKey,
+          apiKey: openrouterApiKey,
         }),
       );
     }

@@ -30,6 +30,11 @@ const PROVIDERS: Provider[] = [
     name: 'OpenRouter',
     description: 'Access to multiple AI models through OpenRouter API',
   },
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    description: 'Image generation and speech to text',
+  },
 ];
 
 export function ApiKeysSettings() {
