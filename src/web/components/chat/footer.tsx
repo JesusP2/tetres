@@ -29,6 +29,7 @@ import { cn } from '@web/lib/utils';
 import { deleteFile } from '@web/services';
 import {
   ArrowUp,
+  Bot,
   Brain,
   ChevronsUpDown,
   Globe,
@@ -38,7 +39,7 @@ import {
   Square,
   X,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type SVGProps } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { useAudioRecorder } from '@web/hooks/use-audio-recorder';
@@ -46,9 +47,14 @@ import { formatDuration, isAudioRecordingSupported } from '@web/lib/audio-utils'
 import { sendAudio } from '@web/services';
 import { MyUploadButton } from '../upload-button';
 import { AudioLinesIcon } from '../ui/audio-lines';
-import { Tooltip, TooltipContent } from '../ui/tooltip';
-import { TooltipTrigger } from '@radix-ui/react-tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { toast } from 'sonner';
+import { useTheme } from '../providers/theme-provider';
+import { defaultPresets } from '@web/lib/theme-presets';
+import { OpenAILogo } from '../icons/openai';
+import { GeminiLogo } from '../icons/gemini';
+import { AnthropicLogo } from '../icons/anthropic';
+import { DeepSeekLogo } from '../icons/deepseek';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -62,6 +68,24 @@ type ChatFooterProps = {
   userId?: string;
   lastMessage?: Message;
 };
+
+function ModelIcon({ modelId }: { modelId: ModelId }) {
+  const { theme, preset } = useTheme();
+  const primaryColor = defaultPresets[preset].styles[theme].primary;
+  let Icon: React.FC<SVGProps<SVGSVGElement>>;
+  if (modelId.startsWith('openai/')) {
+    Icon = OpenAILogo;
+  } else if (modelId.startsWith('google/')) {
+    Icon = GeminiLogo;
+  } else if (modelId.startsWith('anthropic/')) {
+    Icon = AnthropicLogo;
+  } else if (modelId.startsWith('deepseek/')) {
+    Icon = DeepSeekLogo;
+  } else {
+    Icon = Bot;
+  }
+  return <Icon className='text-primary mr-2 h-4 w-4' fill={primaryColor} />;
+}
 
 export function ChatFooter({
   onSubmit,
@@ -230,15 +254,19 @@ export function ChatFooter({
                 selectedModel={selectedModel}
                 updateModel={updateModel}
               />
-              <Toggle
-                size='sm'
-                pressed={webSearchEnabled}
-                onPressedChange={setWebSearchEnabled}
-                variant='outline'
-              >
-                <Globe className='h-4 w-4' />
-                Web
-              </Toggle>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Toggle
+                    size='sm'
+                    pressed={webSearchEnabled}
+                    onPressedChange={setWebSearchEnabled}
+                    variant='outline'
+                  >
+                    <Globe className='h-4 w-4' />
+                  </Toggle>
+                </TooltipTrigger>
+                <TooltipContent>Web search</TooltipContent>
+              </Tooltip>
               {supportsReasoning && (
                 <ReasoningDropdown
                   reasoningLevel={reasoningLevel}
@@ -377,11 +405,11 @@ export function ModelsButton({
           variant='outline'
           role='combobox'
           aria-expanded={open}
-          className='w-[250px] justify-between'
+          className='max-w-[150px] sm:max-w-[200px] justify-between'
         >
           <span className='truncate'>
             {selectedModel
-              ? models.find(m => m.id === selectedModel)?.name
+              ? models.find(m => m.id === selectedModel)?.name.split(':')[1]
               : 'Select model...'}
           </span>
           <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
@@ -409,7 +437,8 @@ export function ModelsButton({
                     setOpen(false);
                   }}
                 >
-                  {m.name}
+                  <ModelIcon modelId={m.id} />
+                  {m.name.split(':')[1]}
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -436,23 +465,28 @@ function ReasoningDropdown({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant='outline' size='sm' className='flex items-center gap-2'>
-          {reasoningLevel === 'off' ? (
-            <Brain className='text-muted-foreground h-4 w-4' />
-          ) : (
-            <Brain className='h-4 w-4' />
-          )}
-          <span
-            className={cn(
-              'capitalize',
-              reasoningLevel === 'off' && 'text-muted-foreground',
-            )}
-          >
-            {reasoningLevel}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant='outline' size='sm' className='flex items-center gap-2'>
+              {reasoningLevel === 'off' ? (
+                <Brain className='text-muted-foreground h-4 w-4' />
+              ) : (
+                <Brain className='h-4 w-4' />
+              )}
+              <span
+                className={cn(
+                  'capitalize hidden sm:inline',
+                  reasoningLevel === 'off' && 'text-muted-foreground',
+                )}
+              >
+              {reasoningLevel}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Reasoning Effort</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent>
         {Object.entries(reasoningConfig).map(
           ([level, { icon: Icon, label }]) => (

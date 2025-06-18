@@ -1,4 +1,18 @@
 export const models = [
+{
+    id: 'openai/gpt-4.1-mini-image',
+    name: 'OpenAI: Image generation (GPT-4.1-mini)',
+    architecture: {
+      modality: 'text->image',
+      input_modalities: ['image', 'text'],
+      output_modalities: ['text'],
+      tokenizer: 'GPT',
+      instruct_type: null,
+    },
+    supported_parameters: [
+      'image_generation'
+    ],
+  },
   {
     id: 'google/gemini-2.5-pro-preview',
     name: 'Google: Gemini 2.5 Pro Preview 06-05',
