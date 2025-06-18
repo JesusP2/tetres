@@ -48,6 +48,7 @@ import { MyUploadButton } from '../upload-button';
 import { AudioLinesIcon } from '../ui/audio-lines';
 import { Tooltip, TooltipContent } from '../ui/tooltip';
 import { TooltipTrigger } from '@radix-ui/react-tooltip';
+import { toast } from 'sonner';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -155,17 +156,13 @@ export function ChatFooter({
   const handleRemoveFile = async (
     file: ClientUploadedFileData<null> | string,
   ) => {
-    if (!setMessageFiles || !messageFiles || typeof file === 'string') return;
-
-    const fileToRemove = messageFiles.find(
-      f => typeof f !== 'string' && f.key === file.key,
-    );
-    if (typeof fileToRemove === 'string' || !fileToRemove) return;
-    setMessageFiles(
-      files =>
-        files?.filter(f => typeof f !== 'string' && f.key !== f.key) || [],
-    );
-    await deleteFile(fileToRemove.key);
+    if (!messageFiles.length) return;
+    if (typeof file === 'string') {
+      setMessageFiles(prev => prev.filter(f => f !== file));
+      return;
+    }
+    setMessageFiles(prev => prev.filter(f => typeof f === 'string' || f.key !== file.key));
+    // await deleteFile(fileToRemove.key);
   };
 
   return (
@@ -200,6 +197,7 @@ export function ChatFooter({
                   <Button
                     size='icon'
                     variant='ghost'
+                    type="button"
                     className='h-6 w-6 shrink-0 rounded-full'
                     onClick={() => handleRemoveFile(file)}
                   >
@@ -255,9 +253,18 @@ export function ChatFooter({
                     if (!file) return;
                     setIsProcessing(false);
                     setMessageFiles(prev => {
-                      const files = prev.slice(0, prev.length - 1);
-                      return [...files, file];
+                      const fileIdx = prev.findIndex(f => typeof f === 'string' && f === file.name);
+                      prev[fileIdx] = file;
+                      return [...prev];
                     });
+                  }}
+                  onUploadError={error => {
+                    setIsProcessing(false);
+                    setMessageFiles(prev => {
+                      const files = prev.slice(0, prev.length - 1);
+                      return [...files];
+                    });
+                    toast.error(error.message)
                   }}
                   onUploadBegin={() => setIsProcessing(true)}
                   onBeforeUploadBegin={files => {
