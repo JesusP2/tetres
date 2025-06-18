@@ -19,7 +19,6 @@ function RootComponent() {
     <Providers>
       <Outlet />
       <Toaster />
-      {import.meta.env.DEV && <TanStackRouterDevtools />}
     </Providers>
   );
 }

@@ -19,13 +19,14 @@ import { useUser } from '@web/hooks/use-user';
 import { authClient } from '@web/lib/auth-client';
 import { db } from '@web/lib/instant';
 import { buttonVariants } from './ui/button';
+import { LoaderCircleIcon } from 'lucide-react';
 
 export function NavUser() {
   const { isMobile } = useSidebar();
   const user = useUser();
 
   if (user.isPending) {
-    return <div>Loading...</div>;
+    return <div className="flex justify-center"><LoaderCircleIcon className="animate-spin h-5 w-5" /></div>;
   } else if (!user.data) {
     return (
       <Link

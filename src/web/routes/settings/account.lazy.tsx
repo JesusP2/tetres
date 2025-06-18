@@ -238,12 +238,8 @@ function AccountSettings() {
     users: {},
   });
 
-  if (userQuery.isLoading) {
-    return <div>Loading...</div>;
-  }
-
   const user = userQuery.data?.users[0];
-  if (!userQuery.data || !user) {
+  if (!userQuery.isLoading && !user) {
     return <Navigate to='/auth/$id' params={{ id: 'sign-in' }} />;
   }
 
@@ -257,11 +253,15 @@ function AccountSettings() {
       <CardContent className='space-y-6'>
         <div className='flex items-center gap-4'>
           <Avatar className='h-20 w-20'>
-            <AvatarImage src={user.image ?? ''} />
-            <AvatarFallback>{user.name?.[0]}</AvatarFallback>
+            <AvatarImage src={user?.image ?? ''} />
+            <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
           </Avatar>
           <UploadButton
-            endpoint='uploader'
+            endpoint='avatarUploader'
+            className="text-primary"
+            appearance={{
+              button: 'bg-primary text-primary-foreground!',
+            }}
             onClientUploadComplete={async files => {
               const file = files[0];
               if (!file) {
@@ -281,7 +281,7 @@ function AccountSettings() {
           />
         </div>
         <Separator />
-        <ChangeUsernameForm currentName={user.name ?? ''} />
+        <ChangeUsernameForm currentName={user?.name ?? ''} />
         <Separator />
         <ChangePasswordForm />
         <Separator />
