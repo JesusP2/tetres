@@ -85,6 +85,7 @@ export const bodySchema = z.object({
   messages: z.array(messageSchema),
   config: z.object({
     model: z.enum(models.map(m => m.id)),
+    previousResponseId: z.string().optional(),
     userId: z.string(),
     chatId: z.string(),
     messageId: z.string(),

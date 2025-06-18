@@ -10,6 +10,7 @@ export async function sendMessage({
   chatId,
   webSearchEnabled,
   reasoning,
+  previousResponseId,
 }: {
   messages: Body['messages'];
   userId: string;
@@ -18,6 +19,7 @@ export async function sendMessage({
   chatId: string;
   webSearchEnabled: boolean;
   reasoning: 'off' | 'low' | 'medium' | 'high';
+  previousResponseId?: string;
 }) {
   const body = {
     messages,
@@ -27,6 +29,7 @@ export async function sendMessage({
       chatId,
       messageId,
       web: webSearchEnabled,
+      previousResponseId,
       reasoning,
     },
   };
@@ -74,22 +77,22 @@ export async function addKey(provider: string, apiKey: string) {
 
 export async function sendAudio(audioBlob: Blob) {
   const formData = new FormData();
-  const audioFile = new File(
-    [audioBlob], 
-    `audio_${Date.now()}.wav`,
-    { type: audioBlob.type || 'audio/wav' }
-  );
-  
+  const audioFile = new File([audioBlob], `audio_${Date.now()}.wav`, {
+    type: audioBlob.type || 'audio/wav',
+  });
+
   formData.append('audio', audioFile);
   formData.append('timestamp', new Date().toISOString());
-  
+
   const response = await fetch('/api/audio', {
     method: 'POST',
     body: formData,
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Network error' }));
+    const error = await response
+      .json()
+      .catch(() => ({ error: 'Network error' }));
     throw new Error(error.error || 'Failed to send audio');
   }
 

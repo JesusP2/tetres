@@ -72,8 +72,4 @@ export const handleCreateChat = async (
     }),
   ]);
   return newChatId;
-  navigate({
-    to: '/$chatId',
-    params: { chatId: newChatId },
-  });
 };

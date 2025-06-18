@@ -81,6 +81,8 @@ export function Chat({
       return;
     }
     if (chat) {
+      // the latest message if from the assistant
+      const previousResponseId = messages[messages.length - 1]?.responseId;
       const newUserMessage = createMessageObject({
         role: 'user',
         content: message,
@@ -100,7 +102,7 @@ export function Chat({
       const assistantMessageTx = createAssistantMessage(newAssistantMessage);
       const ifiles = files.map(file => fileToIFile(file, chat.id));
       await db.transact([
-        ...ifiles.map(file => db.tx.files[file.id]!.update(file)),
+        ...ifiles.map(file => db.tx.files[file.id].update(file)),
         userMessageTx.link({ files: ifiles.map(file => file.id) }),
         assistantMessageTx,
         db.tx.chats[chat.id]!.update({
@@ -114,6 +116,7 @@ export function Chat({
         messages: messagesForApi,
         userId: user.data.id,
         messageId: newAssistantMessage.id,
+        previousResponseId,
         model: chat.model,
         chatId: chat.id,
         webSearchEnabled,

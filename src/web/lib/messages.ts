@@ -59,10 +59,13 @@ export async function retryMessage(
   const messagesForApi = conversationUpToTarget.map(m =>
     messageToAPIMessage(m),
   );
+  const previousResponseId =
+    conversationUpToTarget[conversationUpToTarget.length - 2]?.responseId;
   return sendMessage({
     messages: messagesForApi,
     userId,
     messageId: newAssistantMessage.id,
+    previousResponseId,
     model: model,
     chatId: targetMessage.chatId,
     webSearchEnabled,

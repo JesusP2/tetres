@@ -50,11 +50,11 @@ export const sendMessageToOpenrouter = async ({
         },
       });
       if (message.messages[0].aborted) {
-        await db.transact(
-          db.tx.messages[messageId].update({
-            finished: new Date().toISOString(),
-          }),
-        );
+        // await db.transact(
+        //   db.tx.messages[messageId].update({
+        //     finished: new Date().toISOString(),
+        //   }),
+        // );
         throw new Error('aborted');
       }
       if (chunk.type === 'reasoning') {

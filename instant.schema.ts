@@ -96,6 +96,7 @@ const _schema = i.schema({
       time: i.number().optional(),
       model: i.string(),
       chatId: i.string().indexed(),
+      responseId: i.string().optional(),
       updatedAt: i.date().indexed(),
       createdAt: i.date(),
     }),

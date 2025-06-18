@@ -8,22 +8,17 @@ import { csrf } from 'hono/csrf';
 import OpenAI from 'openai';
 import { createRouteHandler, UTApi } from 'uploadthing/server';
 import { createAuth } from './auth';
+import { generateImage } from './imagegen';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
 import { envMiddleware } from './middleware/env-middleware';
-import {
-  bodySchema,
-  renameChatSchema,
-  userKeySchema,
-} from './schemas';
+import { renameChat } from './rename-chat';
+import { bodySchema, renameChatSchema, userKeySchema } from './schemas';
 import { AppBindings, Body } from './types';
 import { uploadRouter } from './uploadrouter';
 import { encryptKey, generateKeyHash, getApiKey } from './utils/crypto';
 import { HttpError } from './utils/http-error';
 import { models } from './utils/models';
-import { renameChat } from './rename-chat';
-import { generateImage } from './imagegen';
-
 
 export const sendMessageToOpenrouter = async ({
   messages,
@@ -309,7 +304,17 @@ const app = new Hono<AppBindings>({ strict: false })
     );
 
     if (body.config.model === 'openai/gpt-4.1-mini-image') {
-    const idk = await generateImage(filteredMessages, c.env.OPENAI_API_KEY, c.env.UPLOADTHING_TOKEN);
+      c.executionCtx.waitUntil(
+        generateImage({
+          filteredMessages,
+          OPENAI_API_KEY: c.env.OPENAI_API_KEY,
+          UPLOADTHING_TOKEN: c.env.UPLOADTHING_TOKEN,
+          db,
+          previousResponseId: body.config.previousResponseId,
+          messageId: body.config.messageId,
+          chatId: body.config.chatId,
+        }),
+      );
     } else {
       c.executionCtx.waitUntil(
         sendMessageToOpenrouter({
