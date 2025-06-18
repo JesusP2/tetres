@@ -47,20 +47,24 @@ function Index() {
         {!isNew && (
           <div className='w-full max-w-2xl p-8'>
             <h1 className='mb-4 text-4xl font-bold'>
-              How can I help you, Jesus?
+              How can I help you, {user.data?.name ?? 'you'}?
             </h1>
-            <div className='mb-8 flex space-x-4'>
-              <Button variant='outline'>
-                <Create className='mr-2' /> Create
+            <div className='mb-8 flex space-x-2 sm:space-x-4'>
+              <Button variant='outline' className='flex-1 flex-col sm:flex-row'>
+                <Create className='mb-1 sm:mb-0 sm:mr-2' />
+                <span className='text-xs sm:text-sm'>Create</span>
               </Button>
-              <Button variant='outline'>
-                <Explore className='mr-2' /> Explore
+              <Button variant='outline' className='flex-1 flex-col sm:flex-row'>
+                <Explore className='mb-1 sm:mb-0 sm:mr-2' />
+                <span className='text-xs sm:text-sm'>Explore</span>
               </Button>
-              <Button variant='outline'>
-                <Code className='mr-2' /> Code
+              <Button variant='outline' className='flex-1 flex-col sm:flex-row'>
+                <Code className='mb-1 sm:mb-0 sm:mr-2' />
+                <span className='text-xs sm:text-sm'>Code</span>
               </Button>
-              <Button variant='outline'>
-                <Learn className='mr-2' /> Learn
+              <Button variant='outline' className='flex-1 flex-col sm:flex-row'>
+                <Learn className='mb-1 sm:mb-0 sm:mr-2' />
+                <span className='text-xs sm:text-sm'>Learn</span>
               </Button>
             </div>
             <div className='space-y-4'>

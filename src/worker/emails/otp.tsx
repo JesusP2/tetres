@@ -5,7 +5,7 @@ export const forgotPasswordTemplate = (url: string, BASE_URL: string) =>
 		action: "Reset password",
 		heading: "Reset password",
 		siteName: "Omokage",
-		imageUrl: BASE_URL + "/favicon.svg",
+		imageUrl: BASE_URL + "/favicon.ico",
 		baseUrl: BASE_URL,
 		url: url,
 		content: (

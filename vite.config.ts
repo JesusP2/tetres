@@ -23,8 +23,8 @@ export default defineConfig({
       },
       manifest: {
         name: 'Omokage',
-        short_name: 'Tetres',
-        description: 'Copycat',
+        short_name: 'Omokage',
+        description: 'Cloneathon project',
         theme_color: '#ffffff',
         icons: [
           {

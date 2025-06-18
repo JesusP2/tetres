@@ -5,7 +5,7 @@ export const magicLinkTemplate = (url: string, BASE_URL: string) =>
 		action: "Sign in",
 		heading: "Sign in to your account",
 		siteName: "Omokage",
-		imageUrl: BASE_URL + "/favicon.svg",
+		imageUrl: BASE_URL + "/favicon.ico",
 		baseUrl: BASE_URL,
 		url: url,
 		content: (
