@@ -56,6 +56,10 @@ export async function retryMessage(
   await db.transact(tx);
 
   const conversationUpToTarget = messages.slice(0, targetIndex);
+  if (conversationUpToTarget[conversationUpToTarget.length - 1]?.content) {
+    conversationUpToTarget[conversationUpToTarget.length - 1].content =
+      newContent;
+  }
   const messagesForApi = conversationUpToTarget.map(m =>
     messageToAPIMessage(m),
   );
