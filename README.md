@@ -28,3 +28,6 @@
 -- [x] close sidebar on new chat
 -- [x] adjust footer
 -- [-] remove right side icons and move them to the sidebar
+
+-- check last message, if last message has an image url, download it
+in fact, only takee the last message

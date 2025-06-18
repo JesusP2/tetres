@@ -6,66 +6,25 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
 import OpenAI from 'openai';
+import { ResponseInputImage } from 'openai/resources/responses/responses.mjs';
 import { createRouteHandler, UTApi } from 'uploadthing/server';
 import { z } from 'zod/v4';
 import { createAuth } from './auth';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
 import { envMiddleware } from './middleware/env-middleware';
-import { bodySchema, renameChatSchema, userKeySchema } from './schemas';
-import { AppBindings } from './types';
+import {
+  bodySchema,
+  coreUserMessageSchema,
+  renameChatSchema,
+  userKeySchema,
+} from './schemas';
+import { AppBindings, Body } from './types';
 import { uploadRouter } from './uploadrouter';
-import { decryptKey, encryptKey, generateKeyHash } from './utils/crypto';
+import { encryptKey, generateKeyHash } from './utils/crypto';
 import { HttpError } from './utils/http-error';
 import { models } from './utils/models';
 
-type Body = z.infer<typeof bodySchema>;
-
-export const renameChat = async ({
-  message,
-  apiKey,
-}: {
-  message: string;
-  apiKey: string;
-}) => {
-  const openrouter = createOpenRouter({
-    apiKey,
-  });
-
-  const response = await generateText({
-    model: openrouter('google/gemma-2-9b-it'),
-    prompt: `Using this message as context, I need you to generate a title for a chat. The title should be a short. The title should not be longer than 10 words. Please generate the title only, without any additional explanation or context. Do not include any other text or information in your response. The title should be in the format of a sentence, starting with a capital letter, should only include letters in the alphabet and spaces, do not add special characters. Use the same language the message was written in. Here is the message: ${message}`,
-  });
-  const text = response.text;
-  return text;
-};
-
-const getApiKey = async (
-  userId: string,
-  provider: string,
-  db: AppBindings['Variables']['db'],
-  globalKey: string,
-  encryptionSecret: string,
-): Promise<string> => {
-  const userKeys = await db.query({
-    apiKeys: {
-      $: { where: { userId, provider, isActive: true } },
-    },
-  });
-
-  if (userKeys.apiKeys.length > 0) {
-    const userKey = userKeys.apiKeys[0];
-    const decryptedKey = await decryptKey(
-      userKey.encryptedKey,
-      encryptionSecret,
-    );
-    const verificationHash = await generateKeyHash(decryptedKey);
-    if (verificationHash === userKey.keyHash) {
-      return decryptedKey;
-    }
-  }
-  return globalKey;
-};
 
 export const sendMessageToOpenrouter = async ({
   messages,
@@ -351,6 +310,53 @@ const app = new Hono<AppBindings>({ strict: false })
     );
 
     if (body.config.model === 'openai/gpt-4.1-mini-image') {
+      const lastMessage = filteredMessages[
+        filteredMessages.length - 1
+      ] as z.infer<typeof coreUserMessageSchema>;
+      const messageContent = lastMessage.content.map(part => {
+        if (part.type === 'image') {
+          // TODO: transform url to base64
+          return {
+            type: 'input_image',
+            image_url: part.image,
+          };
+        } else if (part.type === 'text') {
+          return {
+            type: 'input_text',
+            text: part.text,
+          };
+        }
+        throw new Error('File upload not supported');
+      }) as ResponseInputImage[];
+      if (lastMessage.role !== 'user') {
+        throw new Error('Last message is not a user message');
+      }
+      const openai = new OpenAI({
+        apiKey: c.env.OPENAI_API_KEY,
+      });
+      const response = await openai.responses.create({
+        model: 'gpt-4.1-mini',
+        input: [
+          {
+            role: 'user',
+            content: messageContent,
+          },
+        ],
+        tools: [{ type: 'image_generation' }],
+      });
+
+    const utapi = new UTApi({
+      token: c.env.UPLOADTHING_TOKEN,
+    });
+    const responseId = response.id;
+    const message = response.output_text;
+    for (const output of response.output) {
+      if (output.type === 'image_generation_call') {
+        const file_ext = output.output_format;
+        const base64 = output.result;
+        // TODO: upload to uploadthing
+      }
+    }
       // TODO: add support for image generation
     } else {
       c.executionCtx.waitUntil(

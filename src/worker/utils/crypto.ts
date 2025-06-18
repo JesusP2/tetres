@@ -1,3 +1,5 @@
+import { AppBindings } from "@server/types";
+
 /**
  * Generate a SHA-256 hash of the API key for integrity validation.
  * This function looks perfect, no changes needed.
@@ -121,3 +123,30 @@ export async function decryptKey(
     return null;
   }
 }
+
+export const getApiKey = async (
+  userId: string,
+  provider: string,
+  db: AppBindings['Variables']['db'],
+  globalKey: string,
+  encryptionSecret: string,
+): Promise<string> => {
+  const userKeys = await db.query({
+    apiKeys: {
+      $: { where: { userId, provider, isActive: true } },
+    },
+  });
+
+  if (userKeys.apiKeys.length > 0) {
+    const userKey = userKeys.apiKeys[0];
+    const decryptedKey = await decryptKey(
+      userKey.encryptedKey,
+      encryptionSecret,
+    );
+    const verificationHash = await generateKeyHash(decryptedKey);
+    if (verificationHash === userKey.keyHash) {
+      return decryptedKey;
+    }
+  }
+  return globalKey;
+};
