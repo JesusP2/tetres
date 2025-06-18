@@ -81,7 +81,6 @@ export function useAudioRecorder(
       }, 100);
       
       setRecordingState('recording');
-      toast.success('Recording started');
       
     } catch (err) {
       console.error('Failed to start recording:', err);
@@ -109,8 +108,11 @@ export function useAudioRecorder(
       const blob = recorderRef.current?.getBlob();
       
       if (blob && blob.size > 0) {
-        onAudioReady?.(blob);
-        toast.success(`Recording completed (${Math.round(duration / 1000)}s)`);
+        toast.promise(onAudioReady?.(blob), {
+          loading: 'Processing audio...',
+          success: 'Audio processed successfully',
+          error: 'Failed to process audio',
+        });
       } else {
         setError('Recording failed - no audio data');
         setRecordingState('error');

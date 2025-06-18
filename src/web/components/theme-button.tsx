@@ -11,8 +11,8 @@ export interface IconRef {
 }
 
 const themeButtonId = 'theme-button';
-export function ThemeButton() {
-  const { theme: mode, setPreset: setTheme, setTheme: setMode } = useTheme();
+export function ThemeButton({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  const { theme: mode, setTheme } = useTheme();
   const moonRef = useRef<IconRef>(null);
   const sunRef = useRef<IconRef>(null);
 
@@ -28,7 +28,7 @@ export function ThemeButton() {
 
   return (
     <>
-      <div className='flex flex-col justify-center'>
+      <div className={cn('flex flex-col justify-center', className)} style={style}>
         <input
           type='checkbox'
           name={themeButtonId}
@@ -36,7 +36,7 @@ export function ThemeButton() {
           className='peer sr-only'
           checked={mode === 'dark'}
           onChange={e => {
-            setMode(e.target.checked ? 'dark' : 'light');
+            setTheme(e.target.checked ? 'dark' : 'light');
           }}
         />
         <label

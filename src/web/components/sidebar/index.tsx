@@ -31,6 +31,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
                 Omokage
               </Link>
             </h2>
+            <ThemeButton className="block md:hidden" />
           </div>
         </SidebarHeader>
         <SidebarContent className='overflow-hidden'>
@@ -47,15 +48,15 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
       <div
         className={cn(
           'bg-sidebar absolute top-3 left-2 z-10 flex gap-2 rounded-sm p-1 duration-300 ease-in-out',
-          state === 'collapsed' ? 'w-18' : 'w-9',
+          state === 'collapsed' ? 'w-20' : 'w-10 bg-transparent',
         )}
       >
-        <SidebarTrigger className='z-10' />
+        <SidebarTrigger className='z-10 size-8' />
         <Button
           onClick={() => setSearchDialogOpen(open => !open)}
           size='icon'
           className={cn(
-            'relative h-7 w-7 duration-300',
+            'relative size-8 duration-300',
             state === 'collapsed' ? 'right-0' : 'right-7 opacity-0',
           )}
           variant='ghost'
@@ -64,7 +65,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </Button>
       </div>
       {children}
-      <div className='bg-sidebar absolute top-3 right-8 flex hidden items-center rounded-sm p-1 sm:flex'>
+      <div className='bg-sidebar absolute top-3 right-8 gap-2 flex hidden items-center rounded-sm p-1 md:flex'>
         <ThemeButton />
         <Link
           to='/settings'
