@@ -3,6 +3,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { AnthropicLogo } from '@web/components/icons/anthropic';
 import { GeminiLogo } from '@web/components/icons/gemini';
 import { OpenAILogo } from '@web/components/icons/openai';
+import { DeepSeekLogo } from '@web/components/icons/deepseek';
 import { Button } from '@web/components/ui/button';
 import {
   Command,
@@ -60,6 +61,8 @@ function ModelIcon({ modelId }: { modelId: ModelId }) {
     Icon = GeminiLogo;
   } else if (modelId.startsWith('anthropic/')) {
     Icon = AnthropicLogo;
+  } else if (modelId.startsWith('deepseek/')) {
+    Icon = DeepSeekLogo;
   } else {
     Icon = Bot;
   }
