@@ -483,7 +483,7 @@ export function Chat({
           <div id='scroll' className='h-40 w-full' />
         </div>
       </div>
-      <div className='absolute bottom-0 w-full'>
+      <div className='absolute bottom-0 w-full px-2 bg-red-300'>
         {showScrollButton && (
           <Button
             variant='default'

@@ -9,10 +9,10 @@
 - [x] update updateAt of chat on new message
 - [x] copy code blocks
 - [-] image gen
-- [-] emails
-- [-] test google auth
+- [x] emails
+- [x] test google auth
 - [x] BYOK
-- [-] login dialog
+- [x] login dialog
 - [x] expanding image
 - [-] add react query
 
@@ -24,4 +24,8 @@
 -- check use effects
 -- settings redirect on layout
 -- display shortcuts somewhere
--- add delete/pin on chat hover
+-- remove loading screen
+-- mobile:
+-- close sidebar on new chat
+-- adjust footer
+-- remove right side icons and move them to the sidebar

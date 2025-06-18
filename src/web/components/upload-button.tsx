@@ -30,7 +30,7 @@ export function MyUploadButton(
               }}
             />
             <PaperclipIcon size={16} />
-            Attach
+            <span className="hidden sm:inline">Attach</span>
           </label>
         </TooltipTrigger>
         <TooltipContent>

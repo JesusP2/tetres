@@ -9,7 +9,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   server: {
-    port: 3000,
+    port: 3001,
   },
   plugins: [
     VitePWA({
@@ -22,7 +22,7 @@ export default defineConfig({
         skipWaiting: true,
       },
       manifest: {
-        name: 'Tetres App',
+        name: 'Omokage',
         short_name: 'Tetres',
         description: 'Copycat',
         theme_color: '#ffffff',

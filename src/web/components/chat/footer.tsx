@@ -236,7 +236,7 @@ export function ChatFooter({
                 variant='outline'
               >
                 <Globe className='h-4 w-4' />
-                Web
+                <span className="hidden sm:inline">Web</span>
               </Toggle>
               {supportsReasoning && (
                 <ReasoningDropdown
@@ -331,7 +331,7 @@ export function ModelsButton({
           variant='outline'
           role='combobox'
           aria-expanded={open}
-          className='w-[250px] justify-between'
+          className='max-w-[200px] sm:max-w-[250px] justify-between'
         >
           <span className='truncate'>
             {selectedModel
@@ -408,7 +408,7 @@ function ReasoningDropdown({
               )}
               <span
                 className={cn(
-                  'capitalize',
+                  'capitalize hidden sm:inline',
                   reasoningLevel === 'off' && 'text-muted-foreground',
                 )}
               >

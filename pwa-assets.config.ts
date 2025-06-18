@@ -5,5 +5,5 @@ import {
 
 export default defineConfig({
   preset,
-  images: ['public/tetres.svg'],
+  images: ['public/omokage.svg'],
 });

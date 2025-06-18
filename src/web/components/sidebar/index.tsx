@@ -18,7 +18,7 @@ import { cn } from '@web/lib/utils';
 import { useState } from 'react';
 
 export function AppSidebar({ children }: { children: React.ReactNode }) {
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   return (
     <>
@@ -46,7 +46,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
         </Button>
       </div>
       {children}
-      <div className='absolute top-3 right-8 flex items-center bg-sidebar p-1 rounded-sm'>
+      <div className='absolute top-3 right-8 flex items-center bg-sidebar p-1 rounded-sm hidden sm:flex'>
         <ThemeButton />
         <Link
           to='/settings'
