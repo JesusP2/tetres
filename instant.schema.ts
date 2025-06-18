@@ -81,6 +81,7 @@ const _schema = i.schema({
       projectId: i.string().indexed().optional(),
       userId: i.string().indexed(),
       branchId: i.string().optional(),
+      type: i.string(),
       sharedAt: i.date().optional(),
       shareToken: i.string().unique().optional(),
       updatedAt: i.date().indexed(),

@@ -55,6 +55,7 @@ import { OpenAILogo } from '../icons/openai';
 import { GeminiLogo } from '../icons/gemini';
 import { AnthropicLogo } from '../icons/anthropic';
 import { DeepSeekLogo } from '../icons/deepseek';
+import { TooltipProvider } from '@radix-ui/react-tooltip';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -254,19 +255,25 @@ export function ChatFooter({
                 selectedModel={selectedModel}
                 updateModel={updateModel}
               />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Toggle
-                    size='sm'
-                    pressed={webSearchEnabled}
-                    onPressedChange={setWebSearchEnabled}
-                    variant='outline'
-                  >
-                    <Globe className='h-4 w-4' />
-                  </Toggle>
-                </TooltipTrigger>
-                <TooltipContent>Web search</TooltipContent>
-              </Tooltip>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size='sm'
+                      type="button"
+                      onClick={() => setWebSearchEnabled(!webSearchEnabled)}
+                      className={cn(
+                        'flex items-center gap-2',
+                        webSearchEnabled && 'bg-accent! text-accent-foreground!',
+                      )}
+                      variant='outline'
+                    >
+                      <Globe className='h-4 w-4' />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Web search</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               {supportsReasoning && (
                 <ReasoningDropdown
                   reasoningLevel={reasoningLevel}
@@ -480,7 +487,7 @@ function ReasoningDropdown({
                   reasoningLevel === 'off' && 'text-muted-foreground',
                 )}
               >
-              {reasoningLevel}
+                {reasoningLevel}
               </span>
             </Button>
           </DropdownMenuTrigger>

@@ -19,6 +19,7 @@ export function createChat(
       model,
       pinned: false,
       userId: user.id,
+      type: sharedAt ? 'shared' : 'private',
       branchId,
       projectId,
       sharedAt,

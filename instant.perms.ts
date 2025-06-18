@@ -89,10 +89,10 @@ const rules = {
       'isLoggedIn',
       'auth.id != null',
       'isShared',
-      'data.sharedAt != null',
+      "'shared' in data.ref('chat.type')" ,
     ],
     allow: {
-      view: 'isOwner',
+      view: 'isOwner || isShared',
       create: 'isLoggedIn',
       delete: 'isOwner',
       update: 'isOwner',
