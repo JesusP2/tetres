@@ -26,33 +26,6 @@ export class AIModelDurableObject extends DurableObject {
     this.activeRequests.get(messageId)?.abort();
   }
 
-  // NOTE: it doesnt need to be in a DO but idc
-  async renameChat({
-    message,
-    chatId,
-    apiKey,
-  }: {
-    message: string;
-    chatId: string;
-    apiKey: string;
-  }) {
-    const openrouter = createOpenRouter({
-      apiKey,
-    });
-
-    const response = await generateText({
-      model: openrouter('google/gemma-2-9b-it'),
-      prompt: `Using this message as context, I need you to generate a title for a chat. The title should be a short. The title should not be longer than 10 words. Please generate the title only, without any additional explanation or context. Do not include any other text or information in your response. The title should be in the format of a sentence, starting with a capital letter, should only include letters in the alphabet and spaces, do not add special characters. Use the same language the message was written in. Here is the message: ${message}`,
-    });
-    const text = response.text;
-    await this.db.transact(
-      this.db.tx.chats[chatId].update({
-        title: text,
-        updatedAt: new Date().toISOString(),
-      }),
-    );
-  }
-
   async generateImage({
     filteredMessages,
     OPENAI_API_KEY,

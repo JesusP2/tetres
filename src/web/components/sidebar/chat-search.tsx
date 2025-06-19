@@ -50,21 +50,19 @@ export function ChatSearch({
       setIsOpen(false);
       setSearch('');
       const newChatId = id();
-      await Promise.all([
-        handleCreateChat(
-          newChatId,
-          search,
-          [],
-          false,
-          'off',
-          user,
-          ui,
-        ),
-        navigate({
-          to: '/$chatId',
-          params: { chatId: newChatId },
-        })
-      ]);
+      await handleCreateChat(
+        newChatId,
+        search,
+        [],
+        false,
+        'off',
+        user,
+        ui,
+      )
+      await navigate({
+        to: '/$chatId',
+        params: { chatId: newChatId },
+      })
     }
   };
 

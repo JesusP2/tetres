@@ -90,21 +90,19 @@ function Index() {
           onSubmit={async (search, files, webSearchEnabled, reasoning) => {
             if (!connection.isOnline && !connection.isChecking) return;
             const newChatId = id();
-            await Promise.all([
-              handleCreateChat(
-                newChatId,
-                search,
-                files,
-                webSearchEnabled,
-                reasoning,
-                user,
-                ui,
-              ),
-              navigate({
-                to: '/$chatId',
-                params: { chatId: newChatId },
-              })
-            ])
+            await handleCreateChat(
+              newChatId,
+              search,
+              files,
+              webSearchEnabled,
+              reasoning,
+              user,
+              ui,
+            )
+            await navigate({
+              to: '/$chatId',
+              params: { chatId: newChatId },
+            })
           }}
           selectedModel={ui?.defaultModel}
           updateModel={model => updateUI({ defaultModel: model })}
