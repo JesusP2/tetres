@@ -1,5 +1,6 @@
+import type { User } from '@instantdb/core';
 import { authClient } from '@web/lib/auth-client';
-import type { User } from 'better-auth';
+import { db } from '@web/lib/instant';
 
 export type MyUser =
   | {
@@ -8,18 +9,27 @@ export type MyUser =
     }
   | {
       isPending: false;
-      data: User | null;
+      data:
+        | (User & {
+            name?: string;
+          })
+        | null
+        | undefined;
     };
 export function useUser(): MyUser {
-  const session = authClient.useSession();
-  if (session.isPending) {
+  const { user, isLoading } = db.useAuth();
+  const sessionData = authClient.useSession();
+  if (!user || sessionData.isPending) {
     return {
       isPending: true,
       data: null,
     };
   }
   return {
-    isPending: session.isPending,
-    data: session.data?.user as User,
+    isPending: isLoading || sessionData.isPending,
+    data: {
+      ...user,
+      name: sessionData.data?.user?.name,
+    },
   };
 }

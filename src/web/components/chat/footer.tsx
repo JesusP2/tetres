@@ -22,11 +22,9 @@ import {
   DropdownMenuTrigger,
 } from '@web/components/ui/dropdown-menu';
 import { Textarea } from '@web/components/ui/textarea';
-import { Toggle } from '@web/components/ui/toggle';
 import { abortGeneration } from '@web/lib/messages';
 import type { Message } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
-import { deleteFile } from '@web/services';
 import {
   ArrowUp,
   Bot,
@@ -282,7 +280,7 @@ export function ChatFooter({
               )}
               {canAttach && (
                 <MyUploadButton
-                  disabled={isProcessing}
+                  disabled={isProcessing || !navigator.onLine}
                   onClientUploadComplete={files => {
                     const file = files[0];
                     if (!file) return;
@@ -321,7 +319,7 @@ export function ChatFooter({
                       type='button'
                       size='sm'
                       variant='outline'
-                      disabled={isProcessing || isGenerating}
+                      disabled={isProcessing || isGenerating || !navigator.onLine}
                       onClick={isRecording ? stopRecording : startRecording}
                       className={cn(
                         'flex items-center gap-2',
@@ -358,6 +356,7 @@ export function ChatFooter({
                   <TooltipTrigger asChild>
                     <Button
                       className="size-8"
+                      disabled={!navigator.onLine}
                       variant='destructive'
                       onClick={handleStop}
                     >
@@ -373,6 +372,7 @@ export function ChatFooter({
                   <TooltipTrigger asChild>
                     <Button
                       className={cn('size-8', message.trim() || messageFiles.length ? '' : 'opacity-50')}
+                        disabled={!navigator.onLine}
                       type='submit'
                     >
                       <ArrowUp className='h-4 w-4' />

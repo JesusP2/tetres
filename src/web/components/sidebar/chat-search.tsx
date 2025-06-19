@@ -14,6 +14,7 @@ import type { Chat } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import { PlusIcon, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 export function ChatSearch({
   isOpen,
@@ -60,6 +61,8 @@ export function ChatSearch({
           params: { chatId: newChatId },
         })
       ]);
+    } else if (!navigator.onLine) {
+      toast.error('You must be online to create a chat');
     }
   };
 
@@ -94,6 +97,7 @@ export function ChatSearch({
           });
           break;
         case 'Enter':
+          console.log('Enter', navigator.onLine);
           e.preventDefault();
           if (selectedIndex === -1) {
             handleSelect();

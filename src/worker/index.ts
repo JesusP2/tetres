@@ -121,6 +121,9 @@ const app = new Hono<AppBindings>({ strict: false })
     const auth = createAuth(c.env);
     return auth.handler(c.req.raw).catch(console.error);
   })
+  .get('/api/ping', async c => {
+    return c.text('pong');
+  })
   .use(betterAuthMiddleware)
   .on(['POST', 'GET'], '/api/uploadthing', async c => {
     const handlers = createRouteHandler({

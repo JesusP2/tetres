@@ -8,7 +8,6 @@ export function useInstantAuth({
   sessionData,
   isPending,
 }: {
-  // biome-ignore lint/suspicious/noExplicitAny:
   db: InstantReactWebDatabase<InstantSchemaDef<any, any, any>>;
   sessionData?: { session: Session; user: User } | null;
   isPending: boolean;
@@ -23,10 +22,11 @@ export function useInstantAuth({
         if (!user || user.id !== sessionData.user.id) {
           db.auth.signInWithToken(sessionData.session.token);
         }
-      } else {
-        db.auth.signOut({ invalidateToken: false });
       }
     }
     getUser();
   }, [db, isPending, isLoading, sessionData, user]);
 }
+
+// online status
+// user
