@@ -27,6 +27,3 @@ export function useInstantAuth({
     getUser();
   }, [db, isPending, isLoading, sessionData, user]);
 }
-
-// online status
-// user

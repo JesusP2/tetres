@@ -20,10 +20,15 @@ export type MyUser =
 export function useUser(): MyUser {
   const { user, isLoading } = db.useAuth();
   const sessionData = authClient.useSession();
-  console.log('useUser', user, isLoading, sessionData);
-  if (!user || sessionData.isPending) {
+  if (isLoading || sessionData.isPending) {
     return {
       isPending: true,
+      data: null,
+    };
+  }
+  if (!user) {
+    return {
+      isPending: false,
       data: null,
     };
   }

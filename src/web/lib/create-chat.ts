@@ -25,7 +25,7 @@ export const handleCreateChat = async (
   } | null,
   projectId?: string,
 ) => {
-  if (!user.data || !ui || !window.navigator.onLine) return;
+  if (!user.data || !ui) return;
   const chatTx = createChat(
     user.data,
     'New Chat',

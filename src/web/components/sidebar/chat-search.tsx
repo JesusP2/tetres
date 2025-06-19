@@ -44,7 +44,9 @@ export function ChatSearch({
       navigate({ to: '/$chatId', params: { chatId } });
       setIsOpen(false);
       setSearch('');
-    } else if (user.data && ui && !connection.isOnline && !connection.isChecking) {
+    } else if (!connection.isOnline && !connection.isChecking) {
+      toast.error('You must be online to create a chat');
+    } else if (user.data && ui) {
       setIsOpen(false);
       setSearch('');
       const newChatId = id();
@@ -63,8 +65,6 @@ export function ChatSearch({
           params: { chatId: newChatId },
         })
       ]);
-    } else if (!connection.isOnline && !connection.isChecking) {
-      toast.error('You must be online to create a chat');
     }
   };
 
@@ -99,7 +99,6 @@ export function ChatSearch({
           });
           break;
         case 'Enter':
-          console.log('Enter', navigator.onLine);
           e.preventDefault();
           if (selectedIndex === -1) {
             handleSelect();
