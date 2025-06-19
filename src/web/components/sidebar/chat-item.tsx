@@ -24,7 +24,7 @@ import {
   Share2Icon,
   Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ShareDialog } from '../chat/share-dialog';
 import { useConfirmDialog } from '../providers/confirm-dialog-provider';
 
@@ -43,6 +43,7 @@ export function ChatItem({
   const [editingTitle, setEditingTitle] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const isActive = value.chatId === chat.id;
 
   const handleUpdateTitle = async () => {
@@ -141,6 +142,7 @@ export function ChatItem({
                   ) : null}
                   {editingChatId === chat.id ? (
                     <input
+                      ref={inputRef}
                       value={editingTitle}
                       onChange={e => setEditingTitle(e.target.value)}
                       onBlur={handleUpdateTitle}
@@ -188,6 +190,10 @@ export function ChatItem({
             onClick={() => {
               setEditingChatId(chat.id);
               setEditingTitle(chat.title);
+              // NOTE: to whoever is reading this, I'm sorry 
+              setTimeout(() => {
+                inputRef.current?.focus();
+              }, 100);
             }}
           >
             <FileEdit className='mr-2 size-4' />
