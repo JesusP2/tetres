@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@web/components/ui/dropdown-menu';
 import { Textarea } from '@web/components/ui/textarea';
-import { abortGeneration } from '@web/lib/messages';
+import { abortRequest } from '@web/services';
 import type { Message } from '@web/lib/types';
 import { cn } from '@web/lib/utils';
 import {
@@ -132,7 +132,7 @@ export function ChatFooter({
 
   const handleStop = async () => {
     if (lastMessage) {
-      await abortGeneration(lastMessage.id);
+      await abortRequest(lastMessage.id);
     }
   };
 

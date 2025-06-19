@@ -99,3 +99,9 @@ export async function sendAudio(audioBlob: Blob) {
   const data = await response.json();
   return data.transcription;
 }
+
+export async function abortRequest(messageId: string) {
+  await fetch(`/api/model/${messageId}`, {
+    method: 'POST',
+  });
+}

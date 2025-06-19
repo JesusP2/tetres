@@ -261,7 +261,7 @@ export function Chat({
             {messages.map(m => {
               const isEditing = editingMessageId === m.id;
               const isLoading =
-                m.role === 'assistant' && !m.content && !m.reasoning;
+                m.role === 'assistant' && !m.content && !m.reasoning && !m.finished;
               const isAborted = m.aborted !== undefined;
               return m.role === 'user' ? (
                 <div data-role='user' key={m.id} className='flex justify-end'>

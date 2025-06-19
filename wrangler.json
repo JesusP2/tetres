@@ -18,6 +18,22 @@
   "assets": {
     "not_found_handling": "single-page-application"
   },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "AI_MODEL_DO",
+        "class_name": "AIModelDurableObject"
+      }
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": [
+        "AIModelDurableObject"
+      ]
+    }
+  ],
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

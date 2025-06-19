@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { z } from 'zod/v4';
 import type { Auth, Session, User } from '@server/auth';
 import { AppSchema } from '../../instant.schema';
+import { AIModelDurableObject } from './durable-objects/ai-mkodel-do';
 import {
   bodySchema,
   filePartSchema,
@@ -12,7 +13,9 @@ import {
 } from './schemas';
 
 export interface AppBindings {
-  Bindings: typeof env;
+  Bindings: typeof env & {
+    AI_MODEL_DO: DurableObjectNamespace<AIModelDurableObject>;
+  };
   Variables: {
     auth: Auth;
     db: InstantAdminDatabase<AppSchema>;

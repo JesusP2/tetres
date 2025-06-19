@@ -1,14 +1,11 @@
 import { zValidator } from '@hono/zod-validator';
 import { id } from '@instantdb/core';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { streamText } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
 import OpenAI from 'openai';
 import { createRouteHandler, UTApi } from 'uploadthing/server';
 import { createAuth } from './auth';
-import { generateImage } from './imagegen';
 import { betterAuthMiddleware } from './middleware/better-auth-middleware';
 import { dbMiddleware } from './middleware/db-middleware';
 import { envMiddleware } from './middleware/env-middleware';
@@ -20,98 +17,9 @@ import { encryptKey, generateKeyHash, getApiKey } from './utils/crypto';
 import { HttpError } from './utils/http-error';
 import { models } from './utils/models';
 
-export const sendMessageToOpenrouter = async ({
-  messages,
-  config,
-  db,
-  apiKey,
-}: {
-  messages: Body['messages'];
-  config: Body['config'];
-  db: AppBindings['Variables']['db'];
-  apiKey: string;
-}) => {
-  const openrouter = createOpenRouter({
-    apiKey,
-  });
-  let model: string = config.model;
-  if (config.web) {
-    model = `${config.model}:online`;
-  }
-  const settings: {
-    reasoning?: {
-      effort: 'low' | 'medium' | 'high';
-    };
-  } = {};
-  if (config.reasoning !== 'off') {
-    settings.reasoning = {
-      effort: config.reasoning,
-    };
-  }
+export { AIModelDurableObject } from './durable-objects/ai-model-do';
 
-  const messageId = config.messageId;
-  let sqId = 0;
-  let compoundedTime = 0;
-  let last = new Date().getTime();
-  const response = streamText({
-    model: openrouter(model, settings),
-    messages,
-    onChunk: async ({ chunk }) => {
-      compoundedTime += new Date().getTime() - last;
-      const message = await db.query({
-        messages: {
-          $: {
-            where: {
-              id: messageId,
-            },
-          },
-        },
-      });
-      if (message.messages[0].aborted) {
-        await db.transact(
-          db.tx.messages[messageId].update({
-            finished: new Date().toISOString(),
-          }),
-        );
-        throw new Error('aborted');
-      }
-      if (chunk.type === 'reasoning') {
-        const text = chunk.textDelta;
-        await db
-          .transact(
-            db.tx.messages[messageId].merge({
-              reasoning: {
-                [sqId]: text,
-              },
-            }),
-          )
-          .catch(console.error);
-      } else if (chunk.type === 'text-delta') {
-        const text = chunk.textDelta;
-        await db
-          .transact(
-            db.tx.messages[messageId].merge({
-              content: {
-                [sqId]: text,
-              },
-            }),
-          )
-          .catch(console.error);
-      }
-      sqId++;
-      last = new Date().getTime();
-    },
-  });
-  await response.consumeStream();
-  const usage = await response.usage;
-  const update = {
-    finished: new Date().toISOString(),
-    time: compoundedTime,
-    tokens: usage.completionTokens,
-  };
-  await db.transact(db.tx.messages[messageId].update(update));
-};
-
+const DO_NAME = 'AI_MODEL_DO';
 const app = new Hono<AppBindings>({ strict: false })
   .use(cors())
   .use(csrf())
@@ -315,12 +223,13 @@ const app = new Hono<AppBindings>({ strict: false })
         c.env.OPENAI_API_KEY,
         c.env.BETTER_AUTH_SECRET,
       );
+      const id = c.env.AI_MODEL_DO.idFromName(DO_NAME);
+      const stub = c.env.AI_MODEL_DO.get(id);
       c.executionCtx.waitUntil(
-        generateImage({
+        stub.generateImage({
           filteredMessages,
           OPENAI_API_KEY: openaiApiKey,
           UPLOADTHING_TOKEN: c.env.UPLOADTHING_TOKEN,
-          db,
           previousResponseId: body.config.previousResponseId,
           messageId: body.config.messageId,
           chatId: body.config.chatId,
@@ -334,15 +243,23 @@ const app = new Hono<AppBindings>({ strict: false })
         c.env.OPENROUTER_KEY,
         c.env.BETTER_AUTH_SECRET,
       );
+      const id = c.env.AI_MODEL_DO.idFromName(DO_NAME);
+      const stub = c.env.AI_MODEL_DO.get(id);
       c.executionCtx.waitUntil(
-        sendMessageToOpenrouter({
+        stub.sendMessageToOpenrouter({
           config: body.config,
           messages: filteredMessages,
-          db,
           apiKey: openrouterApiKey,
         }),
       );
     }
+    return c.json({ success: true });
+  })
+  .post('/api/model/:messageId', async c => {
+    const messageId = c.req.param('messageId');
+    const id = c.env.AI_MODEL_DO.idFromName(DO_NAME);
+    const stub = c.env.AI_MODEL_DO.get(id);
+    await stub.cancelRequest(messageId);
     return c.json({ success: true });
   })
   .onError((err, c) => {
