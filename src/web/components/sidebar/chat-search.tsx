@@ -15,6 +15,7 @@ import { cn } from '@web/lib/utils';
 import { PlusIcon, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useIsOnline } from '../providers/is-online';
 
 export function ChatSearch({
   isOpen,
@@ -27,6 +28,7 @@ export function ChatSearch({
   chats: Chat[];
   user: MyUser;
 }) {
+  const connection = useIsOnline();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -42,7 +44,7 @@ export function ChatSearch({
       navigate({ to: '/$chatId', params: { chatId } });
       setIsOpen(false);
       setSearch('');
-    } else if (user.data && ui && window.navigator.onLine) {
+    } else if (user.data && ui && !connection.isOnline && !connection.isChecking) {
       setIsOpen(false);
       setSearch('');
       const newChatId = id();
@@ -61,7 +63,7 @@ export function ChatSearch({
           params: { chatId: newChatId },
         })
       ]);
-    } else if (!navigator.onLine) {
+    } else if (!connection.isOnline && !connection.isChecking) {
       toast.error('You must be online to create a chat');
     }
   };

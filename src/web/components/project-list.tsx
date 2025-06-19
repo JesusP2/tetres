@@ -32,9 +32,11 @@ import { toast } from 'sonner';
 import { ProjectButton } from './project-button';
 import { useConfirmDialog } from './providers/confirm-dialog-provider';
 import { ChatItem } from './sidebar/chat-item';
+import { useIsOnline } from './providers/is-online';
 
 export function ProjectList({ allChats }: { allChats?: Chat[] }) {
   const user = useUser();
+  const connection = useIsOnline();
   const { confirmDelete } = useConfirmDialog();
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
     new Set(),
@@ -127,6 +129,10 @@ export function ProjectList({ allChats }: { allChats?: Chat[] }) {
 
   const handleDrop = async (e: React.DragEvent, targetProjectId: string) => {
     e.preventDefault();
+    if (!connection.isOnline && !connection.isChecking) {
+      toast.error('You must be online to move chats');
+      return;
+    }
     setDragOverProjectId(null);
 
     try {

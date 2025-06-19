@@ -1,6 +1,7 @@
 import { id } from '@instantdb/core';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ChatFooter } from '@web/components/chat/footer';
+import { useIsOnline } from '@web/components/providers/is-online';
 import { Button } from '@web/components/ui/button';
 import { Card } from '@web/components/ui/card';
 import { Code, Create, Explore, Learn } from '@web/components/ui/icons';
@@ -30,6 +31,7 @@ function Index() {
   const navigate = useNavigate();
   const user = useUser();
   const { ui, updateUI } = useUI();
+  const connection = useIsOnline();
 
   return (
     <div className='flex h-full flex-col'>
@@ -86,6 +88,7 @@ function Index() {
         <ChatFooter
           userId={user.data ? user.data.id : undefined}
           onSubmit={async (search, files, webSearchEnabled, reasoning) => {
+            if (!connection.isOnline && !connection.isChecking) return;
             const newChatId = id();
             await Promise.all([
               handleCreateChat(

@@ -10,6 +10,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ChatList } from './chat-list';
 import { ChatSearch } from './chat-search';
+import { useIsOnline } from '../providers/is-online';
 
 const groupChats = (chats: Chat[]) => {
   const now = new Date();
@@ -48,6 +49,7 @@ export function Content({
   setSearchDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const user = useUser();
+  const connection = useIsOnline();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const { data } = db.useQuery(
@@ -109,7 +111,7 @@ export function Content({
   return (
     <>
       <div className='flex flex-col gap-4 p-4 py-1'>
-        <Button onClick={handleNewChat} disabled={!window.navigator.onLine}>
+        <Button onClick={handleNewChat} disabled={!connection.isOnline && !connection.isChecking}>
           <PlusIcon className='mr-2' /> New Chat
         </Button>
         <div className='relative'>

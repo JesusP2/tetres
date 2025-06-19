@@ -43,7 +43,8 @@ export function InnerProviders({ children }: { children: React.ReactNode }) {
         if (!user || user.id !== sessionData.user.id) {
           db.auth.signInWithToken(sessionData.session.token);
         }
-      } else if (navigator.onLine) {
+      } else if (isOnline) {
+        console.log("couldnt get session and you're online, revoking token")
         db.auth.signOut({ invalidateToken: false });
       }
     }

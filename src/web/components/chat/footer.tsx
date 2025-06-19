@@ -54,6 +54,7 @@ import { GeminiLogo } from '../icons/gemini';
 import { AnthropicLogo } from '../icons/anthropic';
 import { DeepSeekLogo } from '../icons/deepseek';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
+import { useIsOnline } from '../providers/is-online';
 
 type ChatFooterProps = {
   onSubmit: (
@@ -92,6 +93,7 @@ export function ChatFooter({
   updateModel,
   lastMessage,
 }: ChatFooterProps) {
+  const connection = useIsOnline();
   const formRef = useRef<HTMLFormElement>(null);
   const [message, setMessage] = useState('');
   const [messageFiles, setMessageFiles] = useState<
@@ -159,10 +161,10 @@ export function ChatFooter({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!connection.isOnline && !connection.isChecking) return;
     if (
       (!message.trim() && !messageFiles.length) ||
       messageFiles.find(file => typeof file === 'string') ||
-      !window.navigator.onLine ||
       isProcessing
     )
       return;
@@ -234,7 +236,7 @@ export function ChatFooter({
           <div className='relative'>
             <Textarea
               name='message'
-              disabled={!window.navigator.onLine}
+              disabled={!connection.isOnline && !connection.isChecking}
               placeholder='Type your message here...'
               className='field-size-content chat-scrollbar max-h-[175px] w-full resize-none border-none pr-16 shadow-none focus-visible:ring-0 dark:placeholder:text-white'
               value={message}
@@ -280,7 +282,7 @@ export function ChatFooter({
               )}
               {canAttach && (
                 <MyUploadButton
-                  disabled={isProcessing || !navigator.onLine}
+                  disabled={isProcessing || !connection.isOnline && !connection.isChecking}
                   onClientUploadComplete={files => {
                     const file = files[0];
                     if (!file) return;
@@ -319,7 +321,7 @@ export function ChatFooter({
                       type='button'
                       size='sm'
                       variant='outline'
-                      disabled={isProcessing || isGenerating || !navigator.onLine}
+                      disabled={isProcessing || isGenerating || !connection.isOnline && !connection.isChecking}
                       onClick={isRecording ? stopRecording : startRecording}
                       className={cn(
                         'flex items-center gap-2',
@@ -356,7 +358,7 @@ export function ChatFooter({
                   <TooltipTrigger asChild>
                     <Button
                       className="size-8"
-                      disabled={!navigator.onLine}
+                      disabled={!connection.isOnline && !connection.isChecking}
                       variant='destructive'
                       onClick={handleStop}
                     >
@@ -372,7 +374,7 @@ export function ChatFooter({
                   <TooltipTrigger asChild>
                     <Button
                       className={cn('size-8', message.trim() || messageFiles.length ? '' : 'opacity-50')}
-                        disabled={!navigator.onLine}
+                      disabled={!connection.isOnline && !connection.isChecking}
                       type='submit'
                     >
                       <ArrowUp className='h-4 w-4' />

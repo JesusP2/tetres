@@ -12,6 +12,7 @@ export type MyUser =
       data:
         | (User & {
             name?: string;
+            image?: string | null;
           })
         | null
         | undefined;
@@ -19,6 +20,7 @@ export type MyUser =
 export function useUser(): MyUser {
   const { user, isLoading } = db.useAuth();
   const sessionData = authClient.useSession();
+  console.log('useUser', user, isLoading, sessionData);
   if (!user || sessionData.isPending) {
     return {
       isPending: true,
@@ -30,6 +32,7 @@ export function useUser(): MyUser {
     data: {
       ...user,
       name: sessionData.data?.user?.name,
+      image: sessionData.data?.user?.image,
     },
   };
 }
