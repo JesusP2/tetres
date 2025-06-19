@@ -25,13 +25,35 @@ export function ChatLayout({ children }: ProviderProps) {
   const sidebarState = getCookieValue('sidebar:state') ?? 'false';
   const sidebarWidth = getCookieValue('sidebar:width') ?? SIDEBAR_WIDTH;
   const defaultOpen = sidebarState === 'true';
-
+  const user = useUser();
+  // Show dialog when user is not logged in and not pending
+  const showAuthDialog = !user.isPending && !user.data;
 
   return (
     <SidebarProvider defaultOpen={defaultOpen} defaultWidth={sidebarWidth}>
       <AppSidebar>
         <AppSidebarInset>{children}</AppSidebarInset>
       </AppSidebar>
+
+      {!window.location.pathname.includes('shared') && (
+        <Dialog open={showAuthDialog}>
+          <DialogContent showCloseButton={false} className='sm:max-w-md'>
+            <DialogHeader>
+              <DialogTitle>Authentication Required</DialogTitle>
+              <DialogDescription>
+                You need to sign in to access the chat functionality.
+              </DialogDescription>
+            </DialogHeader>
+            <div className='flex justify-center pt-4'>
+              <Button asChild>
+                <Link to='/auth/$id' params={{ id: 'sign-in' }}>
+                  Sign In
+                </Link>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </SidebarProvider>
   );
 }

@@ -121,7 +121,6 @@ export function ChatItem({
                 'hover:bg-accent/50 hover:shadow-sm w-[calc(var(--sidebar-width)-2rem)]',
                 'group cursor-pointer',
                 isActive && 'bg-accent shadow-sm',
-                'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
                 isDragging && 'scale-95 opacity-50',
                 className,
               )}
@@ -156,7 +155,7 @@ export function ChatItem({
                       className={cn(
                         'truncate text-sm font-medium transition-colors',
                         isActive
-                          ? 'text-foreground'
+                          ? 'text-accent-foreground'
                           : 'text-foreground/80 group-hover:text-foreground',
                       )}
                     >
