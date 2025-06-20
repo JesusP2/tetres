@@ -43,11 +43,13 @@ export function ChatSearch({
     if (chatId) {
       navigate({ to: '/$chatId', params: { chatId } });
       setIsOpen(false);
+      setSelectedIndex(-1);
       setSearch('');
     } else if (!connection.isOnline && !connection.isChecking) {
       toast.error('You must be online to create a chat');
     } else if (user.data && ui) {
       setIsOpen(false);
+      setSelectedIndex(-1);
       setSearch('');
       const newChatId = id();
       await handleCreateChat(
@@ -65,17 +67,6 @@ export function ChatSearch({
       })
     }
   };
-
-  useEffect(() => {
-    if (!isOpen) {
-      setSearch('');
-    }
-  }, [isOpen]);
-
-  // TODO: this useEfffect shouldn't be necessary
-  useEffect(() => {
-    setSelectedIndex(-1);
-  }, [search]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -115,7 +106,13 @@ export function ChatSearch({
   }, [isOpen, selectedIndex, filtered, search]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={open => {
+      setIsOpen(open)
+      if (!open) {
+        setSelectedIndex(-1)
+        setSearch('')
+      }
+    }}>
       <DialogContent
         className='gap-0 p-0'
         showCloseButton={false}
@@ -142,7 +139,10 @@ export function ChatSearch({
             placeholder='Search or press enter to create a new chat...'
             className='flex-1 bg-transparent text-sm focus:outline-none'
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => {
+              setSearch(e.target.value);
+              setSelectedIndex(-1);
+            }}
           />
         </div>
         <div className='p-2'>
@@ -164,7 +164,7 @@ export function ChatSearch({
                 className={cn(
                   'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition-colors',
                   'hover:bg-accent/50',
-                  selectedIndex === i && 'bg-accent',
+                  selectedIndex === i && 'bg-accent text-accent-foreground',
                 )}
                 onClick={() => handleSelect(chat.id)}
                 onMouseMove={() => setSelectedIndex(i)}
