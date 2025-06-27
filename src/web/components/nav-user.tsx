@@ -90,19 +90,19 @@ export function NavUser() {
                 onClick={() => setOpenMobile(false)}
                 className="p-0"
               >
-                <Link className="w-full" to='/settings'>Settings</Link>
+                <Link className="w-full py-1.5" to='/settings'>Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setOpenMobile(false)}
                 className="p-0"
               >
-                <Link className="w-full" to='/settings/account'>Account</Link>
+                <Link className="w-full py-1.5" to='/settings/account'>Account</Link>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setOpenMobile(false)}
                 className="p-0"
               >
-                <Link className="w-full" to='/settings/api-keys'>API Keys</Link>
+                <Link className="w-full py-1.5" to='/settings/api-keys'>API Keys</Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
