@@ -1,10 +1,9 @@
 import type { InstantAdminDatabase } from '@instantdb/admin';
-import { env } from 'cloudflare:workers';
 import { Hono } from 'hono';
 import { z } from 'zod/v4';
 import type { Auth, Session, User } from '@server/auth';
 import { AppSchema } from '../../instant.schema';
-import { AIModelDurableObject } from './durable-objects/ai-mkodel-do';
+import { AIModelDurableObject } from './durable-objects/ai-model-do';
 import {
   bodySchema,
   filePartSchema,
@@ -13,7 +12,20 @@ import {
 } from './schemas';
 
 export interface AppBindings {
-  Bindings: typeof env & {
+  Bindings: {
+    omokage_rate_limit: KVNamespace;
+    BETTER_AUTH_SECRET: string;
+    GOOGLE_CLIENT_ID: string;
+    GOOGLE_CLIENT_SECRET: string;
+    VITE_INSTANT_APP_ID: string;
+    INSTANT_ADMIN_TOKEN: string;
+    GOOGLE_REDIRECT_URI: string;
+    UPLOADTHING_TOKEN: string;
+    OPENROUTER_KEY: string;
+    RESEND_API_KEY: string;
+    VITE_CLIENT_APP_URL: string;
+    OPENAI_API_KEY: string;
+    POLAR_ACCESS_TOKEN: string;
     AI_MODEL_DO: DurableObjectNamespace<AIModelDurableObject>;
   };
   Variables: {

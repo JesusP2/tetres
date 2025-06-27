@@ -41,11 +41,16 @@ export function InnerProviders({ children }: { children: React.ReactNode }) {
     async function getUser() {
       if (sessionData) {
         if (!user || user.id !== sessionData.user.id) {
-          db.auth.signInWithToken(sessionData.session.token);
+          await db.auth.signInWithToken(sessionData.session.token);
         }
       } else if (isOnline) {
         console.log("couldnt get session and you're online, revoking token")
-        db.auth.signOut({ invalidateToken: false });
+        await db.auth.signOut({ invalidateToken: false });
+      //   const data = await authClient.signIn.anonymous();
+      //   if (data.data) {
+      //     console.log("signed in anonymously")
+      //     await db.auth.signInWithToken(data.data.token);
+      //   }
       }
     }
     getUser();

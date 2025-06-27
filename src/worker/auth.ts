@@ -1,20 +1,59 @@
+import {
+  checkout,
+  polar,
+  portal,
+  usage,
+} from '@polar-sh/better-auth';
+import { Polar } from '@polar-sh/sdk';
 import { betterAuth } from 'better-auth';
-import { magicLink } from 'better-auth/plugins';
+import { anonymous, magicLink } from 'better-auth/plugins';
 import { passkey } from 'better-auth/plugins/passkey';
-import { env as cloudflareEnv } from 'cloudflare:workers';
 import { Resend } from 'resend';
 import { getDb } from './db';
 import { magicLinkTemplate } from './emails/magic-link';
 import { forgotPasswordTemplate } from './emails/otp';
 import { instantDBAdapter } from './instant-adapteer';
+import { AppBindings } from './types';
 
-export const createAuth = (env: typeof cloudflareEnv) => {
+export const createAuth = (env: AppBindings['Bindings']) => {
   const adminDb = getDb(env);
+  // const polarClient = new Polar({
+  //   accessToken: env.POLAR_ACCESS_TOKEN,
+  //   server: 'sandbox',
+  // });
 
   const resend = new Resend(env.RESEND_API_KEY);
   return betterAuth({
     secret: env.BETTER_AUTH_SECRET,
     plugins: [
+      anonymous({
+        emailDomainName: 'omokage.app',
+      }),
+      // polar({
+      //   client: polarClient,
+      //   createCustomerOnSignUp: true,
+      //   use: [
+      //     checkout({
+      //       products: [
+      //         {
+      //           productId: '96008e65-aac2-4bd7-89a4-f97bcb693fa0',
+      //           slug: 'test',
+      //         },
+      //       ],
+      //       successUrl: '/success?checkout_id={CHECKOUT_ID}',
+      //       authenticatedUsersOnly: true,
+      //     }),
+      //     portal(),
+      //     usage(),
+      //     // webhooks({
+      //     //     secret: process.env.POLAR_WEBHOOK_SECRET,
+      //     //     onCustomerStateChanged: (payload) => // Triggered when anything regarding a customer changes
+      //     //     onOrderPaid: (payload) => // Triggered when an order was paid (purchase, subscription renewal, etc.)
+      //     //     ...  // Over 25 granular webhook handlers
+      //     //     onPayload: (payload) => // Catch-all for all events
+      //     // })
+      //   ],
+      // }),
       passkey(),
       magicLink({
         sendMagicLink: async ({ email, url }) => {
@@ -30,7 +69,7 @@ export const createAuth = (env: typeof cloudflareEnv) => {
     database: instantDBAdapter({
       db: adminDb,
       usePlural: true,
-      debugLogs: false,
+      debugLogs: true,
     }),
     emailAndPassword: {
       enabled: true,

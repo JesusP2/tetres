@@ -13,6 +13,7 @@ export type MyUser =
         | (User & {
             name?: string;
             image?: string | null;
+            isAnonymous: boolean;
           })
         | null
         | undefined;
@@ -38,6 +39,7 @@ export function useUser(): MyUser {
       ...user,
       name: sessionData.data?.user?.name,
       image: sessionData.data?.user?.image,
+      isAnonymous: sessionData.data?.user?.isAnonymous || false,
     },
   };
 }

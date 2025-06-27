@@ -22,15 +22,14 @@ export { AIModelDurableObject } from './durable-objects/ai-model-do';
 const DO_NAME = 'AI_MODEL_DO';
 const app = new Hono<AppBindings>({ strict: false })
   .use(cors())
-  .use(csrf())
+  .get('/api/ping', async c => {
+    return c.text('pong');
+  })
   .use(envMiddleware)
   .use(dbMiddleware)
   .on(['POST', 'GET'], '/api/auth/*', async c => {
     const auth = createAuth(c.env);
     return auth.handler(c.req.raw).catch(console.error);
-  })
-  .get('/api/ping', async c => {
-    return c.text('pong');
   })
   .use(betterAuthMiddleware)
   .on(['POST', 'GET'], '/api/uploadthing', async c => {

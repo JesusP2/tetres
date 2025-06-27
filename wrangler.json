@@ -34,25 +34,20 @@
       ]
     }
   ],
-  /**
-   * Smart Placement
-   * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-   */
-  // "placement": { "mode": "smart" },
-
-  /**
-   * Bindings
-   * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-   * databases, object storage, AI inference, real-time communication and more.
-   * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-   */
+  "kv_namespaces": [
+    {
+      "binding": "omokage_rate_limit",
+      "id": "cc6c03b8a89b474cbaf2005d0a5bbd7c"
+    }
+  ],
+  "placement": { "mode": "smart" },
 
   /**
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
   "vars": {
-    "VITE_INSTANT_APP_ID": "407d46a5-8ca5-4888-a1fa-f0abf80fc945",
+    "VITE_INSTANT_APP_ID": "10d0a1d7-99ba-4152-8cc0-acb549e7b132",
     "VITE_CLIENT_APP_URL": "https://omokage.app"
   }
   /**

@@ -192,7 +192,7 @@ export function ChatFooter({
 
   return (
     <div className='bg-sidebar mx-auto w-full max-w-3xl rounded-sm shadow-md'>
-      <form className='p-4' ref={formRef} onSubmit={handleSubmit}>
+      <form className='p-0' ref={formRef} onSubmit={handleSubmit}>
         <div className='border-input focus-within:ring-ring relative flex w-full flex-col rounded-md border bg-transparent p-3 text-sm shadow-sm focus-within:ring-1 focus-within:outline-none'>
           {messageFiles && messageFiles.length > 0 && (
             <div className='mb-2 flex flex-wrap gap-2'>

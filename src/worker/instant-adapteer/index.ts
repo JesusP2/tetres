@@ -157,7 +157,7 @@ export const instantDBAdapter = ({
             const token = await db.auth.createToken($user.email);
             const tokenField = getFieldName({ model, field: 'token' });
 
-            // @ts-ignore
+            // @ts-expect-error idk
             data[tokenField] = token;
 
             // Update $users entity email to match the user email

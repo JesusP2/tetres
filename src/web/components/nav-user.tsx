@@ -27,7 +27,7 @@ export function NavUser() {
 
   if (user.isPending) {
     return <div className="flex justify-center"><LoaderCircleIcon className="animate-spin h-5 w-5" /></div>;
-  } else if (!user.data) {
+  } else if (!user.data || user.data.isAnonymous) {
     return (
       <Link
         className={buttonVariants()}
