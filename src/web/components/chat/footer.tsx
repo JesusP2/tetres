@@ -16,6 +16,13 @@ import {
   DialogTrigger,
 } from '@web/components/ui/dialog';
 import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@web/components/ui/drawer';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -41,6 +48,7 @@ import { useRef, useState, type SVGProps } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { useAudioRecorder } from '@web/hooks/use-audio-recorder';
+import { useIsMobile } from '@web/hooks/use-mobile';
 import { formatDuration, isAudioRecordingSupported } from '@web/lib/audio-utils';
 import { sendAudio } from '@web/services';
 import { MyUploadButton } from '../upload-button';
@@ -108,9 +116,14 @@ export function ChatFooter({
   const handleAudioReady = async (audioBlob: Blob) => {
     try {
       const transcription = await sendAudio(audioBlob);
-      const textarea = formRef.current.elements['message']
-      textarea.value = transcription;
-      setMessage(transcription);
+      const form = formRef.current;
+      if (form) {
+        const textarea = form.elements.namedItem('message') as HTMLTextAreaElement;
+        if (textarea) {
+          textarea.value = transcription;
+          setMessage(transcription);
+        }
+      }
     } catch (error) {
       console.error('Failed to send audio:', error);
     }
@@ -405,24 +418,83 @@ export function ModelsButton({
   updateModel: (model: ModelId) => Promise<unknown>;
 }) {
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  const selectedModelName = selectedModel
+    ? models.find(m => m.id === selectedModel)?.name.split(':')[1]
+    : 'Select model...';
+
+  const triggerButton = (
+    <Button
+      type='button'
+      size='sm'
+      variant='outline'
+      role='combobox'
+      aria-expanded={open}
+      className='max-w-[100px] sm:max-w-[200px] justify-between'
+    >
+      <span className='truncate'>
+        {selectedModelName}
+      </span>
+    </Button>
+  );
+
+  const commandContent = (
+    <Command>
+      <CommandInput placeholder='Search model...' />
+      <CommandList className='chat-scrollbar'>
+        <CommandEmpty>No model found.</CommandEmpty>
+        <CommandGroup>
+          {models.map(m => (
+            <CommandItem
+              key={m.id}
+              value={m.id}
+              onSelect={currentValue => {
+                updateModel(currentValue as ModelId);
+                setOpen(false);
+              }}
+            >
+              <ModelIcon modelId={m.id} />
+              {m.name.split(':')[1]}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={setOpen}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DrawerTrigger asChild>
+              {triggerButton}
+            </DrawerTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            {selectedModelName}
+          </TooltipContent>
+        </Tooltip>
+        <DrawerContent>
+          <VisuallyHidden>
+            <DrawerTitle>Model selection</DrawerTitle>
+          </VisuallyHidden>
+          <VisuallyHidden>
+            <DrawerDescription>Select a model to chat with.</DrawerDescription>
+          </VisuallyHidden>
+          <div className='p-4'>
+            {commandContent}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          type='button'
-          size='sm'
-          variant='outline'
-          role='combobox'
-          aria-expanded={open}
-          className='max-w-[150px] sm:max-w-[200px] justify-between'
-        >
-          <span className='truncate'>
-            {selectedModel
-              ? models.find(m => m.id === selectedModel)?.name.split(':')[1]
-              : 'Select model...'}
-          </span>
-          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-        </Button>
+        {triggerButton}
       </DialogTrigger>
       <DialogContent className='p-0' showCloseButton={false}>
         <VisuallyHidden>
@@ -431,28 +503,7 @@ export function ModelsButton({
         <VisuallyHidden>
           <DialogDescription>Select a model to chat with.</DialogDescription>
         </VisuallyHidden>
-
-        <Command>
-          <CommandInput placeholder='Search model...' />
-          <CommandList className='chat-scrollbar'>
-            <CommandEmpty>No model found.</CommandEmpty>
-            <CommandGroup>
-              {models.map(m => (
-                <CommandItem
-                  key={m.id}
-                  value={m.id}
-                  onSelect={currentValue => {
-                    updateModel(currentValue as ModelId);
-                    setOpen(false);
-                  }}
-                >
-                  <ModelIcon modelId={m.id} />
-                  {m.name.split(':')[1]}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
+        {commandContent}
       </DialogContent>
     </Dialog>
   );

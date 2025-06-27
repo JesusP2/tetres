@@ -1,8 +1,9 @@
 import { Slot } from '@radix-ui/react-slot';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@web/components/ui/button';
 import { Input } from '@web/components/ui/input';
 import { Separator } from '@web/components/ui/separator';
-import { Sheet, SheetContent } from '@web/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@web/components/ui/sheet';
 import { Skeleton } from '@web/components/ui/skeleton';
 import {
   Tooltip,
@@ -252,6 +253,14 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
+            <VisuallyHidden>
+              <SheetHeader>
+                <SheetTitle>App sidebar</SheetTitle>
+                <SheetDescription>
+                  Drag the rail to move the sidebar.
+                </SheetDescription>
+              </SheetHeader>
+            </VisuallyHidden>
             <div className='flex h-full w-full flex-col'>{children}</div>
           </SheetContent>
         </Sheet>
@@ -693,7 +702,7 @@ const SidebarMenuAction = React.forwardRef<
         'peer-data-[size=lg]/menu-button:top-2.5',
         'group-data-[collapsible=icon]:hidden',
         showOnHover &&
-          'peer-data-[active=true]/menu-button:text-sidebar-accent-foreground group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 md:opacity-0',
+        'peer-data-[active=true]/menu-button:text-sidebar-accent-foreground group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 md:opacity-0',
         className,
       )}
       {...props}
