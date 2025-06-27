@@ -22,7 +22,7 @@ import { buttonVariants } from './ui/button';
 import { LoaderCircleIcon } from 'lucide-react';
 
 export function NavUser() {
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const user = useUser();
 
   if (user.isPending) {
@@ -86,14 +86,23 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                <Link to='/settings'>Settings</Link>
+              <DropdownMenuItem
+                onClick={() => setOpenMobile(false)}
+                className="p-0"
+              >
+                <Link className="w-full" to='/settings'>Settings</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to='/settings/account'>Account</Link>
+              <DropdownMenuItem
+                onClick={() => setOpenMobile(false)}
+                className="p-0"
+              >
+                <Link className="w-full" to='/settings/account'>Account</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to='/settings/api-keys'>API Keys</Link>
+              <DropdownMenuItem
+                onClick={() => setOpenMobile(false)}
+                className="p-0"
+              >
+                <Link className="w-full" to='/settings/api-keys'>API Keys</Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
