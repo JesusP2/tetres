@@ -18,6 +18,24 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Mobile viewport handling for safe areas */
+@supports (height: 100dvh) {
+  .mobile-height {
+    height: 100dvh;
+  }
+}
+
+@supports not (height: 100dvh) {
+  .mobile-height {
+    height: 100vh;
+  }
+}
+
+/* Safe area insets for mobile devices */
+.mobile-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 .content h3,
 .reasoning h3 {
   @apply scroll-m-20 text-lg font-semibold tracking-tight [&:not(:first-child)]:mt-4;

@@ -255,7 +255,7 @@ export function Chat({
       <div className='flex h-full flex-col overflow-hidden'>
         <div
           ref={messagesContainerRef}
-          className='chat-scrollbar h-screen overflow-y-auto'
+          className='chat-scrollbar h-dvh overflow-y-auto'
         >
           <div className='mx-auto mt-4 mb-10 max-w-3xl space-y-4 px-4'>
             {messages.map(m => {
@@ -490,14 +490,14 @@ export function Chat({
         {showScrollButton && (
           <Button
             variant='default'
-            className='mx-auto mb-3 block'
+            className='mx-auto mobile-safe-bottom block'
             onClick={() => scrollToBottom('smooth')}
           >
             Scroll to bottom
           </Button>
         )}
         {'shareToken' in params ? (
-          <div className='flex h-16 w-full items-center justify-center'>
+          <div className='flex h-16 w-full mobile-safe-bottom items-center justify-center'>
             <Button onClick={handleCopyChat} disabled={isCopying}>
               <Copy className='h-4 w-4' />
               Copy Chat
