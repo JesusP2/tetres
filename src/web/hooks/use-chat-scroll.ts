@@ -42,9 +42,7 @@ export function useChatScroll({
   }, [messagesContainerRef]);
 
   useEffect(() => {
-    if (chatId) {
       scrollToBottom('instant');
-    }
   }, [chatId]);
 
   useEffect(() => {

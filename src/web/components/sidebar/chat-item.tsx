@@ -27,6 +27,7 @@ import {
 import { useRef, useState } from 'react';
 import { ShareDialog } from '../chat/share-dialog';
 import { useConfirmDialog } from '../providers/confirm-dialog-provider';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 export function ChatItem({
   chat,
@@ -132,38 +133,45 @@ export function ChatItem({
                 setEditingTitle(chat.title);
               }}
             >
-              <div
-                className={cn('flex items-center gap-3 rounded-lg px-3 py-2')}
-              >
-                <div className='flex min-w-0 flex-1 items-center'>
-                  {chat.branchId ? (
-                    <GitBranchIcon className='mr-2 size-4' />
-                  ) : null}
-                  {editingChatId === chat.id ? (
-                    <input
-                      ref={inputRef}
-                      value={editingTitle}
-                      onChange={e => setEditingTitle(e.target.value)}
-                      onBlur={handleUpdateTitle}
-                      onKeyDown={handleKeyDown}
-                      autoFocus
-                      onFocus={e => e.target.select()}
-                      className='border-none p-0 text-sm font-medium outline-none'
-                    />
-                  ) : (
-                    <span
-                      className={cn(
-                        'truncate text-sm font-medium transition-colors',
-                        isActive
-                          ? 'text-accent-foreground'
-                          : 'text-foreground/80 group-hover:text-foreground',
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={cn('flex items-center gap-3 rounded-lg px-3 py-2')}
+                  >
+                    <div className='flex min-w-0 flex-1 items-center'>
+                      {chat.branchId ? (
+                        <GitBranchIcon className='mr-2 size-4' />
+                      ) : null}
+                      {editingChatId === chat.id ? (
+                        <input
+                          ref={inputRef}
+                          value={editingTitle}
+                          onChange={e => setEditingTitle(e.target.value)}
+                          onBlur={handleUpdateTitle}
+                          onKeyDown={handleKeyDown}
+                          autoFocus
+                          onFocus={e => e.target.select()}
+                          className='border-none p-0 text-sm font-medium outline-none'
+                        />
+                      ) : (
+                        <span
+                          className={cn(
+                            'truncate text-sm font-medium transition-colors',
+                            isActive
+                              ? 'text-accent-foreground'
+                              : 'text-foreground/80 group-hover:text-foreground',
+                          )}
+                        >
+                          {chat.title}
+                        </span>
                       )}
-                    >
-                      {chat.title}
-                    </span>
-                  )}
-                </div>
-              </div>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {chat.title}
+                </TooltipContent>
+              </Tooltip>
             </div>
           </Link>
         </ContextMenuTrigger>

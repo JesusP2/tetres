@@ -489,9 +489,8 @@ export function Chat({
       <div className='absolute bottom-0 w-full px-2'>
         {showScrollButton && (
           <Button
-            variant='default'
             className='mx-auto mobile-safe-bottom block'
-            onClick={() => scrollToBottom('smooth')}
+            onClick={() => scrollToBottom('instant')}
           >
             Scroll to bottom
           </Button>
