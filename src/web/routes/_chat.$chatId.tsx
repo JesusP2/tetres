@@ -16,6 +16,7 @@ function RouteComponent() {
   return (
     <Chat
       chat={chat}
+      areMessagesLoading={isLoading}
       messages={parsedMessages}
       setParsedMessages={setParsedMessages}
     />

@@ -37,6 +37,7 @@ export function useChatMessages(
   chatId: string,
   key: 'id' | 'shareToken' = 'id',
 ) {
+  const [areMessagesLoading, setAreMessagesLoading] = useState(true);
   const { isLoading, data } = db.useQuery({
     chats: {
       $: { where: { [key]: chatId } },
@@ -116,6 +117,7 @@ export function useChatMessages(
           return newMessage;
         }),
       );
+      setAreMessagesLoading(false);
       setParsedMessages(processedMessages);
     };
 
@@ -124,7 +126,7 @@ export function useChatMessages(
   const chat = data?.chats[0] as Chat;
 
   return {
-    isLoading,
+    isLoading: areMessagesLoading,
     parsedMessages,
     setParsedMessages,
     chat,

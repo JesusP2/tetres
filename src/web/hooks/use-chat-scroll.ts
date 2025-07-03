@@ -1,20 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function useChatScroll({
   chatId,
   messagesContainerRef,
-  messages,
+  areMessagesLoading,
 }: {
   chatId: string;
   messagesContainerRef: React.RefObject<HTMLDivElement | null>;
-  messages: unknown[];
+  areMessagesLoading: boolean;
 }) {
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const isAtBottomRef = useRef(true);
-
-  const isAtBottom = (el: HTMLElement) => {
-    return el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-  };
+  const scrollToBottomButtonRef = useRef<HTMLButtonElement | null>(null);
+  const scrollToBottomElRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = (behavior: 'smooth' | 'instant' = 'smooth') => {
     if (messagesContainerRef.current) {
@@ -26,30 +22,27 @@ export function useChatScroll({
   };
 
   useEffect(() => {
-    const el = messagesContainerRef.current;
-    if (!el) return;
-
-    const handleScroll = () => {
-      const atBottom = isAtBottom(el);
-      isAtBottomRef.current = atBottom;
-      setShowScrollButton(!atBottom);
-    };
-
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      el.removeEventListener('scroll', handleScroll);
-    };
-  }, [messagesContainerRef]);
-
-  useEffect(() => {
-      scrollToBottom('instant');
-  }, [chatId]);
-
-  useEffect(() => {
-    if (isAtBottomRef.current) {
+    if (!areMessagesLoading) {
       scrollToBottom('instant');
     }
-  }, [messages, messages.length]);
+  }, [chatId, areMessagesLoading]);
 
-  return { showScrollButton, scrollToBottom };
+  useEffect(() => {
+    if (!scrollToBottomElRef.current) return;
+    const observer = new IntersectionObserver(entries => {
+      const entry = entries[0];
+      if (entry?.isIntersecting) {
+        scrollToBottomButtonRef.current?.classList.add('invisible');
+      } else {
+        scrollToBottomButtonRef.current?.classList.remove('invisible');
+      }
+    });
+
+    observer.observe(scrollToBottomElRef.current);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  return { scrollToBottom, scrollToBottomButtonRef, scrollToBottomElRef };
 }

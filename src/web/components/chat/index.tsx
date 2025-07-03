@@ -45,6 +45,7 @@ import { MessageAttachments } from './message-attachments';
 type ChatProps = {
   chat: ChatType;
   messages?: ParsedMessage[];
+  areMessagesLoading?: boolean;
   onSubmit?: (message: string) => void;
   setParsedMessages: Dispatch<SetStateAction<ParsedMessage[]>>;
 };
@@ -52,6 +53,7 @@ type ChatProps = {
 export function Chat({
   chat,
   messages = [],
+  areMessagesLoading = false,
   onSubmit,
   setParsedMessages,
 }: ChatProps) {
@@ -62,10 +64,10 @@ export function Chat({
   const [editingContent, setEditingContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const { showScrollButton, scrollToBottom } = useChatScroll({
+  const { scrollToBottom, scrollToBottomButtonRef, scrollToBottomElRef } = useChatScroll({
     chatId: chat?.id ?? '',
     messagesContainerRef,
-    messages,
+    areMessagesLoading,
   });
   const [isCopying, setIsCopying] = useState(false);
 
@@ -483,18 +485,17 @@ export function Chat({
               );
             })}
           </div>
-          <div id='scroll' className='h-40 w-full' />
+          <div ref={scrollToBottomElRef} id='scroll' className='h-40 w-full' />
         </div>
       </div>
       <div className='absolute bottom-0 w-full px-2'>
-        {showScrollButton && (
-          <Button
-            className='mx-auto mobile-safe-bottom block'
-            onClick={() => scrollToBottom('instant')}
-          >
-            Scroll to bottom
-          </Button>
-        )}
+        <Button
+          ref={scrollToBottomButtonRef}
+          className='mx-auto block mb-2 invisible'
+          onClick={() => scrollToBottom('instant')}
+        >
+          Scroll to bottom
+        </Button>
         {'shareToken' in params ? (
           <div className='flex h-16 w-full mobile-safe-bottom items-center justify-center'>
             <Button onClick={handleCopyChat} disabled={isCopying}>
