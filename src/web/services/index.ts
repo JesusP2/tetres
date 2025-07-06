@@ -1,4 +1,3 @@
-import { toast } from 'sonner';
 import type { Body } from '@server/types';
 import type { ModelId } from '@server/utils/models';
 

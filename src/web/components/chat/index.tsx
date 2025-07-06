@@ -15,6 +15,7 @@ import { db } from '@web/lib/instant';
 import {
   createAssistantMessage,
   createUserMessage,
+  getChatMessages,
   retryMessage,
 } from '@web/lib/messages';
 import type { Chat as ChatType, Message, ParsedMessage } from '@web/lib/types';
@@ -84,6 +85,7 @@ export function Chat({
     }
     if (chat) {
       // the latest message if from the assistant
+      const messages = await getChatMessages(chat.id);
       const previousResponseId = messages[messages.length - 1]?.responseId;
       const newUserMessage = createMessageObject({
         role: 'user',
@@ -145,7 +147,6 @@ export function Chat({
     setIsProcessing(true);
     try {
       await retryMessage(
-        messages,
         message,
         editingContent,
         user.data.id,
@@ -330,7 +331,6 @@ export function Chat({
                               if (user.isPending) return;
                               // TODO: pass webSearchEnabled and reasoning params
                               await retryMessage(
-                                messages,
                                 m,
                                 m.content,
                                 user.data?.id ?? '',
@@ -456,7 +456,6 @@ export function Chat({
                         if (user.isPending) return;
                         // TODO: pass webSearchEnabled and reasoning params
                         await retryMessage(
-                          messages,
                           m,
                           m.content,
                           user.data?.id ?? '',

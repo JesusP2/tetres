@@ -13,17 +13,16 @@ export function useChatScroll({
   const scrollToBottomElRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = (behavior: 'smooth' | 'instant' = 'smooth') => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTo({
-        top: messagesContainerRef.current.scrollHeight,
-        behavior,
-      });
-    }
+    scrollToBottomElRef.current?.scrollIntoView({
+      behavior,
+    });
   };
 
   useEffect(() => {
+    console.log('areMessagesLoading', areMessagesLoading);
     if (!areMessagesLoading) {
-      scrollToBottom('instant');
+      console.log('scroll to bottom', messagesContainerRef.current);
+        scrollToBottom('instant');
     }
   }, [chatId, areMessagesLoading]);
 
@@ -31,6 +30,12 @@ export function useChatScroll({
     if (!scrollToBottomElRef.current) return;
     const observer = new IntersectionObserver(entries => {
       const entry = entries[0];
+      console.log(
+        'entry',
+        entry?.isIntersecting,
+        areMessagesLoading,
+        scrollToBottomButtonRef.current,
+      );
       if (entry?.isIntersecting) {
         scrollToBottomButtonRef.current?.classList.add('invisible');
       } else {

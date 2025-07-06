@@ -1,4 +1,5 @@
 import { id } from '@instantdb/react';
+import { objectToString } from '@web/hooks/use-chat-messages';
 import { db } from '@web/lib/instant';
 import type { Message, ParsedMessage } from '@web/lib/types';
 import { sendMessage } from '@web/services';
@@ -20,8 +21,24 @@ export function createAssistantMessage(message: Message) {
     .link({ chat: message.chatId });
 }
 
+export async function getChatMessages(chatId: string) {
+  const data = await db.queryOnce({
+    messages: {
+      $: {
+        where: {
+          chatId: chatId,
+        },
+      },
+      files: {},
+    },
+  });
+  return data.data.messages.map(message => ({
+    ...message,
+    content: objectToString(message.content),
+  })) as ParsedMessage[];
+}
+
 export async function retryMessage(
-  messages: ParsedMessage[],
   targetMessage: ParsedMessage,
   newContent: string,
   userId: string,
@@ -29,6 +46,7 @@ export async function retryMessage(
   webSearchEnabled: boolean,
   reasoning: 'off' | 'low' | 'medium' | 'high',
 ) {
+  const messages = await getChatMessages(targetMessage.chatId);
   let targetIndex = messages.findIndex(m => m.id === targetMessage.id);
   if (targetMessage.role === 'user') {
     targetIndex += 1;
