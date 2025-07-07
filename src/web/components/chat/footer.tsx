@@ -36,7 +36,6 @@ import {
   ArrowUp,
   Bot,
   Brain,
-  ChevronsUpDown,
   Globe,
   LoaderCircleIcon,
   Mic,
@@ -44,7 +43,7 @@ import {
   Square,
   X,
 } from 'lucide-react';
-import { useRef, useState, type SVGProps } from 'react';
+import { memo, useRef, useState, type SVGProps } from 'react';
 import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId, models } from '@server/utils/models';
 import { useAudioRecorder } from '@web/hooks/use-audio-recorder';
@@ -95,12 +94,12 @@ function ModelIcon({ modelId }: { modelId: ModelId }) {
   return <Icon className='text-primary mr-2 h-4 w-4' fill={primaryColor} />;
 }
 
-export function ChatFooter({
+export const ChatFooter = memo(({
   onSubmit,
   selectedModel,
   updateModel,
   lastMessage,
-}: ChatFooterProps) {
+}: ChatFooterProps) => {
   const connection = useIsOnline();
   const formRef = useRef<HTMLFormElement>(null);
   const [message, setMessage] = useState('');
@@ -408,7 +407,8 @@ export function ChatFooter({
       </form>
     </div>
   );
-}
+}, (prev, next) => prev.lastMessage?.id !== next.lastMessage?.id && prev.lastMessage?.finished !== next.lastMessage?.finished && prev.onSubmit !== next.onSubmit && prev.updateModel !== next.onSubmit && prev.selectedModel !== next.selectedModel);
+ChatFooter.displayName = "ChatFooter";
 
 export function ModelsButton({
   selectedModel,

@@ -2,12 +2,6 @@ import { FileText } from 'lucide-react';
 import { ExpandableImage } from '../expandable-image';
 import { Button } from '../ui/button';
 
-type AttachmentFile = {
-  key: string;
-  name: string;
-  type: string;
-  ufsUrl: string | null;
-};
 
 export function MessageAttachments({ files }: { files: AttachmentFile[] }) {
   if (files.length === 0) return null;

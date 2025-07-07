@@ -18,3 +18,10 @@ export type ParsedMessage = Message & {
 export type Project = InstaQLEntity<typeof schema, 'projects'> & {
   chats?: Chat[];
 };
+
+export type AttachmentFile = {
+  key: string;
+  name: string;
+  type: string;
+  ufsUrl: string | null;
+};

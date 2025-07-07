@@ -2,11 +2,9 @@ import { useEffect, useRef } from 'react';
 
 export function useChatScroll({
   chatId,
-  messagesContainerRef,
   areMessagesLoading,
 }: {
   chatId: string;
-  messagesContainerRef: React.RefObject<HTMLDivElement | null>;
   areMessagesLoading: boolean;
 }) {
   const scrollToBottomButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -19,9 +17,7 @@ export function useChatScroll({
   };
 
   useEffect(() => {
-    console.log('areMessagesLoading', areMessagesLoading);
     if (!areMessagesLoading) {
-      console.log('scroll to bottom', messagesContainerRef.current);
         scrollToBottom('instant');
     }
   }, [chatId, areMessagesLoading]);
@@ -30,12 +26,6 @@ export function useChatScroll({
     if (!scrollToBottomElRef.current) return;
     const observer = new IntersectionObserver(entries => {
       const entry = entries[0];
-      console.log(
-        'entry',
-        entry?.isIntersecting,
-        areMessagesLoading,
-        scrollToBottomButtonRef.current,
-      );
       if (entry?.isIntersecting) {
         scrollToBottomButtonRef.current?.classList.add('invisible');
       } else {

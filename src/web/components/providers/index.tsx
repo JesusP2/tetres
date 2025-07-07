@@ -6,7 +6,7 @@ import { authClient, useSession } from '@web/lib/auth-client';
 import { db } from '@web/lib/instant';
 import { ConfirmDialogProvider } from './confirm-dialog-provider';
 import { ThemeProvider } from './theme-provider';
-import { useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 function NavLink({ href, children }: any) {
   return <Link to={href}>{children}</Link>;
@@ -23,38 +23,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 
 export function InnerProviders({ children }: { children: React.ReactNode }) {
-  const { isOnline, isChecking } = useIsOnline();
-  const navigate = useNavigate();
-  const { user, isLoading } = db.useAuth();
-  const { data: sessionData, isPending } = useSession();
+  const { user } = db.useAuth();
+  const sessionData = useSession();
   const { hooks, mutators } = useInstantOptions({
     db,
-    sessionData,
+    sessionData: sessionData.data,
     user,
     usePlural: true,
-    isPending,
+    isPending: sessionData.isPending,
   });
-
-  useEffect(() => {
-    if (isPending || isLoading || isChecking) return;
-
-    async function getUser() {
-      if (sessionData) {
-        if (!user || user.id !== sessionData.user.id) {
-          await db.auth.signInWithToken(sessionData.session.token);
-        }
-      } else if (isOnline) {
-        console.log("couldnt get session and you're online, revoking token")
-        await db.auth.signOut({ invalidateToken: false });
-      //   const data = await authClient.signIn.anonymous();
-      //   if (data.data) {
-      //     console.log("signed in anonymously")
-      //     await db.auth.signInWithToken(data.data.token);
-      //   }
-      }
-    }
-    getUser();
-  }, [db, isPending, isLoading, sessionData, user]);
 
   return (
     <AuthUIProvider
@@ -62,7 +39,7 @@ export function InnerProviders({ children }: { children: React.ReactNode }) {
       hooks={hooks}
       mutators={mutators}
       Link={NavLink}
-      navigate={href => navigate({ to: href })}
+      navigate={href => window.location.href = href}
       magicLink
       passkey
       providers={['google']}
