@@ -1,24 +1,14 @@
-import { id } from '@instantdb/react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@web/components/ui/accordion';
 import { Button } from '@web/components/ui/button';
-import { Textarea } from '@web/components/ui/textarea';
 import { useUser } from '@web/hooks/use-user';
 import { copySharedChat, updateChatModel } from '@web/lib/chats';
-import { createChat } from '@web/lib/chats';
 import { db } from '@web/lib/instant';
 import {
   createAssistantMessage,
   createUserMessage,
   getChatMessages,
-  retryMessage,
 } from '@web/lib/messages';
-import type { Chat as ChatType, Message, ParsedMessage } from '@web/lib/types';
+import type { Chat as ChatType, ParsedMessage } from '@web/lib/types';
 import {
   createMessageObject,
   fileToIFile,
@@ -26,14 +16,7 @@ import {
 } from '@web/lib/utils/message';
 import { sendMessage } from '@web/services';
 import {
-  AlertTriangle,
-  Check,
   Copy,
-  Edit3,
-  GitBranchIcon,
-  Loader2,
-  RotateCcw,
-  X,
 } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -41,8 +24,7 @@ import type { ClientUploadedFileData } from 'uploadthing/types';
 import { type ModelId } from '@server/utils/models';
 import { useChatScroll } from '../../hooks/use-chat-scroll';
 import { ChatFooter } from './footer';
-import { MessageAttachments } from './message-attachments';
-import { UserMessage } from '../message/user';
+import { UserMessage } from '../message';
 
 type ChatProps = {
   chat: ChatType;

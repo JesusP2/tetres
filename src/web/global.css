@@ -56,6 +56,14 @@ code {
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
+code::-webkit-scrollbar {
+  height: 5px !important;
+}
+code::-webkit-scrollbar-thumb {
+  background-color: var(--secondary) !important;
+  border-radius: 10px !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -136,11 +144,11 @@ code {
 }
 
 .chat-scrollbar::-webkit-scrollbar {
-  width: 5px;
+  width: 5px !important;
 }
 .chat-scrollbar:hover::-webkit-scrollbar-thumb {
-  background-color: var(--secondary);
-  border-radius: 10px;
+  background-color: var(--secondary) !important;
+  border-radius: 10px !important;
 }
 
 pre::-webkit-scrollbar {

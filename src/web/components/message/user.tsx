@@ -127,7 +127,7 @@ export const UserMessage = memo(({ message, chat, isProcessing, user }: Props) =
 
   return (
     <div data-role={message.role} className={cn(message.role === 'user' && 'flex justify-end')}>
-      <div className='max-w-xs md:max-w-xl'>
+      <div>
         {editingContent ? (
           <div className='space-y-2'>
             <Textarea
